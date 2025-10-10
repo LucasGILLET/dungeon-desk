@@ -81,8 +81,18 @@
         </div>
       </div>
 
-      <!-- Bouton de validation - intégré dans le conteneur principal -->
-      <div class="flex justify-center">
+      <!-- Boutons de navigation -->
+      <div class="flex justify-center space-x-6">
+        <button 
+          @click="emit('prev')"
+          class="bg-gray-500/30 text-white px-6 py-3 rounded-xl font-bold text-base hover:bg-gray-500/50 transition-all duration-200 flex items-center gap-2"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path>
+          </svg>
+          Retour
+        </button>
+        
         <transition 
           enter-active-class="transition-all duration-100 ease-out"
           enter-from-class="opacity-0 translate-y-4 scale-95"
@@ -93,7 +103,7 @@
             :class="{
               'opacity-50 cursor-not-allowed': !selectedClass
             }"
-            @click="$emit('next', selectedClass)"
+            @click="emit('next', selectedClass)"
           >
           <span class="flex items-center gap-2" >
             {{ selectedClass?.name ? "Continuer avec " + selectedClass.name : "Faites votre choix" }}
@@ -183,6 +193,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+
+const emit = defineEmits<{
+  next: [classe: any]
+  prev: []
+}>()
 
 interface DndClass {
   id: string

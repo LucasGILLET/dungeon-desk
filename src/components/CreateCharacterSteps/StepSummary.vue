@@ -71,6 +71,10 @@
                     <span class="text-purple-200">Classe :</span>
                     <span class="text-white font-semibold">{{ character.class || 'Non sélectionnée' }}</span>
                   </div>
+                  <div v-if="character.subclass" class="flex justify-between items-center">
+                    <span class="text-purple-200">Sous-classe :</span>
+                    <span class="text-white font-semibold">{{ character.subclass.name }}</span>
+                  </div>
                   <div class="flex justify-between items-center">
                     <span class="text-purple-200">Historique :</span>
                     <span class="text-white font-semibold">{{ getBackgroundName() }}</span>
@@ -186,6 +190,7 @@ interface Character {
   race: any
   subrace: any
   class: string
+  subclass?: any
   background: string
   abilities: Record<string, number>
   level: number
@@ -241,10 +246,10 @@ function getEstimatedHP(): number {
     'Clerc': 8,
     'Druide': 8,
     'Moine': 8,
-    'Voleur': 8,
-    'Sorcier': 6,
+    'Roublard': 8,
+    'Ensorceleur': 6,
     'Magicien': 6,
-    'Ensorceleur': 6
+    'Occultiste': 6
   }
   
   const baseHP = classBaseHP[props.character.class] || 8

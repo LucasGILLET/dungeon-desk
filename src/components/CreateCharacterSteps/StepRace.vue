@@ -63,14 +63,24 @@
         </div>
       </div>
       
-      <!-- Bouton de validation -->
-      <div class="flex justify-center">
+      <!-- Boutons de navigation -->
+      <div class="flex justify-center space-x-6">
+        <button 
+          @click="emit('prev')"
+          class="bg-gray-500/30 text-white px-6 py-3 rounded-xl font-bold text-base hover:bg-gray-500/50 transition-all duration-200 flex items-center gap-2"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path>
+          </svg>
+          Retour
+        </button>
+        
         <button 
           class="bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 px-8 py-4 rounded-xl font-bold text-lg shadow-2xl hover:from-yellow-300 hover:to-orange-400 transition-all duration-100 hover:scale-105"
           :class="{
             'opacity-50 cursor-not-allowed': !selectedRace
           }"
-          @click="$emit('next', selectedRace)"
+          @click="emit('next', selectedRace)"
           :disabled="!selectedRace"
         >
           <span class="flex items-center gap-2">
@@ -156,6 +166,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+
+const emit = defineEmits<{
+  next: [race: any]
+  prev: []
+}>()
 
 interface Race {
   id: string

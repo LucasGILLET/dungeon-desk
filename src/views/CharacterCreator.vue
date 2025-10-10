@@ -27,6 +27,7 @@ import StepRace from '@/components/CreateCharacterSteps/StepRace.vue'
 import StepBackground from '@/components/CreateCharacterSteps/StepBackground.vue'
 import StepClass from '@/components/CreateCharacterSteps/StepClass.vue'
 import StepSubrace from '@/components/CreateCharacterSteps/StepSubrace.vue'
+import StepSubclass from '@/components/CreateCharacterSteps/StepSubclass.vue'
 import StepSummary from '@/components/CreateCharacterSteps/StepSummary.vue'
 import { computed, reactive, ref } from 'vue'
 
@@ -37,6 +38,7 @@ const steps = [
   StepClass,
   StepBackground,
   StepAbilities,
+  StepSubclass,
   StepSummary
 ]
 
@@ -47,6 +49,7 @@ const character = reactive({
   race: null as any,
   subrace: null as any,
   class: '',
+  subclass: null as any,
   background: '',
   abilities: {} as Record<string, number>,
   level: 1
@@ -87,6 +90,10 @@ function handleNext(payload: any) {
   // Enregistre les caractéristiques
   if (step.value === 4 && payload) {
     character.abilities = payload
+  }
+  // Enregistre le choix de la sous-classe
+  if (step.value === 5) {
+    character.subclass = payload // peut être null si pas de sous-classe nécessaire
   }
   if (step.value < steps.length - 1) {
     step.value++
