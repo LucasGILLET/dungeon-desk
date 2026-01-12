@@ -17,7 +17,6 @@ async function loadJSON<T>(filename: string): Promise<T> {
     }
     const data = await response.json()
     dataCache.set(filename, data)
-    console.log(data)
     return data as T
   } catch (error) {
     console.error(`Erreur lors du chargement de ${filename}:`, error)

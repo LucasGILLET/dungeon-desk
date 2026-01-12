@@ -209,7 +209,6 @@ export function getClassByNameSync(name: string): ClassData | undefined {
 }
 
 export function getLevel1SubclassClassesSync(): ClassData[] {
-  console.log("classes", classes.filter(c => c.needsLevel1Subclass))
   return classes.filter(c => c.needsLevel1Subclass)
 }
 

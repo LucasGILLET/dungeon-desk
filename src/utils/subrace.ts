@@ -9,7 +9,6 @@ let subracesCache: SRDSubclass[] | null = null
 async function getSubraces(): Promise<SRDSubclass[]> {
   if (!subracesCache) {
     subracesCache = await loadSubraces()
-    console.log("subrace cache", subracesCache)
   }
   return subracesCache
 }

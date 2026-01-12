@@ -213,7 +213,6 @@ const canGoNext = computed(() => {
 
 watch(() => props.selectedRace, async (newRace) => {
   if (newRace) {
-    console.log(props.selectedRace)
     loading.value = true
     try {
       availableSubraces.value = await getSubracesByParentRace(newRace.index)

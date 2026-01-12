@@ -117,7 +117,7 @@ const selections = reactive<Record<string, string[]>>({})
 
 // Données des choix spéciaux requis
 const specialChoicesData = computed(() => {
-  return getRequiredSpecialChoices(props.character.class, props.character.subclass)
+  return getRequiredSpecialChoices(props.character.class.index, props.character.subclass)
 })
 
 const hasAnyChoices = computed(() => {

@@ -322,8 +322,6 @@ function validateAbilities() {
       return acc
     }, {} as Record<string, number>)
 
-    console.log('Caractéristiques validées:', abilityData)
-    
     emit('next', abilityData)
   }
 }

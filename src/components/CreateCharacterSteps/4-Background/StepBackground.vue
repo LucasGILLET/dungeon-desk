@@ -172,7 +172,6 @@ const error = ref<string | null>(null)
 onMounted(async () => {
   try {
     backgrounds.value = await loadBackgrounds()
-    console.log('Historiques chargés:', backgrounds.value)
   } catch (err) {
     error.value = 'Erreur lors du chargement des historiques'
     console.error(err)

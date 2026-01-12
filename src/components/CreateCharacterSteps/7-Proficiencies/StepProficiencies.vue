@@ -261,18 +261,14 @@ const selections = ref<Record<string, ProficiencyChoice[]>>({})
 
 // Computed pour organiser les maîtrises automatiques
 const automaticProficiencies = computed(() => {
-  console.log(proficiencyData.value)
   return proficiencyData.value.automaticProficiencies
 })
 // Langues automatiques de la sous-race
 const automaticRacialLanguages = computed(() => {
-  console.log(props.character)
-  console.log(props.character.race.languages)
   return getAutomaticLanguages(props.character.race)
 })
 
 const automaticSkills = computed(() => {
-  console.log(automaticProficiencies.value)
   return automaticProficiencies.value.filter(p => p.category === 'skill')
 })
 
@@ -393,8 +389,6 @@ function hideTooltip(event: MouseEvent) {
 
 // Initialisation
 onMounted(() => {
-  console.log("Character in StepProficiencies:", props.character)
-  // console.log("onMounted", props.character.race.id, props.character.subrace.id, props.character.class, props.character.background, props.character.subrace)
   proficiencyData.value = getAllCharacterProficiencies(
     props.character.race?.index,
     props.character.subrace?.index || props.character.subrace,

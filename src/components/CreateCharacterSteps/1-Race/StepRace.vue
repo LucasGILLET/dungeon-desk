@@ -237,12 +237,11 @@ onMounted(async () => {
 })
 
 const getImageUrl = (file: any) => {
-  return new URL(`../../images/${file}`, import.meta.url).href
+  return new URL(`../../../images/${file}`, import.meta.url).href
 }
 
 function selectRace(race: SRDRace) {
   selectedRace.value = race
-  console.log('Race', selectedRace.value)
 }
 
 function openRaceDetails(race: SRDRace) {

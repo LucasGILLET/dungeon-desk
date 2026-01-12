@@ -176,7 +176,6 @@ onMounted(async () => {
 })
 
 const needsSubclass = computed(() => {
-  console.log(props.character.class.index, level1SubclassClasses.value, level1SubclassClasses.value.includes(props.character.class.index))
   return level1SubclassClasses.value.includes(props.character.class.index)
 })
 

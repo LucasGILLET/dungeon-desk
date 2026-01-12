@@ -204,7 +204,7 @@ onMounted(async () => {
 })
 
 const getImageUrl = (file: any) => {
-  return new URL(`../../images/classes/${file}`, import.meta.url).href
+  return new URL(`../../../images/classes/${file}`, import.meta.url).href
 }
 
 function selectClass(classe: SRDClass) {
@@ -214,24 +214,6 @@ function selectClass(classe: SRDClass) {
 function isMartialClass(classIndex: string): boolean {
   // Classes martiales selon D&D 5e
   return ['barbarian', 'fighter', 'monk', 'paladin', 'ranger', 'rogue'].includes(classIndex)
-}
-
-function getClassEmoji(classIndex: string): string {
-  const emojis: Record<string, string> = {
-    'barbarian': '🪓',
-    'bard': '🎵',
-    'cleric': '✨',
-    'druid': '🌿',
-    'fighter': '⚔️',
-    'monk': '👊',
-    'paladin': '🛡️',
-    'ranger': '🏹',
-    'rogue': '🗡️',
-    'sorcerer': '⚡',
-    'warlock': '👹',
-    'wizard': '🔮'
-  }
-  return emojis[classIndex] || '❓'
 }
 
 function getClassDifficulty(cls: SRDClass): 'Facile' | 'Moyen' | 'Difficile' {

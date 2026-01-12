@@ -581,13 +581,9 @@ export function getAllCharacterProficiencies(
   backgroundId: string,
 ): ProficiencyData {
 
-  console.log("getAllCharacterProficiencies", raceId, subraceId, classId, backgroundId)
-
   const raceProficiencies = getRaceProficiencies(raceId, subraceId)
   const classProficiencies = getClassProficiencies(classId)
   const backgroundProficiencies = getBackgroundProficiencies(backgroundId)
-
-  console.log("race proficiencies:", raceProficiencies, "class proficiencies:", classProficiencies, "background proficiencies:", backgroundProficiencies)
 
   const allAutomatic = [
     ...raceProficiencies.automaticProficiencies,

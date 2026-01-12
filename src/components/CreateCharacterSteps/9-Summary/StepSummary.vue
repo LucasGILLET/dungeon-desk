@@ -380,7 +380,6 @@ const hasAnyProficiencies = computed(() => {
 // Computed pour extraire les compétences par type
 const skillsProficiencies = computed(() => {
   const prof = props.character.allProficiencies
-  console.log("allProficiencies :", prof, props.character)
   if (!prof) return []
   
   const skills: any[] = []
@@ -408,7 +407,6 @@ const languagesProficiencies = computed(() => {
       }
     }
   })
-  console.log("languages", languages)
   return languages
 })
 
@@ -527,7 +525,6 @@ function getAbilitiesDisplay() {
 
 function getVisionDisplay(): string {
   // Si une vision spécifique est définie dans la sous-race
-  console.log("character :", props.character)
   if (props.character.subrace?.vision) {
     return props.character.subrace.vision[0]
   }
@@ -590,8 +587,6 @@ function getBackgroundName(): string {
 function finalizeCharacter() {
   // Ici on pourrait sauvegarder le personnage, rediriger vers la fiche, etc.
   emit('finalize', props.character)
-  console.log('Personnage finalisé :', props.character)
-  
   // Pour l'instant, on affiche juste une alerte
   alert(`🎉 Personnage créé avec succès !\n\n${props.character.name || 'Votre aventurier'} est prêt pour l'aventure !`)
 }
