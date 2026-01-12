@@ -132,7 +132,7 @@ export const subclasses: SubclassData[] = [
   {
     id: 'lignee-draconique',
     name: 'Lignée Draconique',
-    className: 'sorcier',
+    className: 'sorcerer',
     source: 'Manuel des Joueurs',
     description: 'Votre magie innée provient de la magie draconique qui coule dans vos veines.',
     primaryAbility: 'Résistance et puissance élémentaire',
@@ -149,7 +149,7 @@ export const subclasses: SubclassData[] = [
   {
     id: 'magie-sauvage',
     name: 'Magie Sauvage',
-    className: 'sorcier',
+    className: 'sorcerer',
     source: 'Manuel des Joueurs',
     description: 'Votre magie innée provient des forces chaotiques du chaos lui-même.',
     primaryAbility: 'Effets magiques imprévisibles',
@@ -231,8 +231,8 @@ export const subclasses: SubclassData[] = [
 ]
 
 // Fonction utilitaire pour obtenir les sous-classes d'une classe
-export function getSubclassesByClassName(className: string): SubclassData[] {
-  return subclasses.filter(sc => sc.className === className)
+export function getSubclassesByClassName(className: any): SubclassData[] {
+  return subclasses.filter(sc => sc.className === className.name.toLowerCase())
 }
 
 // Fonction utilitaire pour obtenir une sous-classe par son ID

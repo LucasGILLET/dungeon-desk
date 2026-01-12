@@ -1,11 +1,13 @@
+import type { SRDClass, SRDRace } from '@/types/srd'
 import { defineStore } from 'pinia'
 import { ref, reactive } from 'vue'
 
 export interface Character {
   id?: string
   name: string
-  race: string
-  class: string
+  race: SRDRace
+  class: SRDClass
+  subclass?: string
   level: number
   abilities: {
     strength: number
@@ -20,6 +22,12 @@ export interface Character {
   background: string
   equipment: string[]
   spells: string[]
+  proficiencies?: {
+    skills: string[]
+    languages: string[]
+    tools: string[]
+  }
+  specialChoices?: Record<string, string[]>
   createdAt?: Date
   updatedAt?: Date
 }

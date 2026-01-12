@@ -3,10 +3,10 @@
     <!-- En-tête -->
     <div class="text-center pt-8 pb-6">
       <h1 class="text-4xl font-bold text-white mb-2">⚡ Choix de la Sous-classe</h1>
-      <p class="text-orange-100 text-lg">Spécialisez votre {{ character.class }} dès le niveau 1</p>
+      <p class="text-orange-100 text-lg">Spécialisez votre {{ character.class.name }} dès le niveau 1</p>
       <div v-if="character.subrace" class="mt-3">
         <span class="bg-orange-500/30 text-orange-100 px-3 py-1 rounded-full text-sm font-medium border border-orange-400/30">
-          {{ character.subrace.name }} {{ character.class }}
+          {{ character.subrace.name }} {{ character.class.name }}
         </span>
       </div>
     </div>
@@ -118,58 +118,40 @@
           <div class="text-6xl mb-4">✅</div>
           <h2 class="text-2xl font-bold text-white mb-2">Aucune sous-classe requise</h2>
           <p class="text-orange-200">
-            La classe {{ character.class }} ne nécessite pas de choix de sous-classe au niveau 1.
+            La classe {{ character.class.name }} ne nécessite pas de choix de sous-classe au niveau 1.
           </p>
           <p class="text-orange-300 text-sm mt-2">
             Vous pourrez choisir votre spécialisation plus tard dans votre aventure !
           </p>
         </div>
-
-        <!-- Boutons de navigation -->
-        <div class="flex justify-center space-x-6">
-          <button 
-            @click="$emit('prev')"
-            class="bg-gray-500/30 text-white px-6 py-3 rounded-xl font-bold text-base hover:bg-gray-500/50 transition-all duration-200 flex items-center gap-2"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path>
-            </svg>
-            Retour
-          </button>
-          
-          <button 
-            @click="validateSubclass"
-            :disabled="needsSubclass && !selectedSubclass"
-            :class="[
-              'px-8 py-3 rounded-xl font-bold text-base transition-all duration-200 flex items-center gap-2',
-              needsSubclass && !selectedSubclass
-                ? 'bg-gray-500/30 text-gray-400 cursor-not-allowed'
-                : 'bg-gradient-to-r from-orange-400 to-red-500 text-white hover:from-orange-300 hover:to-red-400 hover:scale-105 shadow-lg'
-            ]"
-          >
-            {{ needsSubclass && !selectedSubclass ? 'Sélectionnez une sous-classe' : 'Continuer' }}
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-            </svg>
-          </button>
-        </div>
       </div>
     </div>
+
+    <!-- Navigation -->
+    <StepNavigation 
+      :current-step="6" 
+      :total-steps="9"
+      step-name="Sous-classe"
+      :disable-next="needsSubclass && !selectedSubclass"
+      @previous="$emit('prev')"
+      @next="validateSubclass"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { getLevel1SubclassClassIds } from '@/utils/classes'
 import { getSubclassesByClassName, getSubclassEmoji, type SubclassData } from '@/utils/subclasses'
 import { getSpellDescription } from '@/utils/spells'
 import { getFeatureDescription } from '@/utils/features'
+import StepNavigation from '../StepNavigation.vue'
 
 interface Character {
   name: string
   race: any
   subrace: any
-  class: string
+  class: any
   subclass?: string
   background: string
   abilities: Record<string, number>
@@ -186,13 +168,16 @@ const emit = defineEmits<{
 }>()
 
 const selectedSubclass = ref<SubclassData | null>(null)
+const level1SubclassClasses = ref<string[]>([])
 
-// Classes qui nécessitent un choix de sous-classe au niveau 1
-const level1SubclassClasses = getLevel1SubclassClassIds()
+onMounted(async () => {
+  // Classes qui nécessitent un choix de sous-classe au niveau 1
+  level1SubclassClasses.value = await getLevel1SubclassClassIds()
+})
 
 const needsSubclass = computed(() => {
-    console.log(props.character.class)
-  return level1SubclassClasses.includes(props.character.class)
+  console.log(props.character.class.index, level1SubclassClasses.value, level1SubclassClasses.value.includes(props.character.class.index))
+  return level1SubclassClasses.value.includes(props.character.class.index)
 })
 
 const availableSubclasses = computed(() => {

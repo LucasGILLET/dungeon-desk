@@ -1,0 +1,610 @@
+<template>
+  <div class="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex flex-col">
+    <!-- En-tête -->
+    <div class="text-center pt-8 pb-6">
+      <h1 class="text-4xl font-bold text-white mb-2">🎭 Récapitulatif du Personnage</h1>
+      <p class="text-purple-100 text-lg">Vérifiez les détails de votre aventurier avant de commencer !</p>
+    </div>
+
+    <!-- Contenu principal -->
+    <div class="flex-1 px-6 pb-8">
+      <div class="max-w-6xl mx-auto">
+        <!-- Carte principale du personnage -->
+        <div class="bg-white/10 backdrop-blur-md rounded-3xl p-8 border-2 border-white/20 shadow-2xl mb-6">
+          <!-- Nom du personnage -->
+          <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold text-white mb-2">{{ character.name || 'Nom à définir' }}</h2>
+            <p class="text-purple-200 text-lg">
+              {{ character.subrace?.name || character.race?.name || 'Race' }} 
+              <!-- {{ character.class || 'Classe' }} - Niveau {{ character.level }} -->
+            </p>
+            <!-- <p class="text-purple-300 text-base">{{ getBackgroundName() }}</p> -->
+          </div>
+
+          <!-- Grille d'informations -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- Informations de base -->
+            <div class="space-y-6">
+              <!-- Race et Sous-race -->
+              <div class="bg-black/20 rounded-xl p-6">
+                <h3 class="text-xl font-bold text-white mb-4 flex items-center">
+                  🧬 Origine
+                </h3>
+                <div class="space-y-3">
+                  <div class="flex justify-between items-center">
+                    <span class="text-purple-200">Race :</span>
+                    <span class="text-white font-semibold">{{ character.race?.name || 'Non sélectionnée' }}</span>
+                  </div>
+                  <div v-if="character.subrace" class="flex justify-between items-center">
+                    <span class="text-purple-200">Sous-race :</span>
+                    <span class="text-white font-semibold">{{ character.subrace.name }}</span>
+                  </div>
+                  <div v-if="character.subrace" class="grid grid-cols-2 gap-2 mt-4 text-sm">
+                    <div class="bg-white/10 rounded-lg p-2">
+                      <div class="text-purple-200">Taille</div>
+                      <div class="text-white font-medium">{{ character.subrace.size }}</div>
+                    </div>
+                    <div class="bg-white/10 rounded-lg p-2">
+                      <div class="text-purple-200">Vitesse</div>
+                      <div class="text-white font-medium">{{ character.subrace.speed }} m</div>
+                    </div>
+                    <div class="bg-white/10 rounded-lg p-2">
+                      <div class="text-purple-200">Vision</div>
+                      <div class="text-white font-medium">{{ getVisionDisplay() }}</div>
+                    </div>
+                    <div v-if="character.subrace.languages?.length" class="bg-white/10 rounded-lg p-2">
+                      <div class="text-purple-200">Langues</div>
+                      <div class="text-white font-medium text-xs">{{ character.subrace.languages.join(', ') }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Classe et Background -->
+              <div class="bg-black/20 rounded-xl p-6">
+                <h3 class="text-xl font-bold text-white mb-4 flex items-center">
+                  ⚔️ Profession
+                </h3>
+                <div class="space-y-3">
+                  <div class="flex justify-between items-center">
+                    <span class="text-purple-200">Classe :</span>
+                    <span class="text-white font-semibold">{{ character.class.name || 'Non sélectionnée' }}</span>
+                  </div>
+                  <div v-if="character.subclass" class="flex justify-between items-center">
+                    <span class="text-purple-200">Sous-classe :</span>
+                    <span class="text-white font-semibold">{{ character.subclass.name }}</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-purple-200">Historique :</span>
+                    <span class="text-white font-semibold">{{ getBackgroundName() }}</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-purple-200">Niveau :</span>
+                    <span class="text-white font-semibold">{{ character.level }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Traits raciaux -->
+              <div v-if="character.subrace?.traits?.length" class="bg-black/20 rounded-xl p-6">
+                <h3 class="text-xl font-bold text-white mb-4 flex items-center">
+                  ✨ Traits Raciaux
+                </h3>
+                <div class="space-y-3">
+                  <div v-for="trait in character.subrace.traits" :key="trait" 
+                       class="relative bg-white/10 rounded-lg p-4 hover:bg-white/20 transition-all duration-200 cursor-help group">
+                    <div class="text-purple-100 text-sm font-semibold mb-2">{{ trait }}</div>
+                    <div class="text-white text-xs leading-relaxed">{{ getTraitDescription(trait) }}</div>
+                    
+                    <!-- Indicateur de survol -->
+                    <div class="absolute top-2 right-2 text-purple-300 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Compétences et Maîtrises -->
+              <div class="bg-black/20 rounded-xl p-6">
+                <h3 class="text-xl font-bold text-white mb-4 flex items-center">
+                  🎯 Compétences & Maîtrises
+                </h3>
+                <div class="space-y-4">
+                  <!-- Compétences -->
+                  <div v-if="skillsProficiencies.length > 0">
+                    <h4 class="text-purple-200 text-sm font-semibold mb-2">Compétences</h4>
+                    <div class="flex flex-wrap gap-2">
+                      <span v-for="skill in skillsProficiencies" :key="skill.id"
+                            class="bg-blue-500/30 text-blue-100 px-2 py-1 rounded-md text-xs font-medium"
+                            :title="skill.description">
+                        {{ skill.name }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Langues -->
+                  <div v-if="languagesProficiencies.length > 0">
+                    <h4 class="text-purple-200 text-sm font-semibold mb-2">Langues</h4>
+                    <div class="flex flex-wrap gap-2">
+                      <span v-for="language in languagesProficiencies" :key="language.id"
+                            class="bg-yellow-500/30 text-yellow-100 px-2 py-1 rounded-md text-xs font-medium"
+                            :title="language.description">
+                        {{ language.name }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Outils -->
+                  <div v-if="toolsProficiencies.length > 0">
+                    <h4 class="text-purple-200 text-sm font-semibold mb-2">Outils</h4>
+                    <div class="flex flex-wrap gap-2">
+                      <span v-for="tool in toolsProficiencies" :key="tool.id"
+                            class="bg-green-500/30 text-green-100 px-2 py-1 rounded-md text-xs font-medium"
+                            :title="tool.description">
+                        {{ tool.name }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Armes -->
+                  <div v-if="weaponsProficiencies.length > 0">
+                    <h4 class="text-purple-200 text-sm font-semibold mb-2">Armes</h4>
+                    <div class="flex flex-wrap gap-2">
+                      <span v-for="weapon in weaponsProficiencies" :key="weapon.id"
+                            class="bg-red-500/30 text-red-100 px-2 py-1 rounded-md text-xs font-medium"
+                            :title="weapon.description">
+                        {{ weapon.name }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Armures -->
+                  <div v-if="armorProficiencies.length > 0">
+                    <h4 class="text-purple-200 text-sm font-semibold mb-2">Armures</h4>
+                    <div class="flex flex-wrap gap-2">
+                      <span v-for="armor in armorProficiencies" :key="armor.id"
+                            class="bg-gray-500/30 text-gray-100 px-2 py-1 rounded-md text-xs font-medium"
+                            :title="armor.description">
+                        {{ armor.name }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Message si aucune maîtrise -->
+                  <div v-if="!hasAnyProficiencies" class="text-center text-gray-400 py-4">
+                    <div class="text-sm">Aucune compétence ou maîtrise définie</div>
+                    <div class="text-xs mt-1">Les compétences seront ajoutées lors des étapes précédentes</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Choix Spéciaux -->
+              <div class="bg-black/20 rounded-xl p-6">
+                <h3 class="text-xl font-bold text-white mb-4 flex items-center">
+                  ⚡ Choix Spéciaux
+                </h3>
+                <div class="space-y-3">
+                  <div v-if="specialChoicesDisplay.draconicAncestry" 
+                       class="bg-white/10 rounded-lg p-3">
+                    <div class="text-orange-200 text-sm font-semibold">Ascendance Draconique</div>
+                    <div class="flex flex-wrap gap-1 mt-1">
+                      <span v-for="ancestry in specialChoicesDisplay.draconicAncestry" :key="ancestry"
+                            class="bg-orange-600/30 text-orange-100 px-2 py-1 rounded text-xs">
+                        {{ ancestry }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div v-if="specialChoicesDisplay.fightingStyle" 
+                       class="bg-white/10 rounded-lg p-3">
+                    <div class="text-red-200 text-sm font-semibold">Style de Combat</div>
+                    <div class="flex flex-wrap gap-1 mt-1">
+                      <span v-for="style in specialChoicesDisplay.fightingStyle" :key="style"
+                            class="bg-red-600/30 text-red-100 px-2 py-1 rounded text-xs">
+                        {{ style }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div v-if="specialChoicesDisplay.favoredEnemies" 
+                       class="bg-white/10 rounded-lg p-3">
+                    <div class="text-green-200 text-sm font-semibold">Ennemis Jurés</div>
+                    <div class="flex flex-wrap gap-1 mt-1">
+                      <span v-for="enemy in specialChoicesDisplay.favoredEnemies" :key="enemy"
+                            class="bg-green-600/30 text-green-100 px-2 py-1 rounded text-xs">
+                        {{ enemy }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div v-if="specialChoicesDisplay.naturalExplorer" 
+                       class="bg-white/10 rounded-lg p-3">
+                    <div class="text-blue-200 text-sm font-semibold">Explorateur-né</div>
+                    <div class="flex flex-wrap gap-1 mt-1">
+                      <span v-for="terrain in specialChoicesDisplay.naturalExplorer" :key="terrain"
+                            class="bg-blue-600/30 text-blue-100 px-2 py-1 rounded text-xs">
+                        {{ terrain }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div v-if="specialChoicesDisplay.expertise" 
+                       class="bg-white/10 rounded-lg p-3">
+                    <div class="text-purple-200 text-sm font-semibold">Expertise</div>
+                    <div class="flex flex-wrap gap-1 mt-1">
+                      <span v-for="skill in specialChoicesDisplay.expertise" :key="skill"
+                            class="bg-purple-600/30 text-purple-100 px-2 py-1 rounded text-xs">
+                        {{ skill }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Autres choix spéciaux non catégorisés -->
+                  <template v-for="(value, key) in specialChoicesDisplay" :key="key">
+                    <div v-if="!['draconicAncestry', 'fightingStyle', 'favoredEnemies', 'naturalExplorer', 'expertise'].includes(key)"
+                         class="bg-white/10 rounded-lg p-3">
+                      <div class="text-yellow-200 text-sm font-semibold">{{ key }}</div>
+                      <div class="flex flex-wrap gap-1 mt-1">
+                        <span v-for="item in value" :key="item"
+                              class="bg-yellow-600/30 text-yellow-100 px-2 py-1 rounded text-xs">
+                          {{ item }}
+                        </span>
+                      </div>
+                    </div>
+                  </template>
+
+                  <!-- Message si aucun choix spécial -->
+                  <div v-if="!hasSpecialChoices" class="text-center text-gray-400 py-4">
+                    <div class="text-sm">Aucun choix spécial défini</div>
+                    <div class="text-xs mt-1">Les choix spéciaux dépendent de la classe et sous-classe</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Caractéristiques -->
+            <div class="space-y-6">
+              <!-- Stats principales -->
+              <div class="bg-black/20 rounded-xl p-6">
+                <h3 class="text-xl font-bold text-white mb-4 flex items-center">
+                  📊 Caractéristiques
+                </h3>
+                <div class="grid grid-cols-2 gap-3">
+                  <div v-for="ability in getAbilitiesDisplay()" :key="ability.name"
+                       class="bg-gradient-to-br from-blue-500/30 to-purple-500/30 rounded-lg p-3 border border-blue-400/40">
+                    <div class="text-center">
+                      <div class="text-purple-200 text-sm font-medium">{{ ability.name }}</div>
+                      <div class="text-2xl font-bold text-white">{{ ability.final }}</div>
+                      <div class="text-blue-200 text-xs">({{ ability.modifier >= 0 ? '+' : '' }}{{ ability.modifier }})</div>
+                      <div class="text-xs text-green-300 mt-1">
+                        {{ ability.base }}{{ ability.racial > 0 ? ` +${ability.racial}` : '' }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Points de vie estimés -->
+              <div class="bg-black/20 rounded-xl p-6">
+                <h3 class="text-xl font-bold text-white mb-4 flex items-center">
+                  ❤️ Statistiques de Combat
+                </h3>
+                <div class="space-y-3">
+                  <div class="flex justify-between items-center">
+                    <span class="text-purple-200">Points de Vie (estimés) :</span>
+                    <span class="text-red-300 font-bold text-lg">{{ getEstimatedHP() }}</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-purple-200">Classe d'Armure (base) :</span>
+                    <span class="text-blue-300 font-bold">{{ getBaseAC() }}</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-purple-200">Initiative :</span>
+                    <span class="text-green-300 font-bold">{{ getInitiative() }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <StepNavigation 
+      :current-step="9" 
+      :total-steps="9"
+      step-name="Résumé final"
+      @previous="$emit('prev')"
+      @next="finalizeCharacter"
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+import { getTraitDescription } from '@/utils/traits'
+import StepNavigation from '../StepNavigation.vue'
+
+interface Character {
+  name: string
+  race: any
+  subrace: any
+  class: any
+  subclass?: any
+  background: any
+  abilities: Record<string, number>
+  level: number
+  proficiencies?: {
+    skills?: string[]
+    languages?: string[]
+    tools?: string[]
+    weapons?: string[]
+    armor?: string[]
+    [key: string]: any[] | undefined // Permet l'indexation dynamique
+  }
+  allProficiencies?: {
+    [key: string]: any[] | undefined // Permet l'indexation dynamique
+  }
+  specialChoices?: {
+    draconicAncestry?: string
+    fightingStyle?: string
+    favoredEnemies?: string[]
+    naturalExplorer?: string[]
+    expertise?: string[]
+    [key: string]: any[] | string | undefined // Permet l'indexation dynamique
+  }
+}
+
+const props = defineProps<{
+  character: Character
+}>()
+
+const emit = defineEmits(['prev', 'finalize'])
+
+// Propriétés computed pour les sections conditionnelles
+const hasAnyProficiencies = computed(() => {
+  const prof = props.character.allProficiencies
+  if (!prof) return false
+  
+  // Vérifier s'il y a des données dans n'importe quelle catégorie
+  return Object.keys(prof).some(key => {
+    const items = prof[key]
+    return Array.isArray(items) && items.length > 0
+  })
+})
+
+// Computed pour extraire les compétences par type
+const skillsProficiencies = computed(() => {
+  const prof = props.character.allProficiencies
+  console.log("allProficiencies :", prof, props.character)
+  if (!prof) return []
+  
+  const skills: any[] = []
+  Object.keys(prof).forEach(key => {
+    if (key.includes('competences') || key.includes('skills')) {
+      const items = prof[key]
+      if (Array.isArray(items)) {
+        skills.push(...items)
+      }
+    }
+  })
+  return skills
+})
+
+const languagesProficiencies = computed(() => {
+  const prof = props.character.allProficiencies
+  if (!prof) return []
+  
+  const languages: any[] = []
+  Object.keys(prof).forEach(key => {
+    if (key.includes('langue') || key.includes('languages')) {
+      const items = prof[key]
+      if (Array.isArray(items)) {
+        languages.push(...items)
+      }
+    }
+  })
+  console.log("languages", languages)
+  return languages
+})
+
+const toolsProficiencies = computed(() => {
+  const prof = props.character.allProficiencies
+  if (!prof) return []
+  
+  const tools: any[] = []
+  Object.keys(prof).forEach(key => {
+    if (key.includes('outils') || key.includes('tools')) {
+      const items = prof[key]
+      if (Array.isArray(items)) {
+        tools.push(...items)
+      }
+    }
+  })
+  return tools
+})
+
+const weaponsProficiencies = computed(() => {
+  const prof = props.character.allProficiencies
+  if (!prof) return []
+  
+  const weapons: any[] = []
+  Object.keys(prof).forEach(key => {
+    if (key.includes('armes') || key.includes('weapons')) {
+      const items = prof[key]
+      if (Array.isArray(items)) {
+        weapons.push(...items)
+      }
+    }
+  })
+  return weapons
+})
+
+const armorProficiencies = computed(() => {
+  const prof = props.character.allProficiencies
+  if (!prof) return []
+  
+  const armor: any[] = []
+  Object.keys(prof).forEach(key => {
+    if (key.includes('armures') || key.includes('armor')) {
+      const items = prof[key]
+      if (Array.isArray(items)) {
+        armor.push(...items)
+      }
+    }
+  })
+  return armor
+})
+
+const hasSpecialChoices = computed(() => {
+  const choices = props.character.specialChoices
+  if (!choices) return false
+  
+  // Vérifier s'il y a des données dans n'importe quelle clé
+  return Object.keys(choices).some(key => {
+    const items = choices[key]
+    return Array.isArray(items) && items.length > 0
+  })
+})
+
+// Computed pour extraire les choix spéciaux par type
+const specialChoicesDisplay = computed(() => {
+  const choices = props.character.specialChoices
+  if (!choices) return {}
+  
+  const result: Record<string, any> = {}
+  
+  Object.keys(choices).forEach(key => {
+    const items = choices[key]
+    if (Array.isArray(items) && items.length > 0) {
+      // Convertir les clés kebab-case en format lisible
+      if (key.includes('fighting-style') || key.includes('style-combat')) {
+        result.fightingStyle = items
+      } else if (key.includes('draconic-ancestry') || key.includes('ascendance-draconique')) {
+        result.draconicAncestry = items
+      } else if (key.includes('favored-enemies') || key.includes('ennemis-jures')) {
+        result.favoredEnemies = items
+      } else if (key.includes('natural-explorer') || key.includes('explorateur-ne')) {
+        result.naturalExplorer = items
+      } else if (key.includes('expertise')) {
+        result.expertise = items
+      } else {
+        // Fallback pour d'autres types de choix
+        result[key] = items
+      }
+    }
+  })
+  
+  return result
+})
+
+// Fonctions utilitaires
+function getModifier(value: number): number {
+  return Math.floor((value - 10) / 2)
+}
+
+function getAbilitiesDisplay() {
+  const abilityNames = ['Force', 'Dextérité', 'Constitution', 'Intelligence', 'Sagesse', 'Charisme']
+  
+  return abilityNames.map(name => {
+    const baseValue = props.character.abilities[name.toLowerCase()] || 8
+    const racialBonus = props.character.subrace?.abilityBonuses?.[name] || 0
+    const finalValue = baseValue + racialBonus
+    
+    return {
+      name: name.substring(0, 3),
+      base: baseValue,
+      racial: racialBonus,
+      final: finalValue,
+      modifier: getModifier(finalValue)
+    }
+  })
+}
+
+function getVisionDisplay(): string {
+  // Si une vision spécifique est définie dans la sous-race
+  console.log("character :", props.character)
+  if (props.character.subrace?.vision) {
+    return props.character.subrace.vision[0]
+  }
+  
+  // Sinon, vision normale par défaut
+  return 'Vision normale'
+}
+
+function getEstimatedHP(): number {
+  // HP de base selon la classe (estimation)
+  const classBaseHP: Record<string, number> = {
+    'Barbare': 12,
+    'Guerrier': 10,
+    'Paladin': 10,
+    'Rôdeur': 10,
+    'Barde': 8,
+    'Clerc': 8,
+    'Druide': 8,
+    'Moine': 8,
+    'Roublard': 8,
+    'Ensorceleur': 6,
+    'Magicien': 6,
+    'Occultiste': 6
+  }
+  
+  const baseHP = classBaseHP[props.character.class] || 8
+  const conModifier = getModifier(getAbilitiesDisplay().find(a => a.name === 'Con')?.final || 10)
+  
+  return baseHP + conModifier
+}
+
+function getBaseAC(): number {
+  const dexModifier = getModifier(getAbilitiesDisplay().find(a => a.name === 'Dex')?.final || 10)
+  return 10 + dexModifier
+}
+
+function getInitiative(): string {
+  const dexModifier = getModifier(getAbilitiesDisplay().find(a => a.name === 'Dex')?.final || 10)
+  return dexModifier >= 0 ? `+${dexModifier}` : `${dexModifier}`
+}
+
+function getBackgroundName(): string {
+  const backgroundNames: Record<string, string> = {
+    'acolyte': 'Acolyte',
+    'artisan': 'Artisan de guilde',
+    'artiste': 'Artiste',
+    'charlatan': 'Charlatan',
+    'criminel': 'Criminel',
+    'ermite': 'Ermite',
+    'héros-du-peuple': 'Héros du peuple',
+    'noble': 'Noble',
+    'sage': 'Sage',
+    'sauvageon': 'Sauvageon',
+    'soldat': 'Soldat'
+  }
+  
+  return backgroundNames[props.character.background.name] || props.character.background.name || 'Non sélectionné'
+}
+
+function finalizeCharacter() {
+  // Ici on pourrait sauvegarder le personnage, rediriger vers la fiche, etc.
+  emit('finalize', props.character)
+  console.log('Personnage finalisé :', props.character)
+  
+  // Pour l'instant, on affiche juste une alerte
+  alert(`🎉 Personnage créé avec succès !\n\n${props.character.name || 'Votre aventurier'} est prêt pour l'aventure !`)
+}
+</script>
+
+<style scoped>
+/* Animations pour les cartes */
+.bg-black\/20 {
+  transition: all 0.3s ease;
+}
+
+.bg-black\/20:hover {
+  background: rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+</style>

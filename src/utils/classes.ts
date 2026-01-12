@@ -1,4 +1,6 @@
 // Données des classes D&D 5e
+import { loadClasses } from './dataLoader'
+import type { SRDClass } from '@/types/srd'
 export interface ClassData {
   id: string
   name: string
@@ -172,22 +174,142 @@ export const classes: ClassData[] = [
   }
 ]
 
-// Fonction utilitaire pour obtenir une classe par son ID
-export function getClassById(id: string): ClassData | undefined {
+// Fonction utilitaire pour obtenir une classe par son ID (utilise les données SRD)
+export async function getClassById(id: string): Promise<SRDClass | undefined> {
+  const srdClasses = await loadClasses()
+  return srdClasses.find(c => c.index === id)
+}
+
+// Fonction utilitaire pour obtenir une classe par son nom (utilise les données SRD)
+export async function getClassByName(name: string): Promise<SRDClass | undefined> {
+  const srdClasses = await loadClasses()
+  return srdClasses.find(c => c.name === name)
+}
+
+// Fonction pour obtenir les classes qui nécessitent une sous-classe au niveau 1 (utilise les données SRD)
+export async function getLevel1SubclassClasses(): Promise<SRDClass[]> {
+  const srdClasses = await loadClasses()
+  const lvl1Classes = ["cleric", "sorcerer", "warlock"]
+  return srdClasses.filter(c => lvl1Classes.includes(c.index))
+}
+
+// Fonction pour obtenir les IDs des classes qui nécessitent une sous-classe au niveau 1 (utilise les données SRD)
+export async function getLevel1SubclassClassIds(): Promise<string[]> {
+  const level1Classes = await getLevel1SubclassClasses()
+  return level1Classes.map(c => c.index)
+}
+
+// Fonctions compatibilité avec l'ancien format (utilisent toujours la variable classes)
+export function getClassByIdSync(id: string): ClassData | undefined {
   return classes.find(c => c.id === id)
 }
 
-// Fonction utilitaire pour obtenir une classe par son nom
-export function getClassByName(name: string): ClassData | undefined {
+export function getClassByNameSync(name: string): ClassData | undefined {
   return classes.find(c => c.name === name)
 }
 
-// Fonction pour obtenir les classes qui nécessitent une sous-classe au niveau 1
-export function getLevel1SubclassClasses(): ClassData[] {
+export function getLevel1SubclassClassesSync(): ClassData[] {
+  console.log("classes", classes.filter(c => c.needsLevel1Subclass))
   return classes.filter(c => c.needsLevel1Subclass)
 }
 
-// Fonction pour obtenir les IDs des classes qui nécessitent une sous-classe au niveau 1
-export function getLevel1SubclassClassIds(): string[] {
-  return getLevel1SubclassClasses().map(c => c.id)
+export function getLevel1SubclassClassIdsSync(): string[] {
+  return getLevel1SubclassClassesSync().map(c => c.id)
+}
+
+// Fonctions utilitaires pour travailler avec les données SRD
+
+// Convertit une classe SRD vers le format ClassData (pour compatibilité)
+export function convertSRDClassToClassData(srdClass: SRDClass): ClassData {
+  return {
+    id: srdClass.index,
+    name: srdClass.name,
+    description: getClassDescription(srdClass),
+    hitDie: srdClass.hit_die,
+    primaryAbility: getClassPrimaryAbilities(srdClass),
+    savingThrows: srdClass.saving_throws.map(st => st.name),
+    skillChoices: getSkillChoicesCount(srdClass),
+    availableSkills: getAvailableSkills(srdClass),
+    equipment: getStartingEquipment(srdClass),
+    spellcaster: isSpellcaster(srdClass),
+    needsLevel1Subclass: hasLevel1Subclass(srdClass)
+  }
+}
+
+// Obtient la description d'une classe SRD
+export function getClassDescription(srdClass: SRDClass): string {
+  const descriptions: Record<string, string> = {
+    'barbarian': 'Combattant sauvage utilisant la rage comme arme.',
+    'bard': 'Artiste magique, soutien polyvalent du groupe.',
+    'cleric': 'Guérisseur divin, soutien et protection du groupe.',
+    'druid': 'Gardien de la nature, magie et métamorphose.',
+    'fighter': 'Maître des armes et de l\'armure, spécialiste du combat.',
+    'monk': 'Artiste martial utilisant l\'énergie interne.',
+    'paladin': 'Guerrier saint, alliant combat et magie divine.',
+    'ranger': 'Chasseur expert, à l\'aise en nature et à distance.',
+    'rogue': 'Expert en discrétion, crochetage et attaques sournoises.',
+    'sorcerer': 'Magie innée puissante mais limitée en sorts.',
+    'warlock': 'Pacte avec des entités d\'outre-monde pour la magie.',
+    'wizard': 'Manipulateur de la magie arcane, puissant mais fragile.'
+  }
+  return descriptions[srdClass.index] || `Classe ${srdClass.name} de D&D 5e.`
+}
+
+// Obtient les statistiques principales d'une classe SRD
+export function getClassPrimaryAbilities(srdClass: SRDClass): string[] {
+  const statsMap: Record<string, string[]> = {
+    'barbarian': ['Force', 'Constitution'],
+    'bard': ['Charisme', 'Dextérité'],
+    'cleric': ['Sagesse', 'Constitution'],
+    'druid': ['Sagesse', 'Constitution'],
+    'fighter': ['Force', 'Constitution'],
+    'monk': ['Dextérité', 'Sagesse'],
+    'paladin': ['Force', 'Charisme'],
+    'ranger': ['Dextérité', 'Sagesse'],
+    'rogue': ['Dextérité', 'Intelligence'],
+    'sorcerer': ['Charisme', 'Constitution'],
+    'warlock': ['Charisme', 'Constitution'],
+    'wizard': ['Intelligence', 'Constitution']
+  }
+  return statsMap[srdClass.index] || ['Force']
+}
+
+// Obtient le nombre de choix de compétences pour une classe SRD
+export function getSkillChoicesCount(srdClass: SRDClass): number {
+  const skillChoice = srdClass.proficiency_choices.find(choice => 
+    choice.type === 'proficiencies' && choice.from?.option_set_type === 'options_array'
+  )
+  return skillChoice?.choose || 0
+}
+
+// Obtient les compétences disponibles pour une classe SRD
+export function getAvailableSkills(srdClass: SRDClass): string[] {
+  const skillChoice = srdClass.proficiency_choices.find(choice => 
+    choice.type === 'proficiencies' && choice.from?.option_set_type === 'options_array'
+  )
+  if (!skillChoice?.from?.options) return []
+  
+  return skillChoice.from.options
+    .map(option => option.item?.name)
+    .filter(name => name && name.includes('Skill:'))
+    .map(name => name.replace('Skill: ', ''))
+}
+
+// Obtient l'équipement de départ pour une classe SRD
+export function getStartingEquipment(srdClass: SRDClass): string[] {
+  return srdClass.starting_equipment?.map(item => 
+    `${item.equipment.name}${item.quantity > 1 ? ` (x${item.quantity})` : ''}`
+  ) || []
+}
+
+// Vérifie si une classe SRD est un lanceur de sorts
+export function isSpellcaster(srdClass: SRDClass): boolean {
+  const spellcasters = ['bard', 'cleric', 'druid', 'sorcerer', 'warlock', 'wizard', 'paladin', 'ranger']
+  return spellcasters.includes(srdClass.index)
+}
+
+// Vérifie si une classe SRD nécessite une sous-classe au niveau 1
+export function hasLevel1Subclass(srdClass: SRDClass): boolean {
+  const level1SubclassClasses = ['cleric', 'sorcerer', 'warlock']
+  return level1SubclassClasses.includes(srdClass.index)
 }

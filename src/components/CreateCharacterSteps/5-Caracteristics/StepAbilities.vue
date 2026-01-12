@@ -2,16 +2,11 @@
   <div class="min-h-screen bg-gradient-to-br from-green-900 via-emerald-900 to-teal-900 flex flex-col">
 
     <!-- Caractéristiques -->
-    <div class="flex flex-col justify-center px-4 my-auto">
+    <div class="flex flex-col justify-center px-4 py-3 flex-1">
       <!-- Header avec points disponibles -->
-      <div class="text-center mb-4">
+      <div class="text-center mb-3">
         <h2 class="text-2xl font-bold text-white mb-2">Répartition des Caractéristiques</h2>
-        <div v-if="character.subrace" class="mb-2">
-          <span class="bg-purple-500/30 text-purple-100 px-3 py-1 rounded-full text-sm font-medium border border-purple-400/30">
-            Race: {{ character.subrace.name }}
-          </span>
-        </div>
-        <p class="text-green-100 text-base mb-2">
+        <p class="text-green-100 text-base mb-1">
           Vous avez <span class="text-yellow-400 font-bold text-lg">{{ remainingPoints }}</span> points à répartir
         </p>
         <p class="text-green-200 text-xs">
@@ -19,42 +14,28 @@
         </p>
       </div>
 
-      <!-- Résumé des stats finales -->
-      <div class="bg-black/20 backdrop-blur-md rounded-xl p-3 mb-4 max-w-4xl mx-auto border border-white/20">
-        <h3 class="text-base font-bold text-white mb-2 text-center">📊 Résumé final</h3>
-        <div class="grid grid-cols-6 gap-2">
-          <div v-for="ability in abilities" :key="ability.name" class="text-center">
-            <div class="text-xs text-gray-300 mb-1">{{ ability.name.substring(0, 3) }}</div>
-            <div class="bg-gradient-to-br from-blue-500/30 to-purple-500/30 rounded-lg py-1.5 border border-blue-400/40">
-              <div class="text-base font-bold text-white">{{ ability.value + getRacialBonus(ability.name) }}</div>
-              <div class="text-xs text-blue-200">({{ getFinalModifier(ability.name) >= 0 ? '+' : '' }}{{ getFinalModifier(ability.name) }})</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Grille des caractéristiques -->
       <div class="mb-4">
-        <div class="abilities-container w-full grid grid-cols-3 gap-4 max-w-4xl mx-auto">
+        <div class="abilities-container w-full grid grid-cols-3 gap-3 max-w-4xl mx-auto">
           <div 
             v-for="ability in abilities" 
             :key="ability.name" 
-            class="ability-card bg-white/10 backdrop-blur-md rounded-2xl p-4 border-2 border-white/20 transition-all duration-200"
+            class="ability-card bg-white/10 backdrop-blur-md rounded-2xl p-3 border-2 border-white/20 transition-all duration-200"
           >
             <!-- Nom de la caractéristique -->
-            <div class="text-center mb-3">
-              <h3 class="text-lg font-bold text-white mb-1">{{ ability.name }}</h3>
-              <p class="text-green-100 text-xs">{{ getAbilityDescription(ability.name) }}</p>
+            <div class="text-center mb-2">
+              <h3 class="text-base font-bold text-white mb-1">{{ ability.name }}</h3>
+              <p class="text-green-100 text-xs leading-tight">{{ getAbilityDescription(ability.name) }}</p>
             </div>
 
             <!-- Contrôles de valeur -->
-            <div class="flex items-center justify-center space-x-3">
+            <div class="flex items-center justify-center space-x-2">
               <!-- Bouton - -->
               <button 
                 @click="decreaseAbility(ability)"
                 :disabled="ability.value <= 8"
                 :class="[
-                  'w-8 h-8 rounded-full font-bold text-sm transition-all duration-200 self-center',
+                  'w-7 h-7 rounded-full font-bold text-sm transition-all duration-200 self-center',
                   ability.value <= 8 
                     ? 'bg-gray-500/30 text-gray-400 cursor-not-allowed' 
                     : 'bg-red-500/50 text-white hover:bg-red-500/70 hover:scale-110'
@@ -66,21 +47,18 @@
               <!-- Valeur actuelle et finale -->
               <div class="text-center flex-1">
                 <!-- Valeur finale mise en avant -->
-                <div class="w-16 h-16 bg-gradient-to-br from-blue-500/40 to-purple-500/40 rounded-full flex flex-col items-center justify-center border-2 border-blue-400/60 mb-2 shadow-lg mx-auto">
-                  <span class="text-xl font-bold text-white">{{ ability.value + getRacialBonus(ability.name) }}</span>
+                <div class="w-14 h-14 bg-gradient-to-br from-blue-500/40 to-purple-500/40 rounded-full flex flex-col items-center justify-center border-2 border-blue-400/60 mb-1 shadow-lg mx-auto">
+                  <span class="text-lg font-bold text-white">{{ ability.value + getRacialBonus(ability.name) }}</span>
                   <span class="text-xs text-blue-200 font-bold">{{ getFinalModifier(ability.name) >= 0 ? '+' : '' }}{{ getFinalModifier(ability.name) }}</span>
                 </div>
                 
                 <!-- Détails en petit -->
-                <div class="bg-black/20 rounded-lg px-2 py-1 text-xs space-y-0.5">
+                <div class="bg-black/20 rounded-lg px-1 py-0.5 text-xs">
                   <div class="text-green-200">
                     Base: {{ ability.value }} ({{ getModifier(ability.value) >= 0 ? '+' : '' }}{{ getModifier(ability.value) }})
                   </div>
                   <div v-if="getRacialBonus(ability.name) > 0" class="text-yellow-300 font-semibold">
                     + {{ getRacialBonus(ability.name) }} racial
-                  </div>
-                  <div v-else class="text-gray-400">
-                    Aucun bonus racial
                   </div>
                 </div>
               </div>
@@ -90,7 +68,7 @@
                 @click="increaseAbility(ability)"
                 :disabled="ability.value >= 15 || remainingPoints <= 0"
                 :class="[
-                  'w-8 h-8 rounded-full font-bold text-sm transition-all duration-200 self-center',
+                  'w-7 h-7 rounded-full font-bold text-sm transition-all duration-200 self-center',
                   ability.value >= 15 || remainingPoints <= 0
                     ? 'bg-gray-500/30 text-gray-400 cursor-not-allowed' 
                     : 'bg-green-500/50 text-white hover:bg-green-500/70 hover:scale-110'
@@ -101,7 +79,7 @@
             </div>
 
             <!-- Coût en points -->
-            <div class="text-center mt-2">
+            <div class="text-center mt-1">
               <span class="text-xs text-green-200">
                 Coût: {{ getPointCost(ability.value) }} pts
               </span>
@@ -109,52 +87,47 @@
           </div>
         </div>
       </div>
-
-      <!-- Boutons de reset et random -->
-      <div class="flex justify-center space-x-4 mb-3">
+      
+      <!-- Boutons de navigation -->
+      <div class="flex justify-center space-x-6 mb-3">
         <button 
           @click="resetAbilities"
-          class="bg-gray-500/30 text-white px-4 py-1.5 rounded-lg font-medium hover:bg-gray-500/50 transition-all duration-200 text-sm"
+          class="bg-gray-500/30 text-white px-3 py-1 rounded-lg font-medium hover:bg-gray-500/50 transition-all duration-200 text-sm"
         >
           🔄 Reset
         </button>
         <button 
           @click="randomizeAbilities"
-          class="bg-purple-500/30 text-white px-4 py-1.5 rounded-lg font-medium hover:bg-purple-500/50 transition-all duration-200 text-sm"
+          class="bg-purple-500/30 text-white px-3 py-1 rounded-lg font-medium hover:bg-purple-500/50 transition-all duration-200 text-sm"
         >
           🎲 Aléatoire
         </button>
       </div>
-      
-      <!-- Boutons de navigation -->
-      <div class="flex justify-center space-x-6">
-        <button 
-          @click="emit('prev')"
-          class="bg-gray-500/30 text-white px-6 py-3 rounded-xl font-bold text-base hover:bg-gray-500/50 transition-all duration-200 flex items-center gap-2"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path>
-          </svg>
-          Retour
-        </button>
-        
-        <button 
-          class="bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 px-6 py-3 rounded-xl font-bold text-base shadow-2xl hover:from-yellow-300 hover:to-orange-400 transition-all duration-100 hover:scale-105"
-          :class="{
-            'opacity-50 cursor-not-allowed': remainingPoints > 0
-          }"
-          @click="validateAbilities"
-          :disabled="remainingPoints > 0"
-        >
-          <span class="flex items-center gap-2">
-            {{ remainingPoints > 0 ? `Il reste ${remainingPoints} points` : "Confirmer les caractéristiques" }}
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-            </svg>
-          </span>
-        </button>
+
+      <!-- Résumé des stats finales -->
+      <div class="bg-black/20 backdrop-blur-md rounded-xl p-5 max-w-6xl mx-auto border border-white/20">
+        <h3 class="text-base font-bold text-white mb-2 text-center">📊 Résumé final</h3>
+        <div class="grid grid-cols-6 gap-6">
+          <div v-for="ability in abilities" :key="ability.name" class="text-center">
+            <div class="text-xs text-gray-300 mb-1 font-medium">{{ ability.name.substring(0, 3) }}</div>
+            <div class="bg-gradient-to-br from-blue-500/30 to-purple-500/30 rounded-lg py-2 px-2 border border-blue-400/40">
+              <div class="text-lg font-bold text-white">{{ ability.value + getRacialBonus(ability.name) }}</div>
+            </div>
+            <div class="text-xs text-blue-200 mt-1 font-semibold">({{ getFinalModifier(ability.name) >= 0 ? '+' : '' }}{{ getFinalModifier(ability.name) }})</div>
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- Navigation -->
+    <StepNavigation 
+      :current-step="5" 
+      :total-steps="9"
+      step-name="Caractéristiques"
+      :disable-next="remainingPoints > 0"
+      @previous="emit('prev')"
+      @next="validateAbilities"
+    />
   </div>
 </template>
 
@@ -176,6 +149,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import StepNavigation from '../StepNavigation.vue'
 
 interface Ability {
   name: string
@@ -220,8 +194,41 @@ const remainingPoints = computed(() => {
 })
 
 function getRacialBonus(abilityName: string): number {
-  if (!props.character.subrace?.abilityBonuses) return 0
-  return props.character.subrace.abilityBonuses[abilityName] || 0
+  let totalBonus = 0
+
+  // Fonction helper pour convertir les noms français vers anglais
+  const abilityNameMap: Record<string, string> = {
+    'Force': 'STR',
+    'Dextérité': 'DEX',
+    'Constitution': 'CON',
+    'Intelligence': 'INT',
+    'Sagesse': 'WIS',
+    'Charisme': 'CHA'
+  }
+
+  const englishAbilityName = abilityNameMap[abilityName] || abilityName
+
+  // Bonus de la race principale
+  if (props.character.race?.ability_bonuses) {
+    const raceBonus = props.character.race.ability_bonuses.find(
+      (bonus: any) => bonus.ability_score.name === englishAbilityName
+    )
+    if (raceBonus) {
+      totalBonus += raceBonus.bonus
+    }
+  }
+
+  // Bonus de la sous-race
+  if (props.character.subrace?.ability_bonuses) {
+    const subraceBonus = props.character.subrace.ability_bonuses.find(
+      (bonus: any) => bonus.ability_score.name === englishAbilityName
+    )
+    if (subraceBonus) {
+      totalBonus += subraceBonus.bonus
+    }
+  }
+
+  return totalBonus
 }
 
 function getFinalModifier(abilityName: string): number {
@@ -299,10 +306,23 @@ function randomizeAbilities() {
 
 function validateAbilities() {
   if (remainingPoints.value === 0) {
+    // Validation des valeurs finales après bonus raciaux/sous-raciaux
+    const isValid = abilities.value.every(ability => {
+      const finalValue = ability.value + getRacialBonus(ability.name)
+      return finalValue >= 8 && finalValue <= 20
+    })
+
+    if (!isValid) {
+      console.error('Erreur de validation: Les valeurs finales des caractéristiques doivent être entre 8 et 20')
+      return
+    }
+
     const abilityData = abilities.value.reduce((acc, ability) => {
-      acc[ability.name.toLowerCase()] = ability.value
+      acc[ability.name.toLowerCase()] = ability.value + getRacialBonus(ability.name)
       return acc
     }, {} as Record<string, number>)
+
+    console.log('Caractéristiques validées:', abilityData)
     
     emit('next', abilityData)
   }
