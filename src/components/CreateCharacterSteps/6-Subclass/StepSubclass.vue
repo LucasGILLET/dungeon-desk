@@ -1,5 +1,17 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-amber-900 via-orange-900 to-red-900 flex flex-col">
+  <div>
+    <div class="min-h-screen bg-gradient-to-br from-amber-900 via-orange-900 to-red-900 flex flex-col relative">
+    <!-- Bouton récapitulatif -->
+    <button
+      @click="showSummary = true"
+      class="absolute top-4 right-4 z-10 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white rounded-full p-3 transition-all duration-200 shadow-lg"
+      title="Voir le récapitulatif"
+    >
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+      </svg>
+    </button>
+
     <!-- En-tête -->
     <div class="text-center pt-8 pb-6">
       <h1 class="text-4xl font-bold text-white mb-2">⚡ Choix de la Sous-classe</h1>
@@ -22,7 +34,7 @@
           <div 
             v-for="subclass in availableSubclasses" 
             :key="subclass.id"
-            @click="selectSubclass(subclass)"
+            @click="selectedSubclass = subclass"
             :class="[
               'subclass-card relative bg-white/10 backdrop-blur-md rounded-2xl p-6 border-2 transition-all duration-300 cursor-pointer group',
               selectedSubclass?.id === subclass.id 
@@ -137,6 +149,14 @@
       @next="validateSubclass"
     />
   </div>
+
+  <!-- Modal de récapitulatif -->
+  <CharacterSummaryModal
+    :is-open="showSummary"
+    :character="character"
+    @close="showSummary = false"
+  />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -146,20 +166,13 @@ import { getSubclassesByClassName, getSubclassEmoji, type SubclassData } from '@
 import { getSpellDescription } from '@/utils/spells'
 import { getFeatureDescription } from '@/utils/features'
 import StepNavigation from '../StepNavigation.vue'
-
-interface Character {
-  name: string
-  race: any
-  subrace: any
-  class: any
-  subclass?: string
-  background: string
-  abilities: Record<string, number>
-  level: number
-}
+import CharacterSummaryModal from '../../CharacterSummaryModal.vue'
+import type { SRDRace } from '@/types/srd'
+import type { Character } from '@/stores/app'
 
 const props = defineProps<{
   character: Character
+  selectedRace?: SRDRace | null
 }>()
 
 const emit = defineEmits<{
@@ -169,9 +182,9 @@ const emit = defineEmits<{
 
 const selectedSubclass = ref<SubclassData | null>(null)
 const level1SubclassClasses = ref<string[]>([])
+const showSummary = ref(false)
 
 onMounted(async () => {
-  // Classes qui nécessitent un choix de sous-classe au niveau 1
   level1SubclassClasses.value = await getLevel1SubclassClassIds()
 })
 
@@ -191,21 +204,14 @@ function getGridColumns(): string {
   return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3'
 }
 
-function selectSubclass(subclass: SubclassData) {
-  selectedSubclass.value = subclass
-}
-
 function validateSubclass() {
   if (!needsSubclass.value) {
-    // Pas de sous-classe nécessaire, on continue
     emit('next', null)
   } else if (selectedSubclass.value) {
-    // Sous-classe sélectionnée
     emit('next', selectedSubclass.value)
   }
 }
 
-// Fonctions pour gérer les tooltips de sorts
 function showSpellTooltip(event: MouseEvent) {
   const target = event.target as HTMLElement | null
   if (target && target.parentElement) {
@@ -247,7 +253,6 @@ function hideFeatureTooltip(event: MouseEvent) {
   }
 }
 
-// Fonction pour afficher un nom court dans l'interface
 function getDisplayName(featureName: string): string {
   if (featureName.startsWith('Sorts de domaine')) {
     return 'Sorts de domaine'
@@ -258,12 +263,10 @@ function getDisplayName(featureName: string): string {
   return featureName
 }
 
-// Fonction pour détecter si une feature est un sort
 function isSpellFeature(featureName: string): boolean {
   return featureName.startsWith('Sorts de domaine') || featureName.startsWith('Sorts étendus')
 }
 
-// Fonction pour obtenir les classes CSS d'un badge de feature
 function getFeatureBadgeClasses(featureName: string): string {
   if (isSpellFeature(featureName)) {
     return 'bg-purple-500/40 text-purple-100 border border-purple-400/30'

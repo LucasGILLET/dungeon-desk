@@ -1,5 +1,16 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-red-900 via-orange-900 to-yellow-900 flex flex-col">
+  <div>
+    <div class="min-h-screen bg-gradient-to-br from-red-900 via-orange-900 to-yellow-900 flex flex-col relative">
+    <!-- Bouton récapitulatif -->
+    <button
+      @click="showSummary = true"
+      class="absolute top-4 right-4 z-10 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white rounded-full p-3 transition-all duration-200 shadow-lg"
+      title="Voir le récapitulatif"
+    >
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+      </svg>
+    </button>
 
     <!-- Classes en deux lignes : martiales et magiques -->
     <div class="flex flex-col justify-center px-4 my-auto">
@@ -15,7 +26,7 @@
           <div 
             v-for="classe in classes" 
             :key="classe.index" 
-            @click="selectClass(classe)"
+            @click="selectedClass = classe"
             :class="[
               'class-card cursor-pointer bg-white/10 backdrop-blur-md rounded-2xl p-4 border-2 transition-all duration-100 ease-out',
               selectedClass?.index === classe.index 
@@ -96,6 +107,14 @@
       @previous="emit('prev')"
       @next="emit('next', selectedClass!)"
     />
+  </div>
+
+  <!-- Modal de récapitulatif -->
+  <CharacterSummaryModal
+    :is-open="showSummary"
+    :character="character"
+    @close="showSummary = false"
+  />
   </div>
 </template>
 
@@ -179,8 +198,16 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import StepNavigation from '../StepNavigation.vue'
+import CharacterSummaryModal from '../../CharacterSummaryModal.vue'
 import { loadClasses } from '@/utils/dataLoader'
-import type { SRDClass } from '@/types/srd'
+import type { SRDClass, SRDRace } from '@/types/srd'
+import type { Character } from '@/stores/app'
+import { getClassDescription, getClassMainStats, getClassDifficulty, isMartialClass } from '@/utils/classes'
+
+const props = defineProps<{
+  character: Character
+  selectedRace?: SRDRace | null
+}>()
 
 const emit = defineEmits<{
   next: [classe: SRDClass]
@@ -191,6 +218,7 @@ const classes = ref<SRDClass[]>([])
 const selectedClass = ref<SRDClass | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
+const showSummary = ref(false)
 
 onMounted(async () => {
   try {
@@ -207,60 +235,4 @@ const getImageUrl = (file: any) => {
   return new URL(`../../../images/classes/${file}`, import.meta.url).href
 }
 
-function selectClass(classe: SRDClass) {
-  selectedClass.value = classe
-}
-
-function isMartialClass(classIndex: string): boolean {
-  // Classes martiales selon D&D 5e
-  return ['barbarian', 'fighter', 'monk', 'paladin', 'ranger', 'rogue'].includes(classIndex)
-}
-
-function getClassDifficulty(cls: SRDClass): 'Facile' | 'Moyen' | 'Difficile' {
-  // Logique simple basée sur la complexité des classes
-  const easyClasses = ['barbarian', 'fighter']
-  const hardClasses = ['wizard', 'druid', 'sorcerer']
-  
-  if (easyClasses.includes(cls.index)) return 'Facile'
-  if (hardClasses.includes(cls.index)) return 'Difficile'
-  return 'Moyen'
-}
-
-function getClassDescription(cls: SRDClass): string {
-  // Descriptions simples pour chaque classe
-  const descriptions: Record<string, string> = {
-    'barbarian': 'Combattant sauvage utilisant la rage comme arme.',
-    'bard': 'Artiste magique, soutien polyvalent du groupe.',
-    'cleric': 'Guérisseur divin, soutien et protection du groupe.',
-    'druid': 'Gardien de la nature, magie et métamorphose.',
-    'fighter': 'Maître des armes et de l\'armure, spécialiste du combat.',
-    'monk': 'Artiste martial utilisant l\'énergie interne.',
-    'paladin': 'Guerrier saint, alliant combat et magie divine.',
-    'ranger': 'Chasseur expert, à l\'aise en nature et à distance.',
-    'rogue': 'Expert en discrétion, crochetage et attaques sournoises.',
-    'sorcerer': 'Magie innée puissante mais limitée en sorts.',
-    'warlock': 'Pacte avec des entités d\'outre-monde pour la magie.',
-    'wizard': 'Manipulateur de la magie arcane, puissant mais fragile.'
-  }
-  return descriptions[cls.index] || 'Classe de personnage D&D 5e.'
-}
-
-function getClassMainStats(cls: SRDClass): string[] {
-  // Retourne les statistiques principales recommandées pour chaque classe
-  const statsMap: Record<string, string[]> = {
-    'barbarian': ['Force', 'Constitution'],
-    'bard': ['Charisme', 'Dextérité'],
-    'cleric': ['Sagesse', 'Constitution'],
-    'druid': ['Sagesse', 'Constitution'],
-    'fighter': ['Force', 'Constitution'],
-    'monk': ['Dextérité', 'Sagesse'],
-    'paladin': ['Force', 'Charisme'],
-    'ranger': ['Dextérité', 'Sagesse'],
-    'rogue': ['Dextérité', 'Intelligence'],
-    'sorcerer': ['Charisme', 'Constitution'],
-    'warlock': ['Charisme', 'Constitution'],
-    'wizard': ['Intelligence', 'Constitution']
-  }
-  return statsMap[cls.index] || ['Force']
-}
 </script>

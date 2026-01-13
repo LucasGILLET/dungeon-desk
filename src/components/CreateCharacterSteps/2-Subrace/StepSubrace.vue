@@ -1,5 +1,17 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex flex-col">
+  <div>
+    <div class="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex flex-col relative">
+    <!-- Bouton récapitulatif -->
+    <button
+      @click="showSummary = true"
+      class="absolute top-4 right-4 z-10 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white rounded-full p-3 transition-all duration-200 shadow-lg"
+      title="Voir le récapitulatif"
+    >
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+      </svg>
+    </button>
+
     <div class="flex flex-col justify-center px-4 my-auto">
       
       <!-- En-tête -->
@@ -38,7 +50,7 @@
           <div 
             v-for="subrace in availableSubraces" 
             :key="subrace.index" 
-            @click="selectSubrace(subrace)"
+            @click="selectedSubrace = subrace"
             :class="[
               'subrace-card cursor-pointer bg-white/10 backdrop-blur-md rounded-2xl p-6 border-2 transition-all duration-300 ease-out',
               selectedSubrace?.index === subrace.index 
@@ -142,6 +154,14 @@
       @next="validateSelection"
     />
   </div>
+
+  <!-- Modal de récapitulatif -->
+  <CharacterSummaryModal
+    :is-open="showSummary"
+    :character="character"
+    @close="showSummary = false"
+  />
+  </div>
 </template>
 
 <style scoped>
@@ -178,35 +198,27 @@ import { getSubracesByParentRace, getSubraceEmoji, getSubraceAbilityBonuses, get
 import type { SRDRace, SRDSubclass } from '@/types/srd'
 import StepNavigation from '../StepNavigation.vue'
 import SubraceDetailsModal from './SubraceDetailsModal.vue'
+import CharacterSummaryModal from '../../CharacterSummaryModal.vue'
+import type { Character } from '@/stores/app'
 
-interface Race {
-  id: string
-  name: string
-  description: string
-  stats: string[]
-}
-
-// Props
 const props = defineProps<{
   selectedRace: SRDRace | null
+  character: Character
 }>()
 
-// Événements
 const emit = defineEmits<{
   next: [subrace: SRDSubclass | null]
   prev: []
 }>()
 
-// État local
 const selectedSubrace = ref<SRDSubclass | null>(null)
 const loading = ref(false)
 const showSubraceDetails = ref(false)
 const selectedDetailSubrace = ref<SRDSubclass | null>(null)
+const showSummary = ref(false)
 
-// Sous-races disponibles pour la race sélectionnée
 const availableSubraces = ref<SRDSubclass[]>([])
 
-// Peut passer à l'étape suivante si aucune sous-race disponible ou si une sous-race est sélectionnée
 const canGoNext = computed(() => {
   return availableSubraces.value.length === 0 || selectedSubrace.value !== null
 })
@@ -227,10 +239,6 @@ watch(() => props.selectedRace, async (newRace) => {
   }
 }, { immediate: true })
 
-function selectSubrace(subrace: SRDSubclass) {
-  selectedSubrace.value = subrace
-}
-
 function openSubraceDetails(subrace: SRDSubclass) {
   selectedDetailSubrace.value = subrace
   showSubraceDetails.value = true
@@ -242,7 +250,6 @@ function closeSubraceDetails() {
 }
 
 function validateSelection() {
-  // Si aucune sous-race disponible, émettre null
   if (availableSubraces.value.length === 0) {
     emit('next', null)
   } else if (selectedSubrace.value) {

@@ -1,4 +1,5 @@
-import type { SRDClass, SRDRace, SRDSubclass } from '@/types/srd'
+import type { SRDBackground, SRDClass, SRDRace, SRDSubclass } from '@/types/srd'
+import type { Subrace } from '@/utils/subrace'
 import { defineStore } from 'pinia'
 import { ref, reactive } from 'vue'
 
@@ -6,23 +7,24 @@ export interface Character {
   id?: string
   name: string
   race: SRDRace
+  subrace: Subrace
   class: SRDClass
   subclass?: SRDSubclass
   level: number
   abilities: {
-    strength: number
-    dexterity: number
+    force: number
+    dexterite: number
     constitution: number
     intelligence: number
-    wisdom: number
-    charisma: number
+    sagesse: number
+    charisme: number
   }
-  hitPoints: number
-  armorClass: number
-  background: string
-  equipment: string[]
-  spells: string[]
-  proficiencies?: {
+  // hitPoints: number
+  // armorClass: number
+  background: SRDBackground
+  // equipment: string[]
+  // spells: string[]
+  proficiencies?: { // usefulleness ???
     skills: string[]
     languages: string[]
     tools: string[]
@@ -31,9 +33,9 @@ export interface Character {
   createdAt?: Date
   updatedAt?: Date
   allProficiencies?: {
-    skills: string[]
-    languages: string[]
-    tools: string[]
+    skills: { name: string; id: string; description: string; category: string }[]
+    languages: { name: string; id: string; description: string; category: string }[]
+    tools: { name: string; id: string; description: string; category: string }[]
   }
 }
 

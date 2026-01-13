@@ -1,5 +1,3 @@
-// Descriptions des features de sous-classes D&D 5e
-
 export interface FeatureDescription {
   name: string
   description: string

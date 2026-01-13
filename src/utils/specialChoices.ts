@@ -1,5 +1,3 @@
-// Gestion des choix spéciaux de classe/sous-classe D&D 5e
-
 export interface SpecialChoice {
   id: string
   name: string
@@ -298,10 +296,4 @@ export function getRequiredSpecialChoices(classId: string, subclassId?: string):
   }
 
   return { choices }
-}
-
-// Fonction pour vérifier si un personnage a besoin de choix spéciaux
-export function needsSpecialChoices(classId: string, subclassId?: string): boolean {
-  const requiredChoices = getRequiredSpecialChoices(classId, subclassId)
-  return requiredChoices.choices.length > 0
 }

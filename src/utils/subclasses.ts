@@ -1,4 +1,3 @@
-// Données des sous-classes D&D 5e
 export interface SubclassData {
   id: string
   name: string
@@ -230,17 +229,10 @@ export const subclasses: SubclassData[] = [
   },
 ]
 
-// Fonction utilitaire pour obtenir les sous-classes d'une classe
 export function getSubclassesByClassName(className: any): SubclassData[] {
   return subclasses.filter(sc => sc.className === className.name.toLowerCase())
 }
 
-// Fonction utilitaire pour obtenir une sous-classe par son ID
-export function getSubclassById(id: string): SubclassData | undefined {
-  return subclasses.find(sc => sc.id === id)
-}
-
-// Fonction utilitaire pour obtenir l'emoji d'une sous-classe
 export function getSubclassEmoji(subclassId: string): string {
   const emojis: Record<string, string> = {
     // Clerc

@@ -1,4 +1,3 @@
-// Descriptions des sorts D&D 5e
 export interface Spell {
   id: string
   name: string
@@ -344,7 +343,6 @@ export const spells: Spell[] = [
   }
 ]
 
-// Fonction utilitaire pour obtenir la description d'un sort
 export function getSpellDescription(spellName: string): string {
   const spell = spells.find(s => 
     s.name.toLowerCase() === spellName.toLowerCase() ||
@@ -356,22 +354,4 @@ export function getSpellDescription(spellName: string): string {
   }
   
   return `${spell.description}${spell.higherLevels ? ` ${spell.higherLevels}` : ''}`
-}
-
-// Fonction pour obtenir les détails complets d'un sort
-export function getSpellDetails(spellName: string): Spell | null {
-  return spells.find(s => 
-    s.name.toLowerCase() === spellName.toLowerCase() ||
-    s.id === spellName.toLowerCase().replace(/[^a-z0-9]/g, '-')
-  ) || null
-}
-
-// Fonction pour obtenir tous les sorts d'un niveau donné
-export function getSpellsByLevel(level: number): Spell[] {
-  return spells.filter(s => s.level === level)
-}
-
-// Fonction pour obtenir tous les sorts d'une école donnée
-export function getSpellsBySchool(school: string): Spell[] {
-  return spells.filter(s => s.school.toLowerCase() === school.toLowerCase())
 }

@@ -1,5 +1,17 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex flex-col">
+  <div>
+    <div class="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex flex-col relative">
+    <!-- Bouton récapitulatif -->
+    <button
+      @click="showSummary = true"
+      class="cursor-pointer absolute top-4 right-4 z-10 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white rounded-full p-3 transition-all duration-200 shadow-lg"
+      title="Voir le récapitulatif"
+    >
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+      </svg>
+    </button>
+
     <div class="flex flex-col justify-center px-4 my-auto">
       <div class="text-center mb-8">
         <h2 class="text-4xl font-bold text-white mb-2">Choisissez votre Race</h2>
@@ -12,7 +24,7 @@
         <div 
           v-for="race in races" 
           :key="race.index" 
-          @click="selectRace(race)"
+          @click="selectedRace = race"
           :class="[
             `race-card cursor-pointer bg-white/10 backdrop-blur-md rounded-2xl p-4 border-2 transition-all duration-100 ease-out`,
             selectedRace?.index === race.index 
@@ -102,6 +114,14 @@
       @previous="emit('prev')"
       @next="emit('next', selectedRace!)"
     />
+  </div>
+
+  <!-- Modal de récapitulatif -->
+  <CharacterSummaryModal
+    :is-open="showSummary"
+    :character="character"
+    @close="showSummary = false"
+  />
   </div>
 </template>
 
@@ -210,8 +230,15 @@
 import { ref, onMounted } from 'vue'
 import StepNavigation from '../StepNavigation.vue'
 import RaceDetailsModal from './RaceDetailsModal.vue'
+import CharacterSummaryModal from '../../CharacterSummaryModal.vue'
 import { loadRaces } from '@/utils/dataLoader'
 import type { SRDRace } from '@/types/srd'
+import { getRaceDescription, translateRaceName, getRaceStats, getRaceTraits } from '@/utils/race';
+
+const props = defineProps<{
+  character: any
+  selectedRace?: SRDRace | null
+}>()
 
 const emit = defineEmits<{
   next: [race: SRDRace]
@@ -224,6 +251,7 @@ const loading = ref(true)
 const error = ref<string | null>(null)
 const showRaceDetails = ref(false)
 const selectedDetailRace = ref<SRDRace | null>(null)
+const showSummary = ref(false)
 
 onMounted(async () => {
   try {
@@ -240,10 +268,6 @@ const getImageUrl = (file: any) => {
   return new URL(`../../../images/${file}`, import.meta.url).href
 }
 
-function selectRace(race: SRDRace) {
-  selectedRace.value = race
-}
-
 function openRaceDetails(race: SRDRace) {
   selectedDetailRace.value = race
   showRaceDetails.value = true
@@ -252,56 +276,5 @@ function openRaceDetails(race: SRDRace) {
 function closeRaceDetails() {
   showRaceDetails.value = false
   selectedDetailRace.value = null
-}
-
-function getRaceStats(race: SRDRace): string[] {
-  return race.ability_bonuses.map(bonus => `+${bonus.bonus} ${translateAbilityScore(bonus.ability_score.name)}`)
-}
-
-function getRaceTraits(race: SRDRace): string[] {
-  return race.traits.map(trait => trait.name)
-}
-
-function translateAbilityScore(englishName: string): string {
-  const translations: Record<string, string> = {
-    'STR': 'FOR',
-    'DEX': 'DEX',
-    'CON': 'CON',
-    'INT': 'INT',
-    'WIS': 'SAG',
-    'CHA': 'CHA'
-  }
-  return translations[englishName] || englishName
-}
-
-function getRaceDescription(race: SRDRace): string {
-  // Descriptions traduites en français pour chaque race
-  const descriptions: Record<string, string> = {
-    'Dwarf': 'Créatures robustes et résistantes, les nains excellent dans l\'artisanat et la guerre souterraine.',
-    'Elf': 'Gracieux et longévives, les elfes sont des êtres magiques connectés à la nature et aux arts.',
-    'Halfling': 'Petits et chanceux, les halfelins sont des aventuriers intrépides et opportunistes.',
-    'Human': 'Adaptables et ambitieux, les humains sont la race la plus répandue et diverse de Faerûn.',
-    'Dragonborn': 'Descendants des dragons, ils possèdent une force impressionnante et un souffle draconique.',
-    'Gnome': 'Ingénieux et curieux, les gnomes excellent dans l\'invention et la magie illusionniste.',
-    'Half-Elf': 'Mélange d\'elfe et d\'humain, ils combinent la grâce elfique avec l\'adaptabilité humaine.',
-    'Half-Orc': 'Puissants et endurants, les demi-orcs allient la force orc avec d\'autres héritages.',
-    'Tiefling': 'Marqués par un héritage infernal, ils possèdent des pouvoirs surnaturels et une résistance aux éléments.'
-  }
-  return descriptions[race.name] || race.size_description || race.alignment
-}
-
-function translateRaceName(englishName: string): string {
-  const translations: Record<string, string> = {
-    'Dwarf': 'Nain',
-    'Elf': 'Elfe',
-    'Halfling': 'Halfelin',
-    'Human': 'Humain',
-    'Dragonborn': 'Drakéide',
-    'Gnome': 'Gnome',
-    'Half-Elf': 'Demi-elfe',
-    'Half-Orc': 'Demi-orc',
-    'Tiefling': 'Tieffelin'
-  }
-  return translations[englishName] || englishName
 }
 </script>

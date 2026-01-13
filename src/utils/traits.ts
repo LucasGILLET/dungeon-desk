@@ -1,4 +1,3 @@
-// Descriptions de traits raciaux D&D 5e (fallback uniquement pour traits manquants du SRD)
 export const traitDescriptions: Record<string, string> = {
   // Traits essentiels manquants du SRD
   'dwarven-toughness': 'Votre maximum de points de vie augmente de 1 à chaque niveau.',
@@ -11,18 +10,15 @@ export const traitDescriptions: Record<string, string> = {
 }
 
 
-// Fonction utilitaire pour obtenir la description d'un trait
 export function getTraitDescription(traitName: string): string {
   return traitDescriptions[traitName] || 'Description non disponible'
 }
 
-// Fonction pour obtenir la description depuis les données SRD
 export function getTraitDescriptionFromSRD(traits: any[], traitIndex: string): string | null {
   const trait = traits.find(t => t.index === traitIndex)
   return trait ? trait.desc.join(' ') : null
 }
 
-// Fonction combinée qui cherche d'abord dans SRD (custom + classique), puis dans les descriptions locales
 export function getTraitDescriptionCombined(traits: any[], traitIndex: string, traitName: string): string {
   // Chercher par index dans les données SRD (custom + classique)
   const srdDesc = getTraitDescriptionFromSRD(traits, traitIndex)

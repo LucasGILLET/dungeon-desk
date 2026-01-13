@@ -1,5 +1,17 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex flex-col">
+  <div>
+    <div class="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex flex-col relative">
+    <!-- Bouton récapitulatif -->
+    <button
+      @click="showSummary = true"
+      class="absolute top-4 right-4 z-10 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white rounded-full p-3 transition-all duration-200 shadow-lg"
+      title="Voir le récapitulatif"
+    >
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+      </svg>
+    </button>
+
     <!-- En-tête -->
     <div class="text-center pt-8 pb-6">
       <h1 class="text-4xl font-bold text-white mb-2">🛠️ Maîtrises et Langues</h1>
@@ -219,6 +231,14 @@
       @next="validateChoices"
     />
   </div>
+
+  <!-- Modal de récapitulatif -->
+  <CharacterSummaryModal
+    :is-open="showSummary"
+    :character="character"
+    @close="showSummary = false"
+  />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -226,24 +246,18 @@ import { ref, computed, onMounted } from 'vue'
 import { 
   getAllCharacterProficiencies, 
   getAutomaticLanguages,
+  getCategoryIcon,
   type ProficiencyChoice,
   type ProficiencyData
 } from '@/utils/proficiencies'
 import StepNavigation from '../StepNavigation.vue'
-
-interface Character {
-  name: string
-  race: any
-  subrace: any
-  class: any
-  subclass?: string
-  background: any
-  abilities: Record<string, number>
-  level: number
-}
+import CharacterSummaryModal from '../../CharacterSummaryModal.vue'
+import type { SRDRace } from '@/types/srd'
+import type { Character } from '@/stores/app'
 
 const props = defineProps<{
   character: Character
+  selectedRace?: SRDRace | null
 }>()
 
 const emit = defineEmits<{
@@ -255,15 +269,13 @@ const emit = defineEmits<{
   prev: []
 }>()
 
-// Données des maîtrises
 const proficiencyData = ref<ProficiencyData>({ automaticProficiencies: [], choiceGroups: [] })
 const selections = ref<Record<string, ProficiencyChoice[]>>({})
+const showSummary = ref(false)
 
-// Computed pour organiser les maîtrises automatiques
 const automaticProficiencies = computed(() => {
   return proficiencyData.value.automaticProficiencies
 })
-// Langues automatiques de la sous-race
 const automaticRacialLanguages = computed(() => {
   return getAutomaticLanguages(props.character.race)
 })
@@ -280,25 +292,15 @@ const automaticTools = computed(() =>
   automaticProficiencies.value.filter(p => p.category === 'tool')
 )
 
-// Computed pour les groupes de choix
 const choiceGroups = computed(() => proficiencyData.value.choiceGroups)
 
-// Vérifier si tous les choix sont complets
 const allChoicesComplete = computed(() => {
   return choiceGroups.value.every(group => 
     (selections.value[group.id]?.length || 0) === group.count
   )
 })
 
-// Fonctions utilitaires
-function getCategoryIcon(category: string): string {
-  switch (category) {
-    case 'skill': return '⚡'
-    case 'language': return '💬'
-    case 'tool': return '🔧'
-    default: return '📋'
-  }
-}
+
 
 function isSelected(groupId: string, choiceId: string): boolean {
   return selections.value[groupId]?.some(choice => choice.id === choiceId) || false
@@ -366,7 +368,6 @@ function validateChoices() {
   }
 }
 
-// Fonctions pour les tooltips
 function showTooltip(event: MouseEvent) {
   const target = event.target as HTMLElement | null
   if (target && target.parentElement) {
@@ -391,7 +392,7 @@ function hideTooltip(event: MouseEvent) {
 onMounted(() => {
   proficiencyData.value = getAllCharacterProficiencies(
     props.character.race?.index,
-    props.character.subrace?.index || props.character.subrace,
+    props.character.subrace?.index,
     props.character.class.index,
     props.character.background.index,
   )

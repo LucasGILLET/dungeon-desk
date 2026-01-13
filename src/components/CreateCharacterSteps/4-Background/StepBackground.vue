@@ -1,5 +1,16 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 flex flex-col">
+  <div>
+    <div class="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 flex flex-col relative">
+    <!-- Bouton récapitulatif -->
+    <button
+      @click="showSummary = true"
+      class="absolute top-4 right-4 z-10 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white rounded-full p-3 transition-all duration-200 shadow-lg"
+      title="Voir le récapitulatif"
+    >
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+      </svg>
+    </button>
 
     <!-- Historiques -->
     <div class="flex flex-col justify-center px-4 my-auto">
@@ -15,7 +26,7 @@
           <div 
             v-for="background in backgrounds" 
             :key="background.index" 
-            @click="selectBackground(background)"
+            @click="selectedBackground = background"
             :class="[
               'class-card cursor-pointer bg-white/10 backdrop-blur-md rounded-2xl p-4 border-2 transition-all duration-100 ease-out',
               selectedBackground?.index === background.index 
@@ -78,6 +89,14 @@
       @previous="emit('prev')"
       @next="emit('next', selectedBackground!)"
     />
+  </div>
+
+  <!-- Modal de récapitulatif -->
+  <CharacterSummaryModal
+    :is-open="showSummary"
+    :character="character"
+    @close="showSummary = false"
+  />
   </div>
 </template>
 
@@ -156,8 +175,16 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import StepNavigation from '../StepNavigation.vue'
+import CharacterSummaryModal from '../../CharacterSummaryModal.vue'
 import { loadBackgrounds } from '@/utils/dataLoader'
-import type { SRDBackground } from '@/types/srd'
+import type { SRDBackground, SRDRace } from '@/types/srd'
+import type { Character } from '@/stores/app'
+import { getBackgroundDescription, getBackgroundSkills, getBackgroundName, getBackgroundEmoji } from '@/utils/backgrounds'
+
+const props = defineProps<{
+  character: Character
+  selectedRace?: SRDRace | null
+}>()
 
 const emit = defineEmits<{
   next: [background: SRDBackground]
@@ -168,6 +195,7 @@ const backgrounds = ref<SRDBackground[]>([])
 const selectedBackground = ref<SRDBackground | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
+const showSummary = ref(false)
 
 onMounted(async () => {
   try {
@@ -180,95 +208,4 @@ onMounted(async () => {
   }
 })
 
-function selectBackground(background: SRDBackground) {
-  selectedBackground.value = background
-}
-
-function getBackgroundEmoji(backgroundIndex: string): string {
-  const emojis: Record<string, string> = {
-    'acolyte': '⛪',
-    'charlatan': '🎭',
-    'criminal': '🔓',
-    'entertainer': '🎨',
-    'folk-hero': '🏹',
-    'guild-artisan': '🔨',
-    'hermit': '🏔️',
-    'noble': '👑',
-    'outlander': '🏕️',
-    'sage': '📚',
-    'sailor': '⚓',
-    'soldier': '⚔️',
-    'urchin': '🏘️'
-  }
-  return emojis[backgroundIndex] || '❓'
-}
-
-function getBackgroundName(backgroundIndex: string): string {
-  const names: Record<string, string> = {
-    'acolyte': 'Acolyte',
-    'charlatan': 'Charlatan',
-    'criminal': 'Criminel',
-    'entertainer': 'Artiste',
-    'folk-hero': 'Héros du Peuple',
-    'guild-artisan': 'Artisan de Guilde',
-    'hermit': 'Ermite',
-    'noble': 'Noble',
-    'outlander': 'Étranger',
-    'sage': 'Sage',
-    'sailor': 'Marin',
-    'soldier': 'Soldat',
-    'urchin': 'Enfant des Rues'
-  }
-  return names[backgroundIndex] || backgroundIndex
-}
-
-function translateSkillName(skillName: string): string {
-  const skillTranslations: Record<string, string> = {
-    'Skill: Insight': 'Perspicacité',
-    'Skill: Religion': 'Religion',
-    'Skill: Deception': 'Tromperie',
-    'Skill: Sleight of Hand': 'Escamotage',
-    'Skill: Stealth': 'Discrétion',
-    'Skill: Acrobatics': 'Acrobaties',
-    'Skill: Performance': 'Représentation',
-    'Skill: Animal Handling': 'Dressage',
-    'Skill: Survival': 'Survie',
-    'Skill: Persuasion': 'Persuasion',
-    'Skill: Athletics': 'Athlétisme',
-    'Skill: Intimidation': 'Intimidation',
-    'Skill: History': 'Histoire',
-    'Skill: Arcana': 'Arcanes',
-    'Skill: Medicine': 'Médecine',
-    'Skill: Perception': 'Perception',
-    'Skill: Nature': 'Nature',
-    'Skill: Investigation': 'Investigation'
-  }
-  return skillTranslations[skillName] || skillName
-}
-
-function getBackgroundSkills(background: SRDBackground): string[] {
-  return background.starting_proficiencies?.map((proficiency: { name: string }) => 
-    translateSkillName(proficiency.name)
-  ) || []
-}
-
-function getBackgroundDescription(background: SRDBackground): string {
-  // Descriptions simples pour chaque background
-  const descriptions: Record<string, string> = {
-    'acolyte': 'Vous avez servi dans un temple, apprenant les rites sacrés et les connaissances religieuses.',
-    'charlatan': 'Maître de la tromperie, vous savez convaincre les gens de croire en vos mensonges.',
-    'criminal': 'Vous avez un passé criminel, connaissant les dessous de la société underground.',
-    'entertainer': 'Vous divertissez les foules par votre art, musique, théâtre ou autre performance.',
-    'folk-hero': 'Vous êtes un héros populaire, défendant les opprimés et luttant contre l\'injustice.',
-    'guild-artisan': 'Membre d\'une guilde, vous maîtrisez un métier et avez des contacts professionnels.',
-    'hermit': 'Vous avez vécu en isolement, méditant et découvrant d\'importantes vérités.',
-    'noble': 'Issu de la noblesse, vous avez des manières raffinées et des contacts haut placés.',
-    'outlander': 'Vous venez des terres sauvages, survivant en harmonie avec la nature.',
-    'sage': 'Vous avez consacré votre vie à l\'étude, accumulant connaissances et sagesse.',
-    'sailor': 'Vous avez navigué sur les océans, affrontant tempêtes et créatures marines.',
-    'soldier': 'Vous avez servi dans une armée, apprenant discipline et tactiques militaires.',
-    'urchin': 'Vous avez grandi dans les rues, apprenant à survivre par vos propres moyens.'
-  }
-  return descriptions[background.index] || 'Un background D&D 5e.'
-}
 </script>

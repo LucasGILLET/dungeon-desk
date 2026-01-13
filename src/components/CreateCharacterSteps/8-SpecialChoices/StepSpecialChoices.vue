@@ -1,5 +1,17 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex flex-col">
+  <div>
+    <div class="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex flex-col relative">
+    <!-- Bouton récapitulatif -->
+    <button
+      @click="showSummary = true"
+      class="absolute top-4 right-4 z-10 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white rounded-full p-3 transition-all duration-200 shadow-lg"
+      title="Voir le récapitulatif"
+    >
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+      </svg>
+    </button>
+
     <!-- En-tête -->
     <div class="text-center pt-8 pb-6">
       <h1 class="text-4xl font-bold text-white mb-2">⚡ Choix spéciaux</h1>
@@ -91,16 +103,27 @@
       @next="$emit('next')"
     />
   </div>
+
+  <!-- Modal de récapitulatif -->
+  <CharacterSummaryModal
+    :is-open="showSummary"
+    :character="character"
+    @close="showSummary = false"
+  />
+  </div>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import type { Character } from '../../../stores/app'
 import { getRequiredSpecialChoices, type SpecialChoice, type SpecialChoiceOption } from '../../../utils/specialChoices'
 import StepNavigation from '../StepNavigation.vue'
+import CharacterSummaryModal from '../../CharacterSummaryModal.vue'
+import type { SRDRace } from '@/types/srd'
 
 interface Props {
   character: Character
+  selectedRace?: SRDRace | null
 }
 
 interface Emits {
@@ -112,10 +135,9 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-// État local pour les sélections
 const selections = reactive<Record<string, string[]>>({})
+const showSummary = ref(false)
 
-// Données des choix spéciaux requis
 const specialChoicesData = computed(() => {
   return getRequiredSpecialChoices(props.character.class.index, props?.character?.subclass?.id)
 })
@@ -124,7 +146,6 @@ const hasAnyChoices = computed(() => {
   return specialChoicesData.value.choices.length > 0
 })
 
-// Vérifier si toutes les sélections obligatoires sont faites
 const allChoicesMade = computed(() => {
   if (!hasAnyChoices.value) return true
   
@@ -135,7 +156,6 @@ const allChoicesMade = computed(() => {
   })
 })
 
-// Obtenir le nombre maximum de sélections pour un choix
 function getMaxSelections(choice: SpecialChoice): number {
   switch (choice.category) {
     case 'expertise':
@@ -145,12 +165,10 @@ function getMaxSelections(choice: SpecialChoice): number {
   }
 }
 
-// Obtenir le nombre de sélections actuelles pour un choix
 function getSelectionCount(choiceId: string): number {
   return selections[choiceId]?.length || 0
 }
 
-// Vérifier si une option est sélectionnée
 function isSelected(choiceId: string, optionId: string): boolean {
   return selections[choiceId]?.includes(optionId) || false
 }
@@ -180,7 +198,6 @@ function isDisabled(choice: SpecialChoice, option: SpecialChoiceOption): boolean
   return false
 }
 
-// Sélectionner/désélectionner une option
 function selectOption(choice: SpecialChoice, option: SpecialChoiceOption): void {
   if (isDisabled(choice, option)) return
 
@@ -209,11 +226,9 @@ function selectOption(choice: SpecialChoice, option: SpecialChoiceOption): void 
     }
   }
 
-  // Mettre à jour le personnage
   updateCharacter()
 }
 
-// Mettre à jour le personnage avec les sélections
 function updateCharacter(): void {
   const updatedCharacter = { ...props.character }
   
@@ -221,7 +236,6 @@ function updateCharacter(): void {
     updatedCharacter.specialChoices = {}
   }
 
-  // Copier toutes les sélections dans le personnage
   Object.keys(selections).forEach(choiceId => {
     const choiceSelections = selections[choiceId]
     if (choiceSelections && choiceSelections.length > 0) {
@@ -232,7 +246,6 @@ function updateCharacter(): void {
   emit('update:character', updatedCharacter)
 }
 
-// Obtenir la classe CSS pour la grille selon le type de choix
 function getGridClass(choice: SpecialChoice): string {
   switch (choice.category) {
     case 'draconic-ancestry':
@@ -250,7 +263,6 @@ function getGridClass(choice: SpecialChoice): string {
   }
 }
 
-// Initialiser les sélections si elles existent déjà
 if (props.character.specialChoices) {
   Object.keys(props.character.specialChoices).forEach(choiceId => {
     const existingChoices = props.character.specialChoices?.[choiceId]

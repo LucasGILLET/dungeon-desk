@@ -1,8 +1,5 @@
-// Utilitaires pour charger les données SRD depuis les fichiers JSON
-
 import type { SRDRace, SRDClass, SRDSubclass, SRDBackground, SRDTrait } from '@/types/srd'
 
-// Cache pour éviter de recharger les données
 const dataCache = new Map<string, any>()
 
 async function loadJSON<T>(filename: string): Promise<T> {
@@ -32,17 +29,12 @@ export async function loadClasses(): Promise<SRDClass[]> {
   return loadJSON<SRDClass[]>('5e-SRD-Classes.json')
 }
 
-export async function loadSubclasses(): Promise<SRDSubclass[]> {
-  return loadJSON<SRDSubclass[]>('5e-SRD-Subclasses.json')
-}
-
 export async function loadBackgrounds(): Promise<SRDBackground[]> {
   const [srdBackgrounds, customBackgrounds] = await Promise.all([
     loadJSON<SRDBackground[]>('5e-SRD-Backgrounds.json'),
     loadJSON<SRDBackground[]>('custom/custom-backgrounds.json').catch(() => [])
   ])
   
-  // Fusionner les backgrounds SRD et personnalisés
   return [...srdBackgrounds, ...customBackgrounds]
 }
 
@@ -69,7 +61,6 @@ export async function loadSubraces(): Promise<SRDSubclass[]> {
   return Array.from(subracesMap.values())
 }
 
-// Fonctions utilitaires pour adapter les données SRD à ton app
 export async function loadTraits(): Promise<SRDTrait[]> {
   // Charger les traits custom et SRD en parallèle
   const [customTraits, srdTraits] = await Promise.all([
@@ -87,21 +78,4 @@ export async function loadTraits(): Promise<SRDTrait[]> {
   customTraits.forEach(trait => traitMap.set(trait.index, trait))
   
   return Array.from(traitMap.values())
-}
-
-export function getRaceDisplayName(race: SRDRace): string {
-  // Pour l'instant, on garde les noms anglais, mais tu peux ajouter une traduction ici
-  return race.name
-}
-
-export function getClassDisplayName(cls: SRDClass): string {
-  return cls.name
-}
-
-export function getBackgroundDisplayName(bg: SRDBackground): string {
-  return bg.name
-}
-
-export function getSubclassDisplayName(subclass: SRDSubclass): string {
-  return subclass.name
 }

@@ -100,7 +100,6 @@ export const allTools: ProficiencyChoice[] = [
   { id: 'vehicules-marins', name: 'Véhicules marins', category: 'tool', description: 'Maîtrise de la navigation et conduite de navires.' }
 ]
 
-// Fonction pour obtenir les maîtrises automatiques d'une race
 export function getRaceProficiencies(raceId: string, subraceId?: string): ProficiencyData {
   const automatic: ProficiencyChoice[] = []
   const choiceGroups: { id: string; name: string; count: number; choices: ProficiencyChoice[] }[] = []
@@ -185,7 +184,6 @@ export function getRaceProficiencies(raceId: string, subraceId?: string): Profic
   return { automaticProficiencies: automatic, choiceGroups }
 }
 
-// Fonction pour obtenir les maîtrises d'une classe
 export function getClassProficiencies(classId: string): ProficiencyData {
   const automatic: ProficiencyChoice[] = []
   const choiceGroups: { id: string; name: string; count: number; choices: ProficiencyChoice[] }[] = []
@@ -338,7 +336,6 @@ export function getClassProficiencies(classId: string): ProficiencyData {
   return { automaticProficiencies: automatic, choiceGroups }
 }
 
-// Fonction pour obtenir les maîtrises d'un historique
 export function getBackgroundProficiencies(backgroundId: string): ProficiencyData {
   const automatic: ProficiencyChoice[] = []
   const choiceGroups: { id: string; name: string; count: number; choices: ProficiencyChoice[] }[] = []
@@ -542,7 +539,6 @@ export function getBackgroundProficiencies(backgroundId: string): ProficiencyDat
   return { automaticProficiencies: automatic, choiceGroups }
 }
 
-// Fonction utilitaire pour obtenir les langues automatiques d'une race
 export function getAutomaticLanguages(race: any): ProficiencyChoice[] {
   if (!race || !race.languages) {
     return []
@@ -573,7 +569,6 @@ export function getAutomaticLanguages(race: any): ProficiencyChoice[] {
   })
 }
 
-// Fonction utilitaire pour combiner toutes les maîtrises d'un personnage
 export function getAllCharacterProficiencies(
   raceId: string, 
   subraceId: string, 
@@ -645,4 +640,37 @@ export function getAllCharacterProficiencies(
     automaticProficiencies: allAutomatic,
     choiceGroups: allChoiceGroups
   }
+}
+
+export function getCategoryIcon(category: string): string {
+  switch (category) {
+    case 'skill': return '⚡'
+    case 'language': return '💬'
+    case 'tool': return '🔧'
+    default: return '📋'
+  }
+}
+
+export function translateSkillName(skillName: string): string {
+  const skillTranslations: Record<string, string> = {
+    'Skill: Insight': 'Perspicacité',
+    'Skill: Religion': 'Religion',
+    'Skill: Deception': 'Tromperie',
+    'Skill: Sleight of Hand': 'Escamotage',
+    'Skill: Stealth': 'Discrétion',
+    'Skill: Acrobatics': 'Acrobaties',
+    'Skill: Performance': 'Représentation',
+    'Skill: Animal Handling': 'Dressage',
+    'Skill: Survival': 'Survie',
+    'Skill: Persuasion': 'Persuasion',
+    'Skill: Athletics': 'Athlétisme',
+    'Skill: Intimidation': 'Intimidation',
+    'Skill: History': 'Histoire',
+    'Skill: Arcana': 'Arcanes',
+    'Skill: Medicine': 'Médecine',
+    'Skill: Perception': 'Perception',
+    'Skill: Nature': 'Nature',
+    'Skill: Investigation': 'Investigation'
+  }
+  return skillTranslations[skillName] || skillName
 }

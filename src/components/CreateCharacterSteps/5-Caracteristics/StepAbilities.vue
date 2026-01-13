@@ -1,5 +1,16 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-green-900 via-emerald-900 to-teal-900 flex flex-col">
+  <div>
+    <div class="min-h-screen bg-gradient-to-br from-green-900 via-emerald-900 to-teal-900 flex flex-col relative">
+    <!-- Bouton récapitulatif -->
+    <button
+      @click="showSummary = true"
+      class="absolute top-4 right-4 z-10 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white rounded-full p-3 transition-all duration-200 shadow-lg"
+      title="Voir le récapitulatif"
+    >
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+      </svg>
+    </button>
 
     <!-- Caractéristiques -->
     <div class="flex flex-col justify-center px-4 py-3 flex-1">
@@ -81,7 +92,7 @@
             <!-- Coût en points -->
             <div class="text-center mt-1">
               <span class="text-xs text-green-200">
-                Coût: {{ getPointCost(ability.value) }} pts
+                Coût: {{ getAbilityPointCost(ability.value) }} pts
               </span>
             </div>
           </div>
@@ -129,6 +140,14 @@
       @next="validateAbilities"
     />
   </div>
+
+  <!-- Modal de récapitulatif -->
+  <CharacterSummaryModal
+    :is-open="showSummary"
+    :character="character"
+    @close="showSummary = false"
+  />
+  </div>
 </template>
 
 <style scoped>
@@ -150,22 +169,16 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import StepNavigation from '../StepNavigation.vue'
+import CharacterSummaryModal from '../../CharacterSummaryModal.vue'
+import type { SRDRace } from '@/types/srd'
+import type { Character } from '@/stores/app'
+import type { Ability } from '@/utils/abilities'
+import { getAbilityPointCost, getAbilityDescription } from '@/utils/abilities'
 
-interface Ability {
-  name: string
-  value: number
-}
-
-interface Character {
-  race: any
-  subrace: any
-  class: string
-  background: string
-  abilities: Record<string, number>
-}
 
 const props = defineProps<{
   character: Character
+  selectedRace?: SRDRace | null
 }>()
 
 const emit = defineEmits<{
@@ -185,10 +198,12 @@ const abilities = ref<Ability[]>([
   { name: 'Charisme', value: 8 }
 ])
 
+const showSummary = ref(false)
+
 // Bonus raciaux maintenant récupérés depuis la sous-race sélectionnée
 const remainingPoints = computed(() => {
   const usedPoints = abilities.value.reduce((total, ability) => {
-    return total + getPointCost(ability.value)
+    return total + getAbilityPointCost(ability.value)
   }, 0)
   return TOTAL_POINTS - usedPoints
 })
@@ -219,8 +234,8 @@ function getRacialBonus(abilityName: string): number {
   }
 
   // Bonus de la sous-race
-  if (props.character.subrace?.ability_bonuses) {
-    const subraceBonus = props.character.subrace.ability_bonuses.find(
+  if (props.character.subrace?.abilityBonuses && Array.isArray(props.character.subrace.abilityBonuses)) {
+    const subraceBonus = props.character.subrace.abilityBonuses.find(
       (bonus: any) => bonus.ability_score.name === englishAbilityName
     )
     if (subraceBonus) {
@@ -238,32 +253,18 @@ function getFinalModifier(abilityName: string): number {
   return getModifier(finalValue)
 }
 
-function getPointCost(value: number): number {
-  // Système de coût D&D 5e : 8=0pts, 9=1pt, 10=2pts, 11=3pts, 12=4pts, 13=5pts, 14=7pts, 15=9pts
-  const costs = [0, 1, 2, 3, 4, 5, 7, 9]
-  return costs[value - 8] || 0
-}
+
 
 function getModifier(value: number): number {
   return Math.floor((value - 10) / 2)
 }
 
-function getAbilityDescription(name: string): string {
-  const descriptions: Record<string, string> = {
-    'Force': 'Puissance physique, combat au corps à corps',
-    'Dextérité': 'Agilité, réflexes, attaques à distance',
-    'Constitution': 'Endurance, points de vie, résistance',
-    'Intelligence': 'Raisonnement, mémoire, magie arcane',
-    'Sagesse': 'Perception, intuition, magie divine',
-    'Charisme': 'Force de personnalité, persuasion'
-  }
-  return descriptions[name] || ''
-}
+
 
 function increaseAbility(ability: Ability) {
   if (ability.value < 15 && remainingPoints.value > 0) {
     const newValue = ability.value + 1
-    const costDifference = getPointCost(newValue) - getPointCost(ability.value)
+    const costDifference = getAbilityPointCost(newValue) - getAbilityPointCost(ability.value)
     if (remainingPoints.value >= costDifference) {
       ability.value = newValue
     }
@@ -292,7 +293,7 @@ function randomizeAbilities() {
     
     if (randomAbility && randomAbility.value < 15) {
       const newValue = randomAbility.value + 1
-      const cost = getPointCost(newValue) - getPointCost(randomAbility.value)
+      const cost = getAbilityPointCost(newValue) - getAbilityPointCost(randomAbility.value)
       if (pointsToSpend >= cost) {
         randomAbility.value = newValue
         pointsToSpend -= cost
