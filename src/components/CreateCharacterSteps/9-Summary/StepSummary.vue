@@ -244,8 +244,7 @@
 
                   <!-- Autres choix spéciaux non catégorisés -->
                   <template v-for="(value, key) in specialChoicesDisplay" :key="key">
-                    <div v-if="!['draconicAncestry', 'fightingStyle', 'favoredEnemies', 'naturalExplorer', 'expertise'].includes(key)"
-                         class="bg-white/10 rounded-lg p-3">
+                    <div v-if="!['draconicAncestry', 'fightingStyle', 'favoredEnemies', 'naturalExplorer', 'expertise'].includes(key)" class="bg-white/10 rounded-lg p-3">
                       <div class="text-yellow-200 text-sm font-semibold">{{ key }}</div>
                       <div class="flex flex-wrap gap-1 mt-1">
                         <span v-for="item in value" :key="item"
@@ -472,6 +471,7 @@ const hasSpecialChoices = computed(() => {
 // Computed pour extraire les choix spéciaux par type
 const specialChoicesDisplay = computed(() => {
   const choices = props.character.specialChoices
+  console.log('Choices spéciaux:', choices)
   if (!choices) return {}
   
   const result: Record<string, any> = {}
@@ -484,7 +484,7 @@ const specialChoicesDisplay = computed(() => {
         result.fightingStyle = items
       } else if (key.includes('draconic-ancestry') || key.includes('ascendance-draconique')) {
         result.draconicAncestry = items
-      } else if (key.includes('favored-enemies') || key.includes('ennemis-jures')) {
+      } else if (key.includes('favored-enemies') || key.includes('ennemis-jures') || key.includes('favored-enemy')) {
         result.favoredEnemies = items
       } else if (key.includes('natural-explorer') || key.includes('explorateur-ne')) {
         result.naturalExplorer = items

@@ -6,7 +6,7 @@
       <p class="text-purple-100 text-lg">Personnalisez les capacités uniques de votre personnage</p>
       <div class="mt-3">
         <span class="bg-purple-500/30 text-purple-100 px-3 py-1 rounded-full text-sm font-medium border border-purple-400/30">
-          {{ character.race.name }} {{ character.class.name }}{{ character.subclass ? ` • ${character.subclass}` : '' }}
+          {{ character.race.name }} {{ character.class.name }}{{ character.subclass ? ` • ${character.subclass.name}` : '' }}
         </span>
       </div>
     </div>
@@ -117,7 +117,7 @@ const selections = reactive<Record<string, string[]>>({})
 
 // Données des choix spéciaux requis
 const specialChoicesData = computed(() => {
-  return getRequiredSpecialChoices(props.character.class.index, props.character.subclass)
+  return getRequiredSpecialChoices(props.character.class.index, props?.character?.subclass?.id)
 })
 
 const hasAnyChoices = computed(() => {
@@ -155,7 +155,6 @@ function isSelected(choiceId: string, optionId: string): boolean {
   return selections[choiceId]?.includes(optionId) || false
 }
 
-// Vérifier si une option est désactivée
 function isDisabled(choice: SpecialChoice, option: SpecialChoiceOption): boolean {
   const currentSelections = getSelectionCount(choice.id)
   const maxSelections = getMaxSelections(choice)
@@ -168,18 +167,14 @@ function isDisabled(choice: SpecialChoice, option: SpecialChoiceOption): boolean
   // Logique spéciale pour l'expertise - seulement les compétences que le roublard maîtrise
   if (choice.category === 'expertise') {
     const character = props.character
-    const allProficiencies = [
-      ...(character.proficiencies?.skills || []),
-      ...(character.proficiencies?.tools || [])
-    ]
-    
-    // Convertir l'ID de l'option en format attendu
     const skillMap: Record<string, string> = {
       'outils-voleur': 'outils-de-voleur'
     }
     const mappedId = skillMap[option.id] || option.id
-    
-    return !allProficiencies.includes(mappedId)
+
+    const listOfProficienciesIndexes = character.allProficiencies?.skills.map((prof: any) => prof.id)
+    if (!listOfProficienciesIndexes) return true
+    return !listOfProficienciesIndexes.includes(mappedId)
   }
   
   return false

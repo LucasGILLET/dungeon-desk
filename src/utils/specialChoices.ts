@@ -25,61 +25,61 @@ export const draconicAncestries: SpecialChoiceOption[] = [
     id: 'dragon-noir',
     name: 'Dragon Noir',
     description: 'Dragon des marais et des lacs acides',
-    effect: 'Type de dégâts : Acide • Zone d\'effet : Ligne de 1,5 x 9 m (JdS Dextérité)'
+    effect: 'Type de dégâts : Acide'
   },
   {
     id: 'dragon-bleu',
     name: 'Dragon Bleu', 
     description: 'Dragon des déserts et des orages',
-    effect: 'Type de dégâts : Foudre • Zone d\'effet : Ligne de 1,5 x 9 m (JdS Dextérité)'
+    effect: 'Type de dégâts : Foudre'
   },
   {
     id: 'dragon-dairain',
     name: 'Dragon d\'Airain',
     description: 'Dragon des déserts et des terres arides',
-    effect: 'Type de dégâts : Feu • Zone d\'effet : Ligne de 1,5 x 9 m (JdS Dextérité)'
+    effect: 'Type de dégâts : Feu'
   },
   {
     id: 'dragon-bronze',
     name: 'Dragon de Bronze',
     description: 'Dragon des côtes et des îles',
-    effect: 'Type de dégâts : Foudre • Zone d\'effet : Ligne de 1,5 x 9 m (JdS Dextérité)'
+    effect: 'Type de dégâts : Foudre'
   },
   {
     id: 'dragon-cuivre',
     name: 'Dragon de Cuivre',
     description: 'Dragon des collines et des montagnes',
-    effect: 'Type de dégâts : Acide • Zone d\'effet : Ligne de 1,5 x 9 m (JdS Dextérité)'
+    effect: 'Type de dégâts : Acide'
   },
   {
     id: 'dragon-or',
     name: 'Dragon d\'Or',
     description: 'Dragon des plaines et des prairies',
-    effect: 'Type de dégâts : Feu • Zone d\'effet : Cône de 4,5 m (JdS Dextérité)'
+    effect: 'Type de dégâts : Feu'
   },
   {
     id: 'dragon-vert',
     name: 'Dragon Vert',
     description: 'Dragon des forêts et des jungles',
-    effect: 'Type de dégâts : Poison • Zone d\'effet : Cône de 4,5 m (JdS Constitution)'
+    effect: 'Type de dégâts : Poison'
   },
   {
     id: 'dragon-rouge',
     name: 'Dragon Rouge',
     description: 'Dragon des montagnes et des volcans',
-    effect: 'Type de dégâts : Feu • Zone d\'effet : Cône de 4,5 m (JdS Dextérité)'
+    effect: 'Type de dégâts : Feu'
   },
   {
     id: 'dragon-argent',
     name: 'Dragon d\'Argent',
     description: 'Dragon des nuages et des hauts plateaux',
-    effect: 'Type de dégâts : Froid • Zone d\'effet : Cône de 4,5 m (JdS Constitution)'
+    effect: 'Type de dégâts : Froid'
   },
   {
     id: 'dragon-blanc',
     name: 'Dragon Blanc',
     description: 'Dragon des régions arctiques',
-    effect: 'Type de dégâts : Froid • Zone d\'effet : Cône de 4,5 m (JdS Constitution)'
+    effect: 'Type de dégâts : Froid'
   }
 ]
 
@@ -248,7 +248,7 @@ export function getRequiredSpecialChoices(classId: string, subclassId?: string):
   const choices: SpecialChoice[] = []
 
   // Choix basés sur la classe
-  if (classId === 'guerrier') {
+  if (classId === 'fighter') {
     choices.push({
       id: 'fighting-style',
       name: 'Style de combat',
@@ -258,7 +258,7 @@ export function getRequiredSpecialChoices(classId: string, subclassId?: string):
     })
   }
 
-  if (classId === 'rodeur') {
+  if (classId === 'ranger') {
     choices.push({
       id: 'favored-enemy',
       name: 'Ennemi juré',
@@ -276,7 +276,7 @@ export function getRequiredSpecialChoices(classId: string, subclassId?: string):
     })
   }
 
-  if (classId === 'roublard') {
+  if (classId === 'rogue') {
     choices.push({
       id: 'expertise',
       name: 'Expertise',
@@ -287,11 +287,11 @@ export function getRequiredSpecialChoices(classId: string, subclassId?: string):
   }
 
   // Choix basés sur la sous-classe
-  if (subclassId === 'lignee-draconique') {
+  if (subclassId === 'draconic-ancestry' || subclassId === 'lignee-draconique') {
     choices.push({
       id: 'draconic-ancestry',
       name: 'Ascendance draconique',
-      description: 'Choisissez le type de dragon dont vous descendez. Cela détermine votre résistance et votre souffle.',
+      description: 'Choisissez le type de dragon dont vous descendez. Le type de dégâts associé au dragon sera utilisé pour des compétences aux plus hauts niveaux plus tard.',
       category: 'draconic-ancestry',
       options: draconicAncestries
     })

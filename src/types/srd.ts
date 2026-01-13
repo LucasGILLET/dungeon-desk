@@ -118,6 +118,7 @@ export interface SRDClass {
 
 export interface SRDSubclass {
   index: string
+  id?: string
   name: string
   race: {
     index: string

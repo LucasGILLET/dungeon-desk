@@ -1,4 +1,4 @@
-import type { SRDClass, SRDRace } from '@/types/srd'
+import type { SRDClass, SRDRace, SRDSubclass } from '@/types/srd'
 import { defineStore } from 'pinia'
 import { ref, reactive } from 'vue'
 
@@ -7,7 +7,7 @@ export interface Character {
   name: string
   race: SRDRace
   class: SRDClass
-  subclass?: string
+  subclass?: SRDSubclass
   level: number
   abilities: {
     strength: number
@@ -30,6 +30,11 @@ export interface Character {
   specialChoices?: Record<string, string[]>
   createdAt?: Date
   updatedAt?: Date
+  allProficiencies?: {
+    skills: string[]
+    languages: string[]
+    tools: string[]
+  }
 }
 
 export interface Campaign {
