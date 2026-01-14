@@ -541,12 +541,44 @@ const specialChoicesDisplay = computed(() => {
   return result
 })
 
+// Mapping des IDs de sous-classes français vers les index SRD anglais
+function getSubclassSRDIndex(subclassId: string): string {
+  const subclassMapping: Record<string, string> = {
+    'lignee-draconique': 'draconic',
+    'magie-sauvage': 'wild',
+    'domaine-vie': 'life',
+    'domaine-lumiere': 'light',
+    'domaine-duperie': 'trickery',
+    'domaine-nature': 'nature',
+    'domaine-tempete': 'tempest',
+    'cercle-terre': 'land',
+    'cercle-lune': 'moon',
+    'grand-ancien': 'great-old-one',
+    'archifee': 'archfey',
+    'fiélon': 'fiend'
+  }
+  
+  return subclassMapping[subclassId] || subclassId
+}
+
 const sortedFeatures = computed(() => {
   if (!props.character.features) return []
 
-  return [...props.character.features.filter(feature => 
-         !feature.parent
-       )].sort((a, b) => a.level - b.level)
+  return [...props.character.features.filter(feature => {
+    // Exclure les features avec parent
+    if (feature.parent) return false
+    
+    // Garder les features de base (sans subclass)
+    if (!feature.subclass) return true
+    
+    // Garder uniquement les features de la sous-classe actuelle du personnage
+    if (props.character.subclass && feature.subclass) {
+      const characterSubclassIndex = getSubclassSRDIndex(props.character.subclass.id!)
+      return feature.subclass.index === characterSubclassIndex
+    }
+    
+    return false
+  })].sort((a, b) => a.level - b.level)
 })
 
 const displayedFeatures = computed(() => {
