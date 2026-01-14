@@ -69,7 +69,13 @@ export interface SRDClass {
       option_set_type: string
       options: Array<{
         option_type: string
-        item: {
+        item?: {
+          index: string
+          name: string
+          url: string
+        }
+        count?: number
+        of?: {
           index: string
           name: string
           url: string
@@ -225,6 +231,123 @@ export interface SRDBackground {
         desc: string
       }>
     }
+  }
+  url: string
+}
+
+export interface SRDFeature {
+  index: string
+  class: {
+    index: string
+    name: string
+    url: string
+  }
+  name: string
+  level: number
+  prerequisites: Array<{
+    type: string
+    level?: number
+    feature?: string
+  }>
+  desc: string[]
+  url: string
+  parent?: {
+    index: string
+    name: string
+    url: string
+  }
+  subclass?: {
+    index: string
+    name: string
+    url: string
+  }
+}
+
+export interface SRDClass {
+  index: string
+  name: string
+  hit_die: number
+  proficiency_choices: Array<{
+    desc: string
+    choose: number
+    type: string
+    from: {
+      option_set_type: string
+      options: Array<{
+        option_type: string
+        item?: {
+          index: string
+          name: string
+          url: string
+        }
+        count?: number
+        of?: {
+          index: string
+          name: string
+          url: string
+        }
+      }>
+    }
+  }>
+  proficiencies: Array<{
+    index: string
+    name: string
+    url: string
+  }>
+  saving_throws: Array<{
+    index: string
+    name: string
+    url: string
+  }>
+  starting_equipment: Array<{
+    equipment: {
+      index: string
+      name: string
+      url: string
+    }
+    quantity: number
+  }>
+  starting_equipment_options: Array<{
+    desc: string
+    choose: number
+    type: string
+    from: {
+      option_set_type: string
+      options: Array<{
+        option_type: string
+        counted_reference?: {
+          count: number
+          of: {
+            index: string
+            name: string
+            url: string
+          }
+        }
+        reference?: {
+          index: string
+          name: string
+          url: string
+        }
+      }>
+    }
+  }>
+  class_levels: string
+  subclasses: Array<{
+    index: string
+    name: string
+    url: string
+  }>
+  spellcasting?: {
+    level: number
+    spellcasting_ability: {
+      index: string
+      name: string
+      url: string
+    }
+    info: Array<{
+      name: string
+      desc: string[]
+    }>
   }
   url: string
 }

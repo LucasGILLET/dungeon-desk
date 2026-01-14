@@ -56,14 +56,14 @@
                       <span class="text-purple-200">Sous-race :</span>
                       <span class="text-white font-semibold">{{ character.subrace.name }}</span>
                     </div>
-                    <div v-if="character.subrace" class="grid grid-cols-2 gap-2 mt-4 text-sm">
+                    <div class="grid grid-cols-2 gap-2 mt-4 text-sm">
                       <div class="bg-white/10 rounded-lg p-2">
                         <div class="text-purple-200">Taille</div>
                         <div class="text-white font-medium">{{ character.race?.size }}</div>
                       </div>
                       <div class="bg-white/10 rounded-lg p-2">
                         <div class="text-purple-200">Vitesse</div>
-                        <div class="text-white font-medium">{{ character.race?.speed }} m</div>
+                        <div class="text-white font-medium">{{ convertSpeedToMeters(character.race?.speed) }} m</div>
                       </div>
                       <div class="bg-white/10 rounded-lg p-2">
                         <div class="text-purple-200">Vision</div>
@@ -103,15 +103,15 @@
                 </div>
 
                 <!-- Traits raciaux -->
-                <div v-if="character.subrace?.racialTraits?.length" class="bg-black/20 rounded-xl p-6">
+                <div v-if="character.allTraits?.length" class="bg-black/20 rounded-xl p-6">
                   <h3 class="text-xl font-bold text-white mb-4 flex items-center">
                     ✨ Traits Raciaux
                   </h3>
-                  <div class="space-y-3">
-                    <div v-for="trait in character.subrace.racialTraits" :key="trait.index" 
+                  <div class="max-h-96 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-purple-600 scrollbar-track-black/20">
+                    <div v-for="trait in character.allTraits" :key="trait.index" 
                         class="relative bg-white/10 rounded-lg p-4 hover:bg-white/20 transition-all duration-200 cursor-help group">
                       <div class="text-purple-100 text-sm font-semibold mb-2">{{ trait.name }}</div>
-                      <div class="text-white text-xs leading-relaxed">{{ getTraitDescription(trait.index) }}</div>
+                      <div class="text-white text-xs leading-relaxed">{{ getTraitDescription(trait) }}</div>
                       
                       <!-- Indicateur de survol -->
                       <div class="absolute top-2 right-2 text-purple-300 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
@@ -197,6 +197,83 @@
                   </div>
                 </div>
 
+
+
+
+              </div>
+
+              <!-- Caractéristiques -->
+              <div class="space-y-6">
+                <!-- Stats principales -->
+                <div class="bg-black/20 rounded-xl p-6">
+                  <h3 class="text-xl font-bold text-white mb-4 flex items-center">
+                    📊 Caractéristiques
+                  </h3>
+                  <div class="grid grid-cols-2 gap-3">
+                    <div v-for="ability in getAbilitiesDisplay()" :key="ability.name"
+                        class="bg-gradient-to-br from-blue-500/30 to-purple-500/30 rounded-lg p-3 border border-blue-400/40">
+                      <div class="text-center">
+                        <div class="text-purple-200 text-sm font-medium">{{ ability.name }}</div>
+                        <div class="text-2xl font-bold text-white">{{ ability.final }}</div>
+                        <div class="text-blue-200 text-xs">({{ ability.modifier >= 0 ? '+' : '' }}{{ ability.modifier }})</div>
+                        <div class="text-xs text-green-300 mt-1">
+                          {{ ability.base }}{{ ability.racial > 0 ? ` +${ability.racial}` : '' }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Points de vie estimés -->
+                <div class="bg-black/20 rounded-xl p-6">
+                  <h3 class="text-xl font-bold text-white mb-4 flex items-center">
+                    ❤️ Statistiques de Combat
+                  </h3>
+                  <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                      <span class="text-purple-200">Points de Vie (estimés) :</span>
+                      <span class="text-red-300 font-bold text-lg">{{ getEstimatedHP() }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <span class="text-purple-200">Classe d'Armure (base) :</span>
+                      <span class="text-blue-300 font-bold">{{ getBaseAC() }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <span class="text-purple-200">Initiative :</span>
+                      <span class="text-green-300 font-bold">{{ getInitiative() }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Features de Classe -->
+                <div class="bg-black/20 rounded-xl p-6">
+                  <h3 class="text-xl font-bold text-white mb-4 flex items-center">
+                    ⚔️ Capacités de Classe (Niveau 1)
+                  </h3>
+                  <div class="max-h-96 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-purple-600 scrollbar-track-black/20">
+                    <div v-if="displayedFeatures.length > 0" v-for="feature in displayedFeatures" :key="feature.index"
+                        class="bg-white/10 rounded-lg p-4">
+                      <div class="flex justify-between items-start mb-2">
+                        <h4 class="text-purple-200 font-semibold">{{ feature.name }}</h4>
+                        <span class="text-xs bg-green-600/30 text-green-100 px-2 py-1 rounded">
+                          Niveau {{ feature.level }}
+                        </span>
+                      </div>
+                      <div class="text-gray-300 text-sm">
+                        <div v-for="desc in feature.desc" :key="desc" class="mb-2">
+                          {{ desc }}
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Message si aucune feature -->
+                    <div v-else class="text-center text-gray-400 py-4">
+                      <div class="text-sm">Aucune capacité de classe disponible</div>
+                      <div class="text-xs mt-1">Les capacités seront ajoutées selon la classe et le niveau</div>
+                    </div>
+                  </div>
+                </div>
+
                 <!-- Choix Spéciaux -->
                 <div class="bg-black/20 rounded-xl p-6">
                   <h3 class="text-xl font-bold text-white mb-4 flex items-center">
@@ -278,50 +355,9 @@
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <!-- Caractéristiques -->
-              <div class="space-y-6">
-                <!-- Stats principales -->
-                <div class="bg-black/20 rounded-xl p-6">
-                  <h3 class="text-xl font-bold text-white mb-4 flex items-center">
-                    📊 Caractéristiques
-                  </h3>
-                  <div class="grid grid-cols-2 gap-3">
-                    <div v-for="ability in getAbilitiesDisplay()" :key="ability.name"
-                        class="bg-gradient-to-br from-blue-500/30 to-purple-500/30 rounded-lg p-3 border border-blue-400/40">
-                      <div class="text-center">
-                        <div class="text-purple-200 text-sm font-medium">{{ ability.name }}</div>
-                        <div class="text-2xl font-bold text-white">{{ ability.final }}</div>
-                        <div class="text-blue-200 text-xs">({{ ability.modifier >= 0 ? '+' : '' }}{{ ability.modifier }})</div>
-                        <div class="text-xs text-green-300 mt-1">
-                          {{ ability.base }}{{ ability.racial > 0 ? ` +${ability.racial}` : '' }}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
 
-                <!-- Points de vie estimés -->
-                <div class="bg-black/20 rounded-xl p-6">
-                  <h3 class="text-xl font-bold text-white mb-4 flex items-center">
-                    ❤️ Statistiques de Combat
-                  </h3>
-                  <div class="space-y-3">
-                    <div class="flex justify-between items-center">
-                      <span class="text-purple-200">Points de Vie (estimés) :</span>
-                      <span class="text-red-300 font-bold text-lg">{{ getEstimatedHP() }}</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                      <span class="text-purple-200">Classe d'Armure (base) :</span>
-                      <span class="text-blue-300 font-bold">{{ getBaseAC() }}</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                      <span class="text-purple-200">Initiative :</span>
-                      <span class="text-green-300 font-bold">{{ getInitiative() }}</span>
-                    </div>
-                  </div>
-                </div>
+
               </div>
             </div>
           </div>
@@ -348,8 +384,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { getTraitDescription } from '@/utils/traits'
+import { computed, ref, onMounted } from 'vue'
+import { getTraitDescriptionByIndex, getTraitDescriptionCombined, traitDescriptions } from '@/utils/traits'
+import { loadTraits } from '@/utils/dataLoader'
 import StepNavigation from '../StepNavigation.vue'
 import CharacterSummaryModal from '../../CharacterSummaryModal.vue'
 import type { SRDRace } from '@/types/srd'
@@ -363,6 +400,15 @@ const props = defineProps<{
 const emit = defineEmits(['prev', 'finalize'])
 
 const showSummary = ref(false)
+const srdTraits = ref<any[]>([])
+
+onMounted(async () => {
+  try {
+    srdTraits.value = await loadTraits()
+  } catch (error) {
+    console.error('Erreur lors du chargement des traits SRD:', error)
+  }
+})
 
 const hasAnyProficiencies = computed(() => {
   const prof = props.character.allProficiencies
@@ -496,14 +542,26 @@ const specialChoicesDisplay = computed(() => {
   return result
 })
 
+const sortedFeatures = computed(() => {
+  if (!props.character.features) return []
+  
+  return [...props.character.features].sort((a, b) => a.level - b.level)
+})
+
+const displayedFeatures = computed(() => {
+  if (!sortedFeatures.value) return []
+  
+  return sortedFeatures.value.filter(feature => feature.level === 1)
+})
+
 function getModifier(value: number): number {
   return Math.floor((value - 10) / 2)
 }
 
 function getAbilitiesDisplay() {
   const abilityNames = ['Force', 'Dextérité', 'Constitution', 'Intelligence', 'Sagesse', 'Charisme']
-  const abilityKeys = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma']
-  
+  const abilityKeys = ['force', 'dextérité', 'constitution', 'intelligence', 'sagesse', 'charisme']
+
   return abilityNames.map((name, index) => {
     const abilityKey = abilityKeys[index] as keyof typeof props.character.abilities
     const baseValue: number = props.character.abilities[abilityKey] || 8
@@ -521,8 +579,8 @@ function getAbilitiesDisplay() {
 }
 
 function getVisionDisplay(): string {
-  if (props.character.subrace?.vision) {
-    return props.character.subrace.vision[0]
+  if (props.character.vision) {
+    return props.character.vision
   }
   
   return 'Vision normale'
@@ -583,6 +641,18 @@ function finalizeCharacter() {
   emit('finalize', props.character)
   // Pour l'instant, on affiche juste une alerte
   alert(`🎉 Personnage créé avec succès !\n\n${props.character.name || 'Votre aventurier'} est prêt pour l'aventure !`)
+}
+
+function getTraitDescription(trait: any): string {
+  if (trait.desc && Array.isArray(trait.desc)) {
+    return trait.desc.join(' ')
+  }
+  
+  return getTraitDescriptionCombined(srdTraits.value, trait.index, trait.name)
+}
+
+function convertSpeedToMeters(speed: number): number {
+  return Math.round((speed) * 0.3048)
 }
 </script>
 

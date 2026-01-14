@@ -54,4 +54,5 @@ export interface Subrace {
     name: string
     url: string
   }>
+  ability_bonuses: Record<string, number>
 }

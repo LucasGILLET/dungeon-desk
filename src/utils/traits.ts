@@ -1,3 +1,5 @@
+import { loadTraits } from "./dataLoader"
+
 export const traitDescriptions: Record<string, string> = {
   // Traits essentiels manquants du SRD
   'dwarven-toughness': 'Votre maximum de points de vie augmente de 1 à chaque niveau.',
@@ -16,6 +18,12 @@ export function getTraitDescription(traitName: string): string {
 
 export function getTraitDescriptionFromSRD(traits: any[], traitIndex: string): string | null {
   const trait = traits.find(t => t.index === traitIndex)
+  return trait ? trait.desc.join(' ') : null
+}
+
+export async function getTraitDescriptionByIndex(traitIndex: string): Promise<string | null> {
+  const allTraits = await loadTraits().then(data => data)
+  const trait = allTraits.find((t: any) => t.index === traitIndex)
   return trait ? trait.desc.join(' ') : null
 }
 

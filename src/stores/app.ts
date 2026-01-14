@@ -1,4 +1,4 @@
-import type { SRDBackground, SRDClass, SRDRace, SRDSubclass } from '@/types/srd'
+import type { SRDBackground, SRDClass, SRDFeature, SRDRace, SRDSubclass } from '@/types/srd'
 import type { Subrace } from '@/utils/subrace'
 import { defineStore } from 'pinia'
 import { ref, reactive } from 'vue'
@@ -37,6 +37,14 @@ export interface Character {
     languages: { name: string; id: string; description: string; category: string }[]
     tools: { name: string; id: string; description: string; category: string }[]
   }
+  allTraits?: {
+    index: string
+    name: string
+    url: string
+    category: string
+  }[]
+  features?: SRDFeature[]
+  vision?: string
 }
 
 export interface Campaign {

@@ -60,3 +60,23 @@ export function getClassMainStats(cls: SRDClass): string[] {
 export function isMartialClass(classIndex: string): boolean {
   return ['barbarian', 'fighter', 'monk', 'paladin', 'ranger', 'rogue'].includes(classIndex)
 }
+
+
+export function getTranslatedClassName(className: string): string {
+  const translations: Record<string, string> = {
+    'Barbarian': 'Barbare',
+    'Bard': 'Barde',
+    'Cleric': 'Clerc',
+    'Druid': 'Druide',
+    'Fighter': 'Guerrier',
+    'Monk': 'Moine',
+    'Paladin': 'Paladin',
+    'Ranger': 'Rôdeur',
+    'Rogue': 'Roublard',
+    'Sorcerer': 'Ensorceleur',
+    'Warlock': 'Occultiste',
+    'Wizard': 'Magicien'
+  }
+  
+  return translations[className] || className
+}

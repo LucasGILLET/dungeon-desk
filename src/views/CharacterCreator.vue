@@ -33,7 +33,8 @@ import StepSpecialChoices from '@/components/CreateCharacterSteps/8-SpecialChoic
 import StepSummary from '@/components/CreateCharacterSteps/9-Summary/StepSummary.vue'
 import { computed, reactive, ref } from 'vue'
 import { getSubracesByParentRace } from '@/utils/subrace'
-import type { SRDBackground, SRDClass, SRDRace, SRDSubclass } from '@/types/srd'
+import { getAllFeaturesByClass } from '@/utils/features'
+import type { SRDBackground, SRDClass, SRDFeature, SRDRace, SRDSubclass } from '@/types/srd'
 
 // Ajoutez ici les autres étapes au fur et à mesure
 const steps = [
@@ -60,8 +61,16 @@ const character = reactive({
   abilities: {} as Record<string, number>,
   proficiencies: {} as Record<string, any>,
   allProficiencies: {} as Record<string, any>,
+  allTraits: [] as {
+    index: string
+    name: string
+    url: string
+    category: string
+  }[],
   specialChoices: {} as Record<string, string[]>,
-  level: 1
+  level: 1,
+  vision: 'Vision normale',
+  features: [] as SRDFeature[]
 })
 
 const completion = computed(() => {
@@ -87,6 +96,11 @@ async function handleNext(payload: any) {
   console.log('handleNext payload:', payload, character)
   if (step.value === 0 && payload) {
     character.race = payload
+    payload.traits.forEach((trait: any) => {
+      trait.category = "race"
+    });
+    character.allTraits = [...payload.traits]
+    character.vision = character.allTraits.find(trait => trait.index === 'darkvision') ? 'Vision dans le noir (18m)' : 'Vision normale'
     const raceHasSubraces = await hasSubraces(payload.index)
     if (!raceHasSubraces) {
       character.subrace = null
@@ -97,10 +111,23 @@ async function handleNext(payload: any) {
 
   if (step.value === 1 && payload !== undefined) {
     character.subrace = payload
+    payload.racial_traits.forEach((trait: any) => {
+      trait.category = "subrace"
+    });
+    character.allTraits = [...character.allTraits, ...payload.racial_traits]
+    character.vision = character.allTraits.find(trait => trait.index === 'darkvision') ? 'Vision dans le noir (18m)' : 'Vision normale'
+    character.vision = character.allTraits.find(trait => trait.index === 'superior-darkvision') ? 'Vision dans le noir suppérieure (36m)' : character.vision
   }
 
   if (step.value === 2 && payload) {
     character.class = payload
+    try {
+      const features = await getAllFeaturesByClass(payload.index)
+      character.features = features
+    } catch (error) {
+      console.error('Erreur lors du chargement des features de classe:', error)
+      character.features = []
+    }
   }
 
   if (step.value === 3 && payload) {

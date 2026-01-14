@@ -1,4 +1,4 @@
-import type { SRDRace, SRDClass, SRDSubclass, SRDBackground, SRDTrait } from '@/types/srd'
+import type { SRDRace, SRDClass, SRDSubclass, SRDBackground, SRDTrait, SRDFeature } from '@/types/srd'
 
 const dataCache = new Map<string, any>()
 
@@ -78,4 +78,8 @@ export async function loadTraits(): Promise<SRDTrait[]> {
   customTraits.forEach(trait => traitMap.set(trait.index, trait))
   
   return Array.from(traitMap.values())
+}
+
+export async function loadFeatures(): Promise<SRDFeature[]> {
+  return loadJSON<SRDFeature[]>('5e-SRD-Features.json')
 }

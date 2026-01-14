@@ -184,7 +184,7 @@ export function getRaceProficiencies(raceId: string, subraceId?: string): Profic
   return { automaticProficiencies: automatic, choiceGroups }
 }
 
-export function getClassProficiencies(classId: string): ProficiencyData {
+export function getClassProficienciesToChoose(classId: string): ProficiencyData {
   const automatic: ProficiencyChoice[] = []
   const choiceGroups: { id: string; name: string; count: number; choices: ProficiencyChoice[] }[] = []
 
@@ -577,7 +577,7 @@ export function getAllCharacterProficiencies(
 ): ProficiencyData {
 
   const raceProficiencies = getRaceProficiencies(raceId, subraceId)
-  const classProficiencies = getClassProficiencies(classId)
+  const classProficiencies = getClassProficienciesToChoose(classId)
   const backgroundProficiencies = getBackgroundProficiencies(backgroundId)
 
   const allAutomatic = [
@@ -673,4 +673,65 @@ export function translateSkillName(skillName: string): string {
     'Skill: Investigation': 'Investigation'
   }
   return skillTranslations[skillName] || skillName
+}
+
+export function translateProficiencyName(proficiencyName: string): string {
+  const translations: Record<string, string> = {
+    'Light Armor': 'Armures légères',
+    'Medium Armor': 'Armures intermédiaires',
+    'Heavy Armor': 'Armures lourdes',
+    'Shields': 'Boucliers',
+    'Simple Weapons': 'Armes simples',
+    'Martial Weapons': 'Armes de guerre',
+    'Saving Throw: STR': 'Jets de sauvegarde : FOR',
+    'Saving Throw: DEX': 'Jets de sauvegarde : DEX',
+    'Saving Throw: CON': 'Jets de sauvegarde : CON',
+    'Saving Throw: INT': 'Jets de sauvegarde : INT',
+    'Saving Throw: WIS': 'Jets de sauvegarde : SAG',
+    'Saving Throw: CHA': 'Jets de sauvegarde : CHA'
+  }
+  return translations[proficiencyName] || proficiencyName
+}
+
+import { loadClasses } from '@/utils/dataLoader'
+
+export async function getClassProficiencies(classIndex: string): Promise<string[]> {
+  try {
+    // Essayer de charger via fetch d'abord
+    const classes = await loadClasses()
+    const classe = classes.find(c => c.index === classIndex)
+
+    if (!classe) {
+      console.warn(`Classe non trouvée: ${classIndex}`)
+      return []
+    }
+
+    if (!classe.proficiencies) {
+      console.warn(`Aucune maîtrise trouvée pour la classe: ${classIndex}`)
+      return []
+    }
+
+    console.log(`Maîtrises trouvées pour ${classIndex}:`, classe.proficiencies)
+
+    return classe.proficiencies.map(p => translateProficiencyName(p.name))
+  } catch (error) {
+    console.error('Erreur lors du chargement des maîtrises:', error)
+    // Fallback: retourner des maîtrises par défaut pour les classes communes
+    const defaultProficiencies: Record<string, string[]> = {
+      'barbarian': ['Armures légères', 'Armures intermédiaires', 'Boucliers', 'Armes simples', 'Armes de guerre', 'Jets de sauvegarde : FOR', 'Jets de sauvegarde : CON'],
+      'bard': ['Armures légères', 'Armes simples', 'Jets de sauvegarde : DEX', 'Jets de sauvegarde : CHA'],
+      'cleric': ['Armures légères', 'Armures intermédiaires', 'Boucliers', 'Armes simples', 'Jets de sauvegarde : SAG', 'Jets de sauvegarde : CHA'],
+      'druid': ['Armures légères', 'Armures intermédiaires', 'Boucliers', 'Armes simples', 'Jets de sauvegarde : INT', 'Jets de sauvegarde : SAG'],
+      'fighter': ['Toutes les armures', 'Boucliers', 'Armes simples', 'Armes de guerre', 'Jets de sauvegarde : FOR', 'Jets de sauvegarde : CON'],
+      'monk': ['Armes simples', 'Jets de sauvegarde : FOR', 'Jets de sauvegarde : DEX'],
+      'paladin': ['Toutes les armures', 'Boucliers', 'Armes simples', 'Armes de guerre', 'Jets de sauvegarde : SAG', 'Jets de sauvegarde : CHA'],
+      'ranger': ['Armures légères', 'Armures intermédiaires', 'Boucliers', 'Armes simples', 'Armes de guerre', 'Jets de sauvegarde : FOR', 'Jets de sauvegarde : DEX'],
+      'rogue': ['Armures légères', 'Armes simples', 'Jets de sauvegarde : DEX', 'Jets de sauvegarde : INT'],
+      'sorcerer': ['Jets de sauvegarde : CON', 'Jets de sauvegarde : CHA'],
+      'warlock': ['Armures légères', 'Armes simples', 'Jets de sauvegarde : SAG', 'Jets de sauvegarde : CHA'],
+      'wizard': ['Jets de sauvegarde : INT', 'Jets de sauvegarde : SAG']
+    }
+
+    return defaultProficiencies[classIndex] || []
+  }
 }

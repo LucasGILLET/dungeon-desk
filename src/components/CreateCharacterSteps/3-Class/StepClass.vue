@@ -53,8 +53,19 @@
               
               <!-- Nom de la classe -->
               <h3 class="text-lg backdrop-brightness-50 font-bold text-white mb-2 class-name transition-all duration-300">
-                {{ classe.name }}
+                {{ getTranslatedClassName(classe.name) }}
               </h3>
+              
+              <!-- Bouton détails -->
+              <button 
+                @click.stop="openClassDetails(classe)"
+                class="absolute top-2 right-2 z-20 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white rounded-full p-2 transition-all duration-200 shadow-lg"
+                title="Voir les détails"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </button>
               
               <!-- Description (visible au hover) -->
               <div class="class-details opacity-0 transition-all duration-300 overflow-hidden">
@@ -114,6 +125,13 @@
     :is-open="showSummary"
     :character="character"
     @close="showSummary = false"
+  />
+
+  <!-- Modal de détails de classe -->
+  <ClassDetailsModal
+    :show="showClassDetails"
+    :classe="selectedDetailClass!"
+    @close="closeClassDetails"
   />
   </div>
 </template>
@@ -199,10 +217,11 @@
 import { ref, onMounted } from 'vue'
 import StepNavigation from '../StepNavigation.vue'
 import CharacterSummaryModal from '../../CharacterSummaryModal.vue'
+import ClassDetailsModal from './ClassDetailsModal.vue'
 import { loadClasses } from '@/utils/dataLoader'
 import type { SRDClass, SRDRace } from '@/types/srd'
 import type { Character } from '@/stores/app'
-import { getClassDescription, getClassMainStats, getClassDifficulty, isMartialClass } from '@/utils/classes'
+import { getClassDescription, getClassMainStats, getClassDifficulty, isMartialClass, getTranslatedClassName } from '@/utils/classes'
 
 const props = defineProps<{
   character: Character
@@ -219,6 +238,8 @@ const selectedClass = ref<SRDClass | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
 const showSummary = ref(false)
+const showClassDetails = ref(false)
+const selectedDetailClass = ref<SRDClass | null>(null)
 
 onMounted(async () => {
   try {
@@ -233,6 +254,16 @@ onMounted(async () => {
 
 const getImageUrl = (file: any) => {
   return new URL(`../../../images/classes/${file}`, import.meta.url).href
+}
+
+const openClassDetails = (classe: SRDClass) => {
+  selectedDetailClass.value = classe
+  showClassDetails.value = true
+}
+
+const closeClassDetails = () => {
+  showClassDetails.value = false
+  selectedDetailClass.value = null
 }
 
 </script>
