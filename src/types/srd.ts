@@ -132,6 +132,7 @@ export interface SRDSubclass {
     url: string
   }
   desc: string
+  description: string
   ability_bonuses: Array<{
     ability_score: {
       index: string

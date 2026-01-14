@@ -57,7 +57,7 @@
                 </div>
                 <div>
                   <p class="font-medium text-gray-900">{{ character.class.name }}</p>
-                  <!-- <p class="text-sm text-gray-600">{{ character.class. }}d{{ character.class.hit_die }} PV</p> -->
+                  <p class="text-sm text-gray-600">{{ getClassDescription(character.class) }}</p>
                 </div>
               </div>
             </div>
@@ -98,7 +98,7 @@
                 </div>
                 <div>
                   <p class="font-medium text-gray-900">{{ character.subclass.name }}</p>
-                  <p class="text-sm text-gray-600">{{ character.subclass.desc?.[0] || 'Aucune description' }}</p>
+                  <p class="text-sm text-gray-600">{{ character.subclass.description || 'Aucune description' }}</p>
                 </div>
               </div>
             </div>
@@ -146,7 +146,8 @@
 
 <script setup lang="ts">
 import type { Character } from '@/stores/app';
-
+import { getClassDescription } from '@/utils/classes';
+import { getSubclassesByClassName } from '@/utils/subclasses';
 
 interface Props {
   isOpen: boolean

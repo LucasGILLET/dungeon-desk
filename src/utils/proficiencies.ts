@@ -711,12 +711,9 @@ export async function getClassProficiencies(classIndex: string): Promise<string[
       return []
     }
 
-    console.log(`Maîtrises trouvées pour ${classIndex}:`, classe.proficiencies)
-
     return classe.proficiencies.map(p => translateProficiencyName(p.name))
   } catch (error) {
     console.error('Erreur lors du chargement des maîtrises:', error)
-    // Fallback: retourner des maîtrises par défaut pour les classes communes
     const defaultProficiencies: Record<string, string[]> = {
       'barbarian': ['Armures légères', 'Armures intermédiaires', 'Boucliers', 'Armes simples', 'Armes de guerre', 'Jets de sauvegarde : FOR', 'Jets de sauvegarde : CON'],
       'bard': ['Armures légères', 'Armes simples', 'Jets de sauvegarde : DEX', 'Jets de sauvegarde : CHA'],

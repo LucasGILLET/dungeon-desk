@@ -23,6 +23,15 @@
         <p class="text-green-200 text-xs">
           Minimum: 8 • Maximum: 15 • Les bonus raciaux s'ajoutent automatiquement
         </p>
+        <!-- Conseil pour les stats importantes de la classe -->
+        <div v-if="character.class" class="mt-2 bg-blue-500/20 border border-blue-400/40 rounded-lg px-3 py-2 max-w-2xl mx-auto">
+          <p class="text-blue-100 text-sm">
+            ⭐ <span class="font-semibold">Conseil :</span> Pour un <span class="font-bold text-blue-200">{{ character.class.name }}</span>, privilégiez 
+            <span v-for="(stat, index) in getClassMainStats(character.class)" :key="stat" class="font-bold text-yellow-300">
+              {{ stat }}{{ index < getClassMainStats(character.class).length - 1 ? ' puis ' : '' }}
+            </span>
+          </p>
+        </div>
       </div>
 
       <!-- Grille des caractéristiques -->
@@ -31,11 +40,19 @@
           <div 
             v-for="ability in abilities" 
             :key="ability.name" 
-            class="ability-card bg-white/10 backdrop-blur-md rounded-2xl p-3 border-2 border-white/20 transition-all duration-200"
+            :class="[
+              'ability-card backdrop-blur-md rounded-2xl p-3 border-2 transition-all duration-200',
+              isImportantStat(ability.name) 
+                ? 'bg-yellow-500/20 border-yellow-400/60 shadow-lg shadow-yellow-500/20' 
+                : 'bg-white/10 border-white/20'
+            ]"
           >
             <!-- Nom de la caractéristique -->
             <div class="text-center mb-2">
-              <h3 class="text-base font-bold text-white mb-1">{{ ability.name }}</h3>
+              <h3 class="text-base font-bold text-white mb-1 flex items-center justify-center gap-1">
+                <span v-if="isImportantStat(ability.name)" class="text-yellow-300" title="Caractéristique importante pour votre classe">⭐</span>
+                {{ ability.name }}
+              </h3>
               <p class="text-green-100 text-xs leading-tight">{{ getAbilityDescription(ability.name) }}</p>
             </div>
 
@@ -152,9 +169,17 @@
 
 <style scoped>
 .ability-card:hover {
-  border-color: rgba(34, 197, 94, 0.5);
   transform: translateY(-2px);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.ability-card:not(.bg-yellow-500\/20):hover {
+  border-color: rgba(34, 197, 94, 0.5);
+}
+
+.ability-card.bg-yellow-500\/20:hover {
+  border-color: rgba(250, 204, 21, 0.8);
+  box-shadow: 0 10px 30px rgba(250, 204, 21, 0.3);
 }
 
 .abilities-container {
@@ -174,6 +199,7 @@ import type { SRDRace } from '@/types/srd'
 import type { Character } from '@/stores/app'
 import type { Ability } from '@/utils/abilities'
 import { getAbilityPointCost, getAbilityDescription } from '@/utils/abilities'
+import { getClassMainStats } from '@/utils/classes'
 
 
 const props = defineProps<{
@@ -200,6 +226,13 @@ const abilities = ref<Ability[]>([
 
 const showSummary = ref(false)
 
+// Vérifie si une caractéristique est importante pour la classe du personnage
+function isImportantStat(abilityName: string): boolean {
+  if (!props.character.class) return false
+  const mainStats = getClassMainStats(props.character.class)
+  return mainStats.includes(abilityName)
+}
+
 // Bonus raciaux maintenant récupérés depuis la sous-race sélectionnée
 const remainingPoints = computed(() => {
   const usedPoints = abilities.value.reduce((total, ability) => {
@@ -211,7 +244,6 @@ const remainingPoints = computed(() => {
 function getRacialBonus(abilityName: string): number {
   let totalBonus = 0
 
-  // Fonction helper pour convertir les noms français vers anglais
   const abilityNameMap: Record<string, string> = {
     'Force': 'STR',
     'Dextérité': 'DEX',
@@ -234,8 +266,8 @@ function getRacialBonus(abilityName: string): number {
   }
 
   // Bonus de la sous-race
-  if (props.character.subrace?.abilityBonuses && Array.isArray(props.character.subrace.abilityBonuses)) {
-    const subraceBonus = props.character.subrace.abilityBonuses.find(
+  if (props.character.subrace?.ability_bonuses && Array.isArray(props.character.subrace.ability_bonuses)) {
+    const subraceBonus = props.character.subrace.ability_bonuses.find(
       (bonus: any) => bonus.ability_score.name === englishAbilityName
     )
     if (subraceBonus) {

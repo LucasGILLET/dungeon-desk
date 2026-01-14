@@ -513,7 +513,6 @@ const hasSpecialChoices = computed(() => {
 
 const specialChoicesDisplay = computed(() => {
   const choices = props.character.specialChoices
-  console.log('Choices spéciaux:', choices)
   if (!choices) return {}
   
   const result: Record<string, any> = {}
@@ -544,8 +543,10 @@ const specialChoicesDisplay = computed(() => {
 
 const sortedFeatures = computed(() => {
   if (!props.character.features) return []
-  
-  return [...props.character.features].sort((a, b) => a.level - b.level)
+
+  return [...props.character.features.filter(feature => 
+         !feature.parent
+       )].sort((a, b) => a.level - b.level)
 })
 
 const displayedFeatures = computed(() => {

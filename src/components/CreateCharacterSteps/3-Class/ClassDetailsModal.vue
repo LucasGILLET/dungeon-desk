@@ -297,13 +297,11 @@ const loadFeatures = async () => {
 watch(() => props.classe, loadFeatures)
 watch(() => props.show, (newShow) => {
   if (newShow) {
-    console.log('Modale ouverte pour la classe:', props.classe?.name)
     loadFeatures()
   }
 })
 
 onMounted(() => {
-  console.log('Composant monté')
   if (props.show && props.classe) {
     loadFeatures()
   }
