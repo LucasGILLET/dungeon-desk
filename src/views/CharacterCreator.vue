@@ -35,6 +35,8 @@ import { computed, reactive, ref } from 'vue'
 import { getSubracesByParentRace } from '@/utils/subrace'
 import { getAllFeaturesByClass } from '@/utils/features'
 import type { SRDBackground, SRDClass, SRDFeature, SRDRace, SRDSubclass } from '@/types/srd'
+import type { Character } from '@/stores/app'
+import type { Subrace } from '@/utils/subrace'
 
 // Ajoutez ici les autres étapes au fur et à mesure
 const steps = [
@@ -51,16 +53,31 @@ const steps = [
 
 const step = ref(0)
 
-const character = reactive({
+const character = reactive<Character>({
   name: '',
-  race: null as SRDRace | null,
-  subrace: null as any,
-  class: null as SRDClass | null,
-  subclass: null as SRDSubclass | null,
-  background: null as SRDBackground | null,
-  abilities: {} as Record<string, number>,
-  proficiencies: {} as Record<string, any>,
-  allProficiencies: {} as Record<string, any>,
+  race: {} as SRDRace,
+  subrace: {} as  Subrace,
+  class: {} as  SRDClass,
+  subclass: {} as  SRDSubclass,
+  background: {} as SRDBackground,
+  abilities: {} as {
+    force: number
+    dexterite: number
+    constitution: number
+    intelligence: number
+    sagesse: number
+    charisme: number
+  },
+  proficiencies: {} as {
+    skills: string[]
+    languages: string[]
+    tools: string[]
+  },
+  allProficiencies: {} as {
+    skills: { name: string; id: string; description: string; category: string }[]
+    languages: { name: string; id: string; description: string; category: string }[]
+    tools: { name: string; id: string; description: string; category: string }[]
+  },
   allTraits: [] as {
     index: string
     name: string
@@ -103,7 +120,7 @@ async function handleNext(payload: any) {
     character.vision = character.allTraits.find(trait => trait.index === 'darkvision') ? 'Vision dans le noir (18m)' : 'Vision normale'
     const raceHasSubraces = await hasSubraces(payload.index)
     if (!raceHasSubraces) {
-      character.subrace = null
+      character.subrace = {} as Subrace
       step.value = 2
       return
     }
