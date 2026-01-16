@@ -1,222 +1,167 @@
 <template>
-  <div>
-    <div class="min-h-screen bg-gradient-to-br from-red-900 via-orange-900 to-yellow-900 flex flex-col relative">
-    <!-- Bouton récapitulatif -->
-    <button
-      @click="showSummary = true"
-      class="absolute top-4 right-4 z-10 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white rounded-full p-3 transition-all duration-200 shadow-lg"
-      title="Voir le récapitulatif"
-    >
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-      </svg>
-    </button>
-
-    <!-- Classes en deux lignes : martiales et magiques -->
-    <div class="flex flex-col justify-center px-4 my-auto">
-      <!-- Toutes les classes -->
-      <div class="mb-6">
-        <div v-if="loading" class="text-center">
-          <div class="text-white">Chargement des classes...</div>
+  <div class="h-full flex flex-col">
+    <div class="mb-24 flex-1 flex flex-col relative pt-8 pb-2 overflow-hidden">
+      
+      <div class="flex flex-col px-4 h-full max-w-[1400px] mx-auto w-full">
+        <!-- En-tête -->
+        <div class="text-center mb-2 shrink-0 z-10">
+          <h2 class="text-3xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-amber-200 to-amber-600 mb-3 font-serif drop-shadow-sm">
+            Choisissez votre Voie
+          </h2>
+          <div class="h-0.5 w-24 bg-gradient-to-r from-transparent via-amber-800 to-transparent mx-auto mb-4"></div>
+          <!-- <p class="text-xl text-zinc-400 font-light italic">Quelle sera votre légende ?</p> -->
+          
+          <div v-if="loading" class="text-amber-500/80 animate-pulse mt-4 font-serif">Consultation des tomes anciens...</div>
+          <div v-if="error" class="text-red-400 mt-2">{{ error }}</div>
         </div>
-        <div v-if="error" class="text-center">
-          <div class="text-red-400">{{ error }}</div>
-        </div>
-        <div class="classes-container w-full grid grid-cols-6 gap-2 mb-4">
-          <div 
-            v-for="classe in classes" 
-            :key="classe.index" 
-            @click="selectedClass = classe"
-            :class="[
-              'class-card cursor-pointer bg-white/10 backdrop-blur-md rounded-2xl p-4 border-2 transition-all duration-100 ease-out',
-              selectedClass?.index === classe.index 
-                ? 'border-yellow-400 ring-4 ring-yellow-400/50 bg-white/25 opacity-100' 
-                : 'border-white/20 hover:border-white/40 opacity-50'
-            ]"
-              :style="{ backgroundImage: `url(${getImageUrl(classe.index + '.jpg')})` }"
 
-          >
-            <!-- Contenu de la carte -->
-            <div class="h-full flex flex-col items-center justify-center text-center">
-              <!-- Image de la classe -->
-              <div class="relative mb-4">
-                <!-- Badge sélectionné -->
-                <div 
-                  v-if="selectedClass?.index === classe.index"
-                  class="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center"
-                >
-                  <svg class="w-4 h-4 text-yellow-900" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                  </svg>
-                </div>
-              </div>
+        <!-- Scrollable Grid Container -->
+        <div class="flex-1 overflow-y-auto min-h-0 custom-scrollbar py-4 pr-2">
+           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-4 auto-rows-fr">
+            <div 
+              v-for="classe in classes" 
+              :key="classe.index" 
+              @click="selectedClass = classe"
+              :class="[
+                'class-card group relative h-[319px] rounded-2xl overflow-hidden cursor-pointer border transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1)',
+                selectedClass?.index === classe.index 
+                  ? 'border-amber-500 shadow-[0_0_25px_rgba(245,158,11,0.3)] scale-[1.02] z-20 grayscale-0' 
+                  : 'border-zinc-800 opacity-70 grayscale hover:grayscale-0 hover:opacity-100 hover:border-zinc-500 hover:scale-[1.01] hover:z-10 hover:shadow-xl'
+              ]"
+            >
+              <!-- Background Image -->
+              <div 
+                class="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-in-out group-hover:scale-110"
+                :class="selectedClass?.index === classe.index ? 'scale-110' : 'scale-100'"
+                :style="{ backgroundImage: `url(${getImageUrl(classe.index + '.jpg')})` }"
+              ></div>
+
+              <!-- Gradient Overlay -->
+              <div class="absolute inset-0 bg-gradient-to-t from-black via-zinc-950/80 to-transparent opacity-90 transition-opacity duration-300 group-hover:opacity-80"></div>
               
-              <!-- Nom de la classe -->
-              <h3 class="text-lg backdrop-brightness-50 font-bold text-white mb-2 class-name transition-all duration-300">
-                {{ getTranslatedClassName(classe.name) }}
-              </h3>
-              
-              <!-- Bouton détails -->
-              <button 
-                @click.stop="openClassDetails(classe)"
-                class="absolute top-2 right-2 z-20 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white rounded-full p-2 transition-all duration-200 shadow-lg"
-                title="Voir les détails"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-              </button>
-              
-              <!-- Description (visible au hover) -->
-              <div class="class-details opacity-0 transition-all duration-300 overflow-hidden">
-                <p class="text-sm text-orange-100 mb-3 leading-relaxed">
-                  {{ getClassDescription(classe) }}
-                </p>
+              <!-- Selection Indicator Overlay -->
+              <div 
+                class="absolute inset-0 bg-amber-500/10 mix-blend-overlay transition-opacity duration-300" 
+                :class="selectedClass?.index === classe.index ? 'opacity-100' : 'opacity-0'"
+              ></div>
+
+              <!-- Content Container -->
+              <div class="absolute inset-0 p-5 flex flex-col justify-end">
                 
-                <!-- Caractéristiques principales -->
-                <div class="flex flex-wrap justify-center gap-2 mb-3">
-                  <span 
-                    v-for="stat in getClassMainStats(classe)" 
-                    :key="stat" 
-                    :class="[
-                      'px-2 py-1 rounded-full text-xs font-medium border',
-                      isMartialClass(classe.index) 
-                        ? 'bg-red-500/30 text-red-100 border-red-400/30'
-                        : 'bg-purple-500/30 text-purple-100 border-purple-400/30'
-                    ]"
+                <!-- Top Right Icons/Badges (Absolute) -->
+                <div class="absolute top-4 right-4 flex flex-col items-end gap-2 transform translate-y-[-10px] opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 delay-100"
+                     :class="selectedClass?.index === classe.index ? 'translate-y-0 opacity-100' : ''">
+                  <!-- Button Details -->
+                  <button 
+                    @click.stop="openClassDetails(classe)"
+                    class="w-8 h-8 bg-zinc-950/50 backdrop-blur-sm text-zinc-300 hover:text-white hover:bg-amber-600 rounded-full flex items-center justify-center border border-white/10 transition-colors"
                   >
-                    {{ stat }}
-                  </span>
+                    <span class="font-serif italic font-bold">i</span>
+                  </button>
                 </div>
-                
-                <!-- Difficulté -->
-                <div class="flex justify-center">
+
+                <!-- Difficulty Badge (Top Left) -->
+                <div class="absolute top-4 left-4">
                   <span 
+                    class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest border backdrop-blur-sm"
                     :class="[
-                      'px-3 py-1 rounded-full text-xs font-bold',
-                      getClassDifficulty(classe) === 'Facile' ? 'bg-green-500/30 text-green-100 border border-green-400/30' :
-                      getClassDifficulty(classe) === 'Moyen' ? 'bg-yellow-500/30 text-yellow-100 border border-yellow-400/30' :
-                      'bg-red-500/30 text-red-100 border border-red-400/30'
+                      getClassDifficulty(classe) === 'Facile' ? 'bg-emerald-900/40 text-emerald-400 border-emerald-500/30' :
+                      getClassDifficulty(classe) === 'Moyen' ? 'bg-yellow-900/40 text-yellow-400 border-yellow-500/30' :
+                      'bg-red-900/40 text-red-400 border-red-500/30'
                     ]"
                   >
                     {{ getClassDifficulty(classe) }}
                   </span>
                 </div>
+
+                <!-- Selection Checkmark -->
+                <!-- <div v-if="selectedClass?.index === classe.index" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-amber-500 text-black w-12 h-12 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(245,158,11,0.6)] animate-in zoom-in duration-300">
+                    <span class="text-xl">✓</span>
+                </div> -->
+
+                <!-- Text Content -->
+                <div class="relative z-10 transform transition-transform duration-300 group-hover:-translate-y-2">
+                  <!-- Type Badge (Martial vs Magic) -->
+                  <div class="mb-2 opacity-80">
+                     <span class="text-xs font-serif tracking-wider uppercase bg-gradient-to-r bg-clip-text text-transparent"
+                           :class="isMartialClass(classe.index) ? 'from-red-400 to-orange-300' : 'from-purple-400 to-blue-300'">
+                        {{ isMartialClass(classe.index) ? '⚔️ Martial' : '🔮 Magique' }}
+                     </span>
+                  </div>
+
+                  <!-- Name -->
+                  <h3 class="text-2xl font-bold text-zinc-100 mb-1 font-serif tracking-wide group-hover:text-amber-100 transition-colors drop-shadow-md">
+                    {{ getTranslatedClassName(classe.name) }}
+                  </h3>
+
+                  <!-- Divider animation -->
+                  <div class="w-0 group-hover:w-full h-px bg-amber-500/50 transition-all duration-500 mb-2"></div>
+
+                  <!-- Collapsed/Expanded Content -->
+                  <div class="overflow-hidden transition-all duration-500 ease-out max-h-0 opacity-0 group-hover:max-h-40 group-hover:opacity-100"
+                       :class="selectedClass?.index === classe.index ? 'max-h-40 opacity-100' : ''">
+                    <p class="text-sm text-zinc-400 leading-relaxed mb-3 line-clamp-3">
+                      {{ getClassDescription(classe) }}
+                    </p>
+
+                    <!-- Main Stats Tags -->
+                    <div class="flex flex-wrap gap-1.5">
+                      <span 
+                        v-for="stat in getClassMainStats(classe)" 
+                        :key="stat" 
+                        class="px-2 py-0.5 rounded text-[10px] font-bold border bg-zinc-900/60"
+                        :class="isMartialClass(classe.index) ? 'text-red-200 border-red-900/50' : 'text-purple-200 border-purple-900/50'"
+                      >
+                        {{ stat }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+           </div>
         </div>
       </div>
+    
+      <!-- Navigation -->
+      <StepNavigation 
+        :current-step="3" 
+        :total-steps="9"
+        step-name="Classe"
+        :disable-next="!selectedClass"
+        @previous="emit('prev')"
+        @next="emit('next', selectedClass!)"
+      />
     </div>
 
-    <!-- Navigation -->
-    <StepNavigation 
-      :current-step="3" 
-      :total-steps="9"
-      step-name="Classe"
-      :disable-next="!selectedClass"
-      @previous="emit('prev')"
-      @next="emit('next', selectedClass!)"
+    <!-- Modal de détails de classe -->
+    <ClassDetailsModal
+      :show="showClassDetails"
+      :classe="selectedDetailClass!"
+      @close="closeClassDetails"
     />
-  </div>
-
-  <!-- Modal de récapitulatif -->
-  <CharacterSummaryModal
-    :is-open="showSummary"
-    :character="character"
-    @close="showSummary = false"
-  />
-
-  <!-- Modal de détails de classe -->
-  <ClassDetailsModal
-    :show="showClassDetails"
-    :classe="selectedDetailClass!"
-    @close="closeClassDetails"
-  />
   </div>
 </template>
 
 <style scoped>
-/* Effet d'agrandissement au hover */
-.classes-container:hover .class-card {
-  transform: scale(0.9);
-  opacity: 0.4;
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
 }
-
-.classes-container:hover .class-card:hover {
-  transform: scale(1.1);
-  opacity: 1;
-  z-index: 10;
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
 }
-
-/* Révélation du contenu au hover */
-.class-card:hover .class-details {
-  opacity: 1;
-  background-color: rgba(0, 0, 0, 0.5);
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(82, 82, 91, 0.5); /* zinc-600 */
+  border-radius: 3px;
 }
-
-.class-card:hover .class-name {
-  font-size: 1.25rem;
-}
-
-/* Animation plus fluide */
-.class-card {
-  transition: all 0.35s ease-out;
-  background-size: cover;
-  background-position: center;
-}
-
-/* Stabilisation complète du contenu pour éviter les mouvements */
-.class-card > div {
-  width: 100%;
-  height: 300px; /* Hauteur réduite pour un meilleur ajustement */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Positionnement absolu pour stabiliser complètement */
-.class-card .relative {
-  position: absolute;
-  top: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.class-card .class-name {
-  position: absolute;
-  top: 100px;
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 90%;
-  transition: font-size 0.35s ease-out;
-}
-
-.class-card .class-details {
-  position: absolute;
-  top: 140px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 90%;
-  transition: opacity 0.35s ease-out;
-  max-height: 170px;
-  overflow: hidden;
-  padding: 1px;
-  border-radius: 4px;
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(245, 158, 11, 0.5); /* amber-500 */
 }
 </style>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import StepNavigation from '../StepNavigation.vue'
-import CharacterSummaryModal from '../../CharacterSummaryModal.vue'
 import ClassDetailsModal from './ClassDetailsModal.vue'
 import { loadClasses } from '@/utils/dataLoader'
 import type { SRDClass, SRDRace } from '@/types/srd'
@@ -237,7 +182,6 @@ const classes = ref<SRDClass[]>([])
 const selectedClass = ref<SRDClass | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
-const showSummary = ref(false)
 const showClassDetails = ref(false)
 const selectedDetailClass = ref<SRDClass | null>(null)
 

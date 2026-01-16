@@ -1,98 +1,117 @@
 <template>
-  <div>
-    <div class="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex flex-col relative">
-    <!-- Bouton récapitulatif -->
-    <button
-      @click="showSummary = true"
-      class="absolute top-4 right-4 z-10 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white rounded-full p-3 transition-all duration-200 shadow-lg"
-      title="Voir le récapitulatif"
-    >
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-      </svg>
-    </button>
+  <div class="flex flex-col h-full bg-zinc-950">
+    <!-- Contenu défilable -->
+    <div class="mb-24 flex-1 overflow-y-auto custom-scrollbar p-6 sm:p-8">
+      <div class="max-w-6xl mx-auto space-y-10">
 
-    <!-- En-tête -->
-    <div class="text-center pt-8 pb-6">
-      <h1 class="text-4xl font-bold text-white mb-2">⚡ Choix spéciaux</h1>
-      <p class="text-purple-100 text-lg">Personnalisez les capacités uniques de votre personnage</p>
-      <div class="mt-3">
-        <span class="bg-purple-500/30 text-purple-100 px-3 py-1 rounded-full text-sm font-medium border border-purple-400/30">
-          {{ character.race.name }} {{ character.class.name }}{{ character.subclass ? ` • ${character.subclass.name}` : '' }}
-        </span>
-      </div>
-    </div>
-
-    <!-- Contenu principal -->
-    <div class="flex-1 px-6 pb-8">
-      <div class="max-w-6xl mx-auto space-y-8">
-
-        <div v-if="!hasAnyChoices" class="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 text-center">
-          <div class="text-6xl mb-4">✨</div>
-          <h3 class="text-2xl font-bold text-white mb-3">Aucun choix spécial requis</h3>
-          <p class="text-purple-200 text-lg">Votre combinaison de classe et sous-classe ne nécessite pas de choix spéciaux au niveau 1.</p>
-          <p class="text-purple-300 text-sm mt-2">Vous débloquerez peut-être des options aux niveaux supérieurs !</p>
+        <!-- En-tête -->
+        <div class="text-center relative">
+          <h2 class="text-3xl sm:text-4xl font-bold font-serif text-white mb-3 drop-shadow-md">
+            Talents Uniques
+          </h2>
+          <p class="text-zinc-400 text-lg max-w-2xl mx-auto font-light">
+            Votre héritage et votre vocation vous offrent des capacités spéciales.
+          </p>
+          <div class="mt-4 flex justify-center">
+            <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-zinc-700 bg-zinc-900 text-zinc-400 text-xs uppercase tracking-widest shadow-sm">
+               {{ character.race.name }} • {{ character.class.name }}{{ character.subclass ? ` • ${character.subclass.name}` : '' }}
+            </span>
+          </div>
         </div>
 
-        <div v-else class="space-y-6">
-          <div v-for="choice in specialChoicesData.choices" :key="choice.id" 
-               class="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+        <!-- No Choices State -->
+        <div v-if="!hasAnyChoices" class="flex flex-col items-center justify-center py-20 border-2 border-dashed border-zinc-800 rounded-xl bg-zinc-900/20">
+           <div class="text-5xl mb-6 opacity-30 grayscale">✨</div>
+           <h3 class="text-2xl font-serif text-zinc-300 mb-2">Aucun choix requis</h3>
+           <p class="text-zinc-500 text-center max-w-md">
+             Votre combinaison actuelle ne nécessite pas de décision supplémentaire pour le moment.
+           </p>
+        </div>
+
+        <!-- Choices List -->
+        <div v-else class="space-y-12 pb-12">
+            <div v-for="(choice, index) in specialChoicesData.choices" :key="choice.id" 
+               class="animate-fade-in-up" :style="{ animationDelay: `${index * 150}ms` }">
             
-            <div class="text-center mb-6">
-              <h2 class="text-2xl font-bold text-white mb-2">{{ choice.name }}</h2>
-              <p class="text-purple-200">{{ choice.description }}</p>
+            <!-- Choice Header -->
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-6 gap-4 border-b border-zinc-800 pb-4">
+                <div>
+                    <h2 class="text-2xl font-bold font-serif text-amber-500 mb-2">{{ choice.name }}</h2>
+                    <p class="text-zinc-400 text-sm max-w-2xl leading-relaxed">{{ choice.description }}</p>
+                </div>
+                 <div class="flex-shrink-0">
+                     <span class="px-3 py-1 rounded-full text-xs font-bold border transition-colors duration-300"
+                        :class="getSelectionCount(choice.id) === getMaxSelections(choice) ? 'bg-amber-900/30 text-amber-500 border-amber-500/50' : 'bg-zinc-800 text-zinc-400 border-zinc-700'">
+                      {{ getSelectionCount(choice.id) }} / {{ getMaxSelections(choice) }} Choix
+                   </span>
+                 </div>
             </div>
 
+            <!-- Grid -->
             <div class="grid gap-4" :class="getGridClass(choice)">
               <div 
                 v-for="option in choice.options"
                 :key="option.id"
-                class="bg-black/20 rounded-xl p-4 border transition-all duration-200 cursor-pointer"
-                :class="{ 
-                  'border-purple-400 bg-purple-500/20 shadow-lg shadow-purple-500/25': isSelected(choice.id, option.id),
-                  'border-white/20 hover:border-purple-300 hover:bg-white/5': !isSelected(choice.id, option.id) && !isDisabled(choice, option),
-                  'border-gray-600 bg-gray-800/40 opacity-50 cursor-not-allowed': isDisabled(choice, option)
-                }"
                 @click="selectOption(choice, option)"
+                class="group relative"
               >
-                <div class="flex items-start justify-between mb-3">
-                  <h4 class="text-white font-semibold text-lg">{{ option.name }}</h4>
-                  <div v-if="isSelected(choice.id, option.id)" 
-                       class="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0 ml-2">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                  </div>
-                </div>
-                
-                <p class="text-purple-200 text-sm mb-3 leading-relaxed">{{ option.description }}</p>
-                
-                <div v-if="option.effect" class="bg-purple-900/50 border border-purple-500/30 rounded-lg p-3">
-                  <div class="flex items-start">
-                    <svg class="w-4 h-4 text-purple-300 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                    </svg>
-                    <div>
-                      <span class="text-purple-300 font-medium text-xs uppercase tracking-wide">Effet</span>
-                      <p class="text-purple-100 text-sm mt-1">{{ option.effect }}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+                <!-- Card Inner -->
+                 <div :class="[
+                  'h-full p-5 rounded-lg border-2 transition-all duration-200 flex flex-col relative overflow-hidden',
+                   isDisabled(choice, option)
+                    ? 'border-zinc-800 bg-zinc-950/50 opacity-60 cursor-not-allowed grayscale'
+                    : isSelected(choice.id, option.id)
+                      ? 'border-amber-500 bg-zinc-900 shadow-[0_0_15px_rgba(245,158,11,0.15)] transform -translate-y-1'
+                      : 'border-zinc-800 bg-zinc-900/40 hover:border-zinc-600 hover:bg-zinc-800 cursor-pointer hover:shadow-lg'
+                ]">
 
-            <!-- Indicateur de sélections multiples -->
-            <div v-if="getMaxSelections(choice) > 1" 
-                 class="text-center mt-4 p-3 bg-purple-900/30 rounded-lg border border-purple-500/30">
-              <span class="text-purple-200 font-medium">
-                {{ getSelectionCount(choice.id) }} / {{ getMaxSelections(choice) }} sélectionnés
-              </span>
+                    <!-- Header -->
+                    <div class="flex justify-between items-start mb-3 z-10">
+                         <h4 class="font-serif font-bold text-lg leading-tight transition-colors"
+                             :class="isSelected(choice.id, option.id) ? 'text-white' : 'text-zinc-300 group-hover:text-zinc-100'">
+                           {{ option.name }}
+                         </h4>
+                         
+                         <!-- Selection Icon -->
+                         <div v-if="isSelected(choice.id, option.id)" 
+                             class="flex-shrink-0 ml-2 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center shadow-sm animate-scale-in">
+                            <svg class="w-3.5 h-3.5 text-zinc-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                         </div>
+                    </div>
+                
+                    <!-- Description -->
+                    <p class="text-xs leading-relaxed mb-4 transition-colors z-10"
+                        :class="isSelected(choice.id, option.id) ? 'text-zinc-400' : 'text-zinc-500 group-hover:text-zinc-400'">
+                        {{ option.description }}
+                    </p>
+                    
+                    <!-- Effect Badge (if any) -->
+                    <div v-if="option.effect" class="mt-auto pt-3 border-t z-10"
+                         :class="isSelected(choice.id, option.id) ? 'border-zinc-700' : 'border-zinc-800'">
+                        <div class="flex items-start gap-2">
+                           <span class="text-amber-500/80 mt-0.5">✦</span>
+                           <div>
+                              <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Effet</span>
+                              <p class="text-xs text-zinc-300">{{ option.effect }}</p>
+                           </div>
+                        </div>
+                    </div>
+
+                    <!-- Lock/Requirement Warning (for Expertise mainly) -->
+                     <div v-if="isDisabled(choice, option) && choice.category === 'expertise' && !isSelected(choice.id, option.id)" 
+                          class="absolute inset-0 z-20 flex items-center justify-center bg-zinc-950/60 backdrop-blur-[2px]">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-red-400 px-3 py-1.5 bg-zinc-900/90 rounded border border-red-900/50 shadow-lg">
+                           Non maîtrisé
+                        </span>
+                     </div>
+                 </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-
+    
     <!-- Navigation -->
     <StepNavigation 
       :current-step="8" 
@@ -103,22 +122,13 @@
       @next="$emit('next')"
     />
   </div>
-
-  <!-- Modal de récapitulatif -->
-  <CharacterSummaryModal
-    :is-open="showSummary"
-    :character="character"
-    @close="showSummary = false"
-  />
-  </div>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive } from 'vue'
 import type { Character } from '../../../stores/app'
 import { getRequiredSpecialChoices, type SpecialChoice, type SpecialChoiceOption } from '../../../utils/specialChoices'
 import StepNavigation from '../StepNavigation.vue'
-import CharacterSummaryModal from '../../CharacterSummaryModal.vue'
 import type { SRDRace } from '@/types/srd'
 
 interface Props {
@@ -136,7 +146,6 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const selections = reactive<Record<string, string[]>>({})
-const showSummary = ref(false)
 
 const specialChoicesData = computed(() => {
   return getRequiredSpecialChoices(props.character.class.index, props?.character?.subclass?.id)
@@ -231,7 +240,7 @@ function selectOption(choice: SpecialChoice, option: SpecialChoiceOption): void 
 
 function updateCharacter(): void {
   const updatedCharacter = { ...props.character }
-  
+
   if (!updatedCharacter.specialChoices) {
     updatedCharacter.specialChoices = {}
   }
@@ -242,7 +251,6 @@ function updateCharacter(): void {
       updatedCharacter.specialChoices![choiceId] = [...choiceSelections]
     }
   })
-
   emit('update:character', updatedCharacter)
 }
 

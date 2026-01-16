@@ -1,141 +1,128 @@
 <template>
-  <div>
-    <div class="min-h-screen bg-gradient-to-br from-amber-900 via-orange-900 to-red-900 flex flex-col relative">
-    <!-- Bouton récapitulatif -->
-    <button
-      @click="showSummary = true"
-      class="absolute top-4 right-4 z-10 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white rounded-full p-3 transition-all duration-200 shadow-lg"
-      title="Voir le récapitulatif"
-    >
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-      </svg>
-    </button>
-
-    <!-- En-tête -->
-    <div class="text-center pt-8 pb-6">
-      <h1 class="text-4xl font-bold text-white mb-2">⚡ Choix de la Sous-classe</h1>
-      <p class="text-orange-100 text-lg">Spécialisez votre {{ character.class.name }} dès le niveau 1</p>
-      <div v-if="character.subrace" class="mt-3">
-        <span class="bg-orange-500/30 text-orange-100 px-3 py-1 rounded-full text-sm font-medium border border-orange-400/30">
-          {{ character.subrace.name }} {{ character.class.name }}
-        </span>
-      </div>
-    </div>
-
-    <!-- Contenu principal -->
-    <div class="flex-1 px-6 pb-8">
-      <div class="max-w-6xl mx-auto">
-        <!-- Grille des sous-classes -->
-        <div :class="[
-          'grid gap-6 mb-8',
-          getGridColumns()
-        ]">
-          <div 
-            v-for="subclass in availableSubclasses" 
-            :key="subclass.id"
-            @click="selectedSubclass = subclass"
-            :class="[
-              'subclass-card relative bg-white/10 backdrop-blur-md rounded-2xl p-6 border-2 transition-all duration-300 cursor-pointer group',
-              selectedSubclass?.id === subclass.id 
-                ? 'border-orange-400 bg-orange-500/20 transform scale-105' 
-                : 'border-white/20 hover:border-orange-300/60 hover:bg-white/15'
-            ]"
-          >
-            <!-- Badge de sélection -->
-            <div v-if="selectedSubclass?.id === subclass.id" 
-                 class="absolute -top-2 -right-2 w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center border-2 border-white shadow-lg">
-              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-            </div>
-
-            <!-- Emoji et nom -->
-            <div class="text-center mb-4">
-              <div class="text-4xl mb-2">{{ getSubclassEmoji(subclass.id) }}</div>
-              <h3 class="text-xl font-bold text-white mb-1">{{ subclass.name }}</h3>
-              <p class="text-orange-200 text-sm">{{ subclass.source }}</p>
-            </div>
-
-            <!-- Description -->
-            <div class="text-amber-100 text-sm leading-relaxed mb-4">
-              {{ subclass.description }}
-            </div>
-
-            <!-- Caractéristiques de base -->
-            <div class="space-y-3">
-              <!-- Progression par niveau -->
-              <div v-if="subclass.levelProgression?.length" class="bg-black/20 rounded-lg p-3">
-                <h4 class="text-orange-300 text-xs font-semibold mb-2">📈 PROGRESSION</h4>
-                <div class="space-y-2">
-                  <div v-for="progression in subclass.levelProgression" :key="progression.level" class="text-white text-xs">
-                    <div class="flex items-start gap-2">
-                      <span class="bg-orange-500/30 text-orange-100 px-2 py-0.5 rounded text-xs font-semibold min-w-fit">
-                        Niv {{ progression.level }}
-                      </span>
-                      <div class="flex-1">
-                        <!-- Features -->
-                        <div v-if="progression.features?.length" class="flex flex-wrap gap-1">
-                          <div v-for="(feature, featureIndex) in progression.features" :key="`${progression.level}-feature-${feature}-${featureIndex}`" class="relative feature-tooltip-container">
-                            <span :class="[
-                              'px-2 py-0.5 rounded text-xs cursor-help feature-name',
-                              getFeatureBadgeClasses(feature)
-                            ]"
-                                  @mouseenter="showFeatureTooltip"
-                                  @mouseleave="hideFeatureTooltip">
-                              {{ getDisplayName(feature) }}
-                            </span>
-                            <!-- Tooltip pour feature -->
-                            <div class="feature-tooltip absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 transition-opacity duration-200 pointer-events-none z-30 w-72 text-left">
-                              <div :class="[
-                                'font-semibold mb-1',
-                                isSpellFeature(feature) ? 'text-purple-300' : 'text-blue-300'
-                              ]">{{ getDisplayName(feature) }}</div>
-                              <div class="text-xs text-gray-300 leading-relaxed">{{ getFeatureDescription(feature) }}</div>
-                              <div class="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Sorts supplémentaires (si pas de progression) -->
-              <div v-else-if="subclass.bonusSpells?.length" class="bg-black/20 rounded-lg p-3">
-                <h4 class="text-orange-300 text-xs font-semibold mb-2">📜 SORTS SUPPLÉMENTAIRES</h4>
-                <div class="flex flex-wrap gap-1">
-                  <div v-for="(spell, spellIndex) in subclass.bonusSpells" :key="`${subclass.id}-${spell}-${spellIndex}`" class="relative spell-tooltip-container">
-                    <span class="bg-purple-500/30 text-purple-100 px-2 py-1 rounded text-xs cursor-help spell-name"
-                          @mouseenter="showSpellTooltip"
-                          @mouseleave="hideSpellTooltip">
-                      {{ spell }}
-                    </span>
-                    <!-- Tooltip pour sort -->
-                    <div class="spell-tooltip absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 transition-opacity duration-200 pointer-events-none z-30 w-72 text-left">
-                      <div class="font-semibold mb-1 text-purple-300">{{ spell }}</div>
-                      <div class="text-xs text-gray-300 leading-relaxed">{{ getSpellDescription(spell) }}</div>
-                      <div class="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+  <div class="flex flex-col h-full bg-zinc-950">
+    <!-- Contenu défilable -->
+    <div class="mb-24 flex-1 overflow-y-auto custom-scrollbar p-6 sm:p-8">
+      <div class="max-w-7xl mx-auto">
+        
+        <!-- En-tête -->
+        <div class="text-center mb-10 relative">
+          <h2 class="text-3xl sm:text-4xl font-bold font-serif text-white mb-3 drop-shadow-md">
+            Voie de Spécialisation
+          </h2>
+          <p class="text-zinc-400 text-lg max-w-2xl mx-auto font-light">
+            Définissez l'archétype qui guidera votre puissance en tant que <span class="text-amber-500 font-serif">{{ character.class.name }}</span>.
+          </p>
+          <div v-if="character.subrace" class="mt-4">
+             <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-zinc-700 bg-zinc-900 text-zinc-400 text-xs uppercase tracking-widest">
+                {{ character.subrace.name }} • {{ character.class.name }}
+             </span>
           </div>
         </div>
 
         <!-- Message si pas de sous-classe nécessaire -->
-        <div v-if="!needsSubclass" class="text-center bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 mb-8">
-          <div class="text-6xl mb-4">✅</div>
-          <h2 class="text-2xl font-bold text-white mb-2">Aucune sous-classe requise</h2>
-          <p class="text-orange-200">
-            La classe {{ character.class.name }} ne nécessite pas de choix de sous-classe au niveau 1.
-          </p>
-          <p class="text-orange-300 text-sm mt-2">
-            Vous pourrez choisir votre spécialisation plus tard dans votre aventure !
-          </p>
+        <div v-if="!needsSubclass" class="flex flex-col items-center justify-center py-20 min-h-[400px]">
+           <div class="w-24 h-24 rounded-full bg-zinc-900 border-2 border-zinc-700 flex items-center justify-center text-4xl mb-6 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+              ✨
+           </div>
+           <h3 class="text-2xl font-serif text-white mb-2">Aucun choix requis</h3>
+           <p class="text-zinc-400 text-center max-w-lg leading-relaxed">
+              Votre classe de <span class="text-amber-500">{{ character.class.name }}</span> ne nécessite pas de spécialisation au niveau 1.
+              <br>Vous forgerez votre destinée lors de vos prochaines aventures.
+           </p>
         </div>
+
+        <!-- Grille des sous-classes -->
+        <div v-else :class="['grid gap-6 pb-20', getGridColumns()]">
+          <div 
+            v-for="subclass in availableSubclasses" 
+            :key="subclass.id"
+            @click="selectedSubclass = subclass"
+            class="group relative"
+          >
+             <div :class="[
+               'h-full flex flex-col rounded-xl overflow-hidden border transition-all duration-300 cursor-pointer bg-zinc-900',
+               selectedSubclass?.id === subclass.id 
+                 ? 'border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.2)]' 
+                 : 'border-zinc-800 hover:border-zinc-600 hover:bg-zinc-800'
+             ]">
+                
+                <!-- Header -->
+                <div class="p-6 border-b border-zinc-800 bg-gradient-to-b from-white/5 to-transparent relative overflow-hidden">
+                   <!-- Emoji BG decoration -->
+                   <div class="absolute -right-4 -top-4 text-8xl opacity-5 select-none font-serif grayscale">{{ getSubclassEmoji(subclass.id) }}</div>
+                   
+                   <div class="relative z-10 flex flex-col items-center text-center">
+                      <div class="text-4xl mb-3 filter drop-shadow-lg">{{ getSubclassEmoji(subclass.id) }}</div>
+                      <h3 class="text-xl font-bold text-white font-serif mb-1">{{ subclass.name }}</h3>
+                      <p class="text-zinc-500 text-xs uppercase tracking-wider">{{ subclass.source }}</p>
+                   </div>
+                </div>
+
+                <!-- Content -->
+                <div class="p-6 flex-1 flex flex-col">
+                   <p class="text-zinc-400 text-sm leading-relaxed mb-6 italic">
+                     {{ subclass.description }}
+                   </p>
+
+                   <!-- Features / Progression -->
+                   <div class="mt-auto space-y-4">
+                      <!-- Progression -->
+                      <div v-if="subclass.levelProgression?.length" class="space-y-3">
+                         <div class="text-[10px] uppercase font-bold text-zinc-600 tracking-widest">Capacités Initiales</div>
+                         
+                         <div v-for="progression in subclass.levelProgression" :key="progression.level" class="bg-zinc-950/50 rounded-lg p-3 border border-zinc-800">
+                            <div class="flex items-start gap-3">
+                               <div class="bg-amber-900/20 text-amber-500 border border-amber-900/30 px-2 py-0.5 rounded text-[10px] font-bold uppercase whitespace-nowrap">Niv {{ progression.level }}</div>
+                               <div class="flex-1 flex flex-wrap gap-1.5">
+                                  <div v-for="(feature, idx) in progression.features" :key="idx" class="relative group/tooltip">
+                                     <span 
+                                        class="cursor-help px-2 py-0.5 rounded text-xs font-medium border transition-colors inline-block"
+                                        :class="isSpellFeature(feature) ? 'bg-purple-900/20 text-purple-300 border-purple-800/30 hover:border-purple-500/50' : 'bg-blue-900/20 text-blue-300 border-blue-800/30 hover:border-blue-500/50'"
+                                     >
+                                        {{ getDisplayName(feature) }}
+                                     </span>
+
+                                     <!-- Tooltip -->
+                                     <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-zinc-950 border border-zinc-700 rounded-lg shadow-xl opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none z-50">
+                                        <div class="font-bold text-xs mb-1" :class="isSpellFeature(feature) ? 'text-purple-300' : 'text-blue-300'">{{ getDisplayName(feature) }}</div>
+                                        <div class="text-[10px] text-zinc-400 leading-relaxed">{{ getFeatureDescription(feature) }}</div>
+                                     </div>
+                                  </div>
+                               </div>
+                            </div>
+                         </div>
+                      </div>
+
+                      <!-- Bonus Spells (if no progression shown) -->
+                      <div v-else-if="subclass.bonusSpells?.length">
+                         <div class="text-[10px] uppercase font-bold text-zinc-600 tracking-widest mb-2">Sorts Bonus</div>
+                         <div class="flex flex-wrap gap-1.5">
+                            <div v-for="(spell, idx) in subclass.bonusSpells" :key="idx" class="relative group/tooltip">
+                               <span class="cursor-help bg-zinc-800 text-zinc-300 border border-zinc-700 hover:border-zinc-500 px-2 py-1 rounded text-xs transition-colors inline-block">
+                                  {{ spell }}
+                               </span>
+                               <!-- Tooltip -->
+                               <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-zinc-950 border border-zinc-700 rounded-lg shadow-xl opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none z-50">
+                                  <div class="font-bold text-xs mb-1 text-zinc-200">{{ spell }}</div>
+                                  <div class="text-[10px] text-zinc-400 leading-relaxed">{{ getSpellDescription(spell) }}</div>
+                               </div>
+                            </div>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+
+                <!-- Selection Checkmark -->
+                <div v-if="selectedSubclass?.id === subclass.id" class="absolute top-4 right-4 w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center shadow-lg animate-scale-in z-20">
+                    <svg class="w-3.5 h-3.5 text-zinc-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+
+             </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -149,14 +136,6 @@
       @next="validateSubclass"
     />
   </div>
-
-  <!-- Modal de récapitulatif -->
-  <CharacterSummaryModal
-    :is-open="showSummary"
-    :character="character"
-    @close="showSummary = false"
-  />
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -166,7 +145,6 @@ import { getSubclassesByClassName, getSubclassEmoji, type SubclassData } from '@
 import { getSpellDescription } from '@/utils/spells'
 import { getFeatureDescription } from '@/utils/features'
 import StepNavigation from '../StepNavigation.vue'
-import CharacterSummaryModal from '../../CharacterSummaryModal.vue'
 import type { SRDRace } from '@/types/srd'
 import type { Character } from '@/stores/app'
 
@@ -182,7 +160,6 @@ const emit = defineEmits<{
 
 const selectedSubclass = ref<SubclassData | null>(null)
 const level1SubclassClasses = ref<string[]>([])
-const showSummary = ref(false)
 
 onMounted(async () => {
   level1SubclassClasses.value = await getLevel1SubclassClassIds()
@@ -212,47 +189,6 @@ function validateSubclass() {
   }
 }
 
-function showSpellTooltip(event: MouseEvent) {
-  const target = event.target as HTMLElement | null
-  if (target && target.parentElement) {
-    const tooltip = target.parentElement.querySelector('.spell-tooltip')
-    if (tooltip) {
-      tooltip.classList.add('tooltip-visible')
-    }
-  }
-}
-
-function hideSpellTooltip(event: MouseEvent) {
-  const target = event.target as HTMLElement | null
-  if (target && target.parentElement) {
-    const tooltip = target.parentElement.querySelector('.spell-tooltip')
-    if (tooltip) {
-      tooltip.classList.remove('tooltip-visible')
-    }
-  }
-}
-
-// Fonctions pour gérer les tooltips de features
-function showFeatureTooltip(event: MouseEvent) {
-  const target = event.target as HTMLElement | null
-  if (target && target.parentElement) {
-    const tooltip = target.parentElement.querySelector('.feature-tooltip')
-    if (tooltip) {
-      tooltip.classList.add('tooltip-visible')
-    }
-  }
-}
-
-function hideFeatureTooltip(event: MouseEvent) {
-  const target = event.target as HTMLElement | null
-  if (target && target.parentElement) {
-    const tooltip = target.parentElement.querySelector('.feature-tooltip')
-    if (tooltip) {
-      tooltip.classList.remove('tooltip-visible')
-    }
-  }
-}
-
 function getDisplayName(featureName: string): string {
   if (featureName.startsWith('Sorts de domaine')) {
     return 'Sorts de domaine'
@@ -266,65 +202,15 @@ function getDisplayName(featureName: string): string {
 function isSpellFeature(featureName: string): boolean {
   return featureName.startsWith('Sorts de domaine') || featureName.startsWith('Sorts étendus')
 }
-
-function getFeatureBadgeClasses(featureName: string): string {
-  if (isSpellFeature(featureName)) {
-    return 'bg-purple-500/40 text-purple-100 border border-purple-400/30'
-  }
-  return 'bg-blue-500/30 text-blue-100'
-}
 </script>
 
 <style scoped>
-.subclass-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+@keyframes scale-in {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
 }
-
-.subclass-card.selected {
-  box-shadow: 0 0 30px rgba(251, 146, 60, 0.4);
-}
-
-/* Styles spécifiques pour les tooltips de sorts */
-.spell-tooltip-container {
-  display: inline-block;
-}
-
-.spell-tooltip {
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
-}
-
-.spell-tooltip.tooltip-visible {
-  opacity: 1;
-  visibility: visible;
-}
-
-/* Styles spécifiques pour les tooltips de features */
-.feature-tooltip-container {
-  display: inline-block;
-}
-
-.feature-tooltip {
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
-}
-
-.feature-tooltip.tooltip-visible {
-  opacity: 1;
-  visibility: visible;
-}
-
-/* Empêcher les interactions de hover de la carte parent d'affecter les tooltips */
-.subclass-card:hover .spell-tooltip:not(.tooltip-visible) {
-  opacity: 0 !important;
-  visibility: hidden !important;
-}
-
-.subclass-card:hover .feature-tooltip:not(.tooltip-visible) {
-  opacity: 0 !important;
-  visibility: hidden !important;
+.animate-scale-in {
+  animation: scale-in 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 </style>
+

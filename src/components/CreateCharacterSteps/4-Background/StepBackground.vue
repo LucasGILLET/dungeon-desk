@@ -1,82 +1,99 @@
 <template>
-  <div>
-    <div class="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 flex flex-col relative">
-    <!-- Bouton récapitulatif -->
-    <button
-      @click="showSummary = true"
-      class="absolute top-4 right-4 z-10 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white rounded-full p-3 transition-all duration-200 shadow-lg"
-      title="Voir le récapitulatif"
-    >
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-      </svg>
-    </button>
+  <div class=" flex flex-col h-full bg-black/20">
+    
+    <!-- En-tête Centré (Style harmonisé) -->
+    <div class="pt-8 pb-2 px-6 text-center relative z-10 shrink-0">
+        <h2 class="text-3xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-amber-200 to-amber-600 mb-3 font-serif drop-shadow-sm">
+          L'Origine de votre Héros
+        </h2>
+        <div class="h-0.5 w-24 bg-gradient-to-r from-transparent via-amber-800 to-transparent mx-auto mb-4"></div>
+        <p class="text-zinc-400 text-lg max-w-2xl mx-auto font-light">
+          Quelle vie avez-vous menée avant le début de votre quête ?
+        </p>
 
-    <!-- Historiques -->
-    <div class="flex flex-col justify-center px-4 my-auto">
-      <!-- Toutes les historiques -->
-      <div class="mb-6">
-        <div v-if="loading" class="text-center">
-          <div class="text-white">Chargement des historiques...</div>
+
+    </div>
+
+    <!-- Contenu défilable -->
+    <div class="mb-24 flex-1 overflow-y-auto custom-scrollbar px-12 py-4">
+      <div class="w-full">
+        
+        <!-- Loading / Error States -->
+        <div v-if="loading" class="flex flex-col items-center justify-center py-20">
+          <div class="w-12 h-12 border-4 border-amber-900 border-t-amber-500 rounded-full animate-spin mb-4"></div>
+          <p class="text-amber-500 font-serif text-sm animate-pulse">Consultation des archives...</p>
         </div>
-        <div v-if="error" class="text-center">
-          <div class="text-red-400">{{ error }}</div>
+
+        <div v-else-if="error" class="text-center py-20">
+          <div class="inline-block bg-red-900/20 border border-red-500/50 rounded-lg p-6">
+             <p class="text-red-400 font-serif">{{ error }}</p>
+          </div>
         </div>
-        <div class="classes-container w-full grid grid-cols-7 gap-2 mb-4">
+
+        <!-- Grille des Historiques Compacte -->
+        <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-4 gap-4 px-6 overflow-auto">
           <div 
             v-for="background in backgrounds" 
             :key="background.index" 
             @click="selectedBackground = background"
-            :class="[
-              'class-card cursor-pointer bg-white/10 backdrop-blur-md rounded-2xl p-4 border-2 transition-all duration-100 ease-out',
-              selectedBackground?.index === background.index 
-                ? 'border-yellow-400 ring-4 ring-yellow-400/50 bg-white/25' 
-                : 'border-white/20 hover:border-white/40'
-            ]"
+            class="group relative h-full flex flex-col"
           >
-            <!-- Contenu de la carte -->
-            <div class="h-full flex flex-col items-center justify-center text-center">
-              <!-- Image de l'historique -->
-              <div class="relative mb-4">
-                <div class="w-16 h-16 mx-auto rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-all">
-                  <span class="text-2xl">{{ getBackgroundEmoji(background.index) }}</span>
-                </div>
-                <!-- Badge sélectionné -->
-                <div 
-                  v-if="selectedBackground?.index === background.index"
-                  class="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center"
-                >
-                  <svg class="w-4 h-4 text-yellow-900" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                  </svg>
-                </div>
-              </div>
-              
-              <!-- Nom de l'historique -->
-              <h3 class="text-lg font-bold text-white mb-2 class-name transition-all duration-300">
-                {{ getBackgroundName(background.index) }}
-              </h3>
-              
-              <!-- Description (visible au hover) -->
-              <div class="class-details opacity-0 transition-all duration-300 overflow-hidden">
-                <p class="text-sm text-blue-100 mb-3 leading-relaxed">
-                  {{ getBackgroundDescription(background) }}
-                </p>
-                
-                <!-- Compétences -->
-                <div class="flex flex-wrap justify-center gap-1 mb-3">
-                  <span 
-                    v-for="skill in getBackgroundSkills(background)" 
-                    :key="skill" 
-                    class="bg-indigo-500/30 text-indigo-100 px-2 py-1 rounded-full text-xs font-medium border border-indigo-400/30"
+             <!-- Card Container -->
+             <div 
+               :class="[
+                 'h-full flex flex-col rounded-xl overflow-hidden backdrop-blur-sm border transition-all duration-300 cursor-pointer text-left',
+                 selectedBackground?.index === background.index
+                   ? 'bg-zinc-800/80 border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.15)] ring-1 ring-amber-500/50 scale-[1.02]'
+                   : 'bg-zinc-900/40 border-zinc-800 hover:border-zinc-600 hover:bg-zinc-800/60'
+               ]"
+             >
+                <!-- Card Header Compact -->
+                <div class="p-3 border-b border-zinc-700/50 flex items-center justify-between bg-gradient-to-b from-white/5 to-transparent">
+                  <h3 
+                    class="text-base font-bold font-serif truncate pr-2 transition-colors"
+                    :class="selectedBackground?.index === background.index ? 'text-amber-400' : 'text-zinc-200 group-hover:text-amber-200'"
                   >
-                    {{ skill }}
-                  </span>
+                    {{ getBackgroundName(background.index) }}
+                  </h3>
+                  <div class="text-xl filter drop-shadow-md grayscale group-hover:grayscale-0 transition-all duration-300">
+                    {{ getBackgroundEmoji(background.index) }}
+                  </div>
                 </div>
-              </div>
-            </div>
+
+                <!-- Card Content -->
+                <div class="p-3 flex-1 flex flex-col gap-3">
+                   <!-- Description courte -->
+                   <p class="text-xs text-zinc-400 leading-snug line-clamp-3 group-hover:text-zinc-300 transition-colors">
+                      {{ getBackgroundDescription(background) }}
+                   </p>
+
+                   <!-- Skills Compact -->
+                   <div class="mt-auto">
+                      <div class="flex flex-wrap gap-1">
+                        <span 
+                          v-for="(skill, idx) in getBackgroundSkills(background).slice(0, 3)" 
+                          :key="skill" 
+                          class="bg-zinc-800 border border-zinc-700 text-zinc-400 px-1.5 py-0.5 rounded-[4px] text-[10px] font-medium whitespace-nowrap group-hover:border-zinc-600 transition-colors"
+                        >
+                          {{ skill }}
+                        </span>
+                        <span v-if="getBackgroundSkills(background).length > 3" class="text-[10px] text-zinc-600 self-center">
+                            +{{ getBackgroundSkills(background).length - 3 }}
+                        </span>
+                      </div>
+                   </div>
+                </div>
+
+                <!-- Selection Indicator -->
+                <div v-if="selectedBackground?.index === background.index" class="absolute top-2 right-2 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center shadow-lg animate-scale-in z-20">
+                    <svg class="w-3 h-3 text-zinc-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+             </div>
           </div>
         </div>
+
       </div>
     </div>
 
@@ -90,92 +107,36 @@
       @next="emit('next', selectedBackground!)"
     />
   </div>
-
-  <!-- Modal de récapitulatif -->
-  <CharacterSummaryModal
-    :is-open="showSummary"
-    :character="character"
-    @close="showSummary = false"
-  />
-  </div>
 </template>
 
 <style scoped>
-/* Effet d'agrandissement au hover */
-.classes-container:hover .class-card {
-  transform: scale(0.9);
-  opacity: 0.4;
+/* Scrollbar personnalisée affinée */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
-.classes-container:hover .class-card:hover {
-  transform: scale(1.1);
-  opacity: 1;
-  z-index: 10;
+@keyframes scale-in {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
 }
-
-/* Révélation du contenu au hover */
-.class-card:hover .class-details {
-  opacity: 1;
-}
-
-.class-card:hover .class-name {
-  font-size: 1.25rem;
-}
-
-/* Animation plus fluide */
-.class-card {
-  transition: all 0.35s ease-out;
-}
-
-/* Stabilisation complète du contenu pour éviter les mouvements */
-.class-card > div {
-  width: 100%;
-  height: 300px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Positionnement absolu pour stabiliser complètement */
-.class-card .relative {
-  position: absolute;
-  top: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.class-card .class-name {
-  position: absolute;
-  top: 100px;
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 90%;
-  transition: font-size 0.35s ease-out;
-}
-
-.class-card .class-details {
-  position: absolute;
-  top: 130px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 90%;
-  transition: opacity 0.35s ease-out;
-  max-height: 150px;
-  overflow: hidden;
+.animate-scale-in {
+  animation: scale-in 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 </style>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import StepNavigation from '../StepNavigation.vue'
-import CharacterSummaryModal from '../../CharacterSummaryModal.vue'
 import { loadBackgrounds } from '@/utils/dataLoader'
 import type { SRDBackground, SRDRace } from '@/types/srd'
 import type { Character } from '@/stores/app'
@@ -195,7 +156,6 @@ const backgrounds = ref<SRDBackground[]>([])
 const selectedBackground = ref<SRDBackground | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
-const showSummary = ref(false)
 
 onMounted(async () => {
   try {

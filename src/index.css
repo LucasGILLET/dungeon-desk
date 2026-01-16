@@ -1,6 +1,43 @@
 @import "tailwindcss";
 
+/* Imports de polices Fantasy & Moderne */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Inter:wght@300;400;500;600&display=swap');
+
+@theme {
+  --font-sans: "Inter", sans-serif;
+  --font-serif: "Cinzel", serif;
+  
+  --color-gold-400: #fbbf24;
+  --color-gold-500: #f59e0b;
+  --color-gold-600: #d97706;
+}
+
+body {
+  background-color: #09090b; /* Zinc 950 */
+  color: #e4e4e7; /* Zinc 200 */
+  font-family: var(--font-sans);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+}
+
+/* Scrollbar personnalisée sombre et dorée */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #10b981 rgba(0, 0, 0, 0.1);
+  scrollbar-color: #4b5563 #18181b;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #18181b;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #4b5563;
+  border-radius: 4px;
+  border: 1px solid #18181b;
 }

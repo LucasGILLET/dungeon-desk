@@ -1,3 +1,5 @@
+import { getTranslatedClassName } from "./classes"
+
 export interface SubclassData {
   id: string
   name: string
@@ -19,7 +21,7 @@ export const subclasses: SubclassData[] = [
   {
     id: 'domaine-guerre',
     name: 'Domaine de la Guerre',
-    className: 'clerc',
+    className: 'cleric',
     source: 'Manuel des Joueurs',
     description: 'Un clerc martial qui bénit les batailles et guide les guerriers au combat.',
     primaryAbility: 'Sorts et capacités de combat améliorés',
@@ -41,7 +43,7 @@ export const subclasses: SubclassData[] = [
   {
     id: 'domaine-vie',
     name: 'Domaine de la Vie',
-    className: 'clerc',
+    className: 'cleric',
     source: 'Manuel des Joueurs',
     description: 'Un guérisseur dévoué qui canalise l\'énergie positive pour soigner et protéger.',
     primaryAbility: 'Soins renforcés et protection divine',
@@ -63,7 +65,7 @@ export const subclasses: SubclassData[] = [
   {
     id: 'domaine-lumiere',
     name: 'Domaine de la Lumière',
-    className: 'clerc',
+    className: 'cleric',
     source: 'Manuel des Joueurs',
     description: 'Un clerc qui combat les ténèbres avec la lumière divine et le feu sacré.',
     primaryAbility: 'Sorts de lumière et de feu',
@@ -85,7 +87,7 @@ export const subclasses: SubclassData[] = [
   {
     id: 'domaine-nature',
     name: 'Domaine de la Nature',
-    className: 'clerc',
+    className: 'cleric',
     source: 'Manuel des Joueurs',
     description: 'Un clerc connecté au monde naturel et à ses créatures.',
     primaryAbility: 'Magie de la nature et communion animale',
@@ -107,7 +109,7 @@ export const subclasses: SubclassData[] = [
   {
     id: 'domaine-duperie',
     name: 'Domaine de la Duperie',
-    className: 'clerc',
+    className: 'cleric',
     source: 'Manuel des Joueurs',
     description: 'Un clerc rusé qui utilise l\'illusion et la tromperie pour servir sa divinité.',
     primaryAbility: 'Illusions et discrétion divine',
@@ -167,7 +169,7 @@ export const subclasses: SubclassData[] = [
   {
     id: 'grand-ancien',
     name: 'Le Grand Ancien',
-    className: 'occultiste',
+    className: 'warlock',
     source: 'Manuel des Joueurs',
     description: 'Votre patron est une entité mystérieuse dont la nature est étrangère au tissu de la réalité.',
     primaryAbility: 'Télépathie et contrôle mental',
@@ -188,7 +190,7 @@ export const subclasses: SubclassData[] = [
   {
     id: 'archifee',
     name: 'L\'Archifée',
-    className: 'occultiste',
+    className: 'warlock',
     source: 'Manuel des Joueurs',
     description: 'Votre patron est un seigneur ou une dame des fées, une créature de légende.',
     primaryAbility: 'Enchantements et illusions féeriques',
@@ -209,7 +211,7 @@ export const subclasses: SubclassData[] = [
   {
     id: 'fiend',
     name: 'Le Fiélon',
-    className: 'occultiste',
+    className: 'warlock',
     source: 'Manuel des Joueurs',
     description: 'Vous avez conclu un pacte avec un fiélon des plans inférieurs.',
     primaryAbility: 'Feu infernal et résistance démoniaque',

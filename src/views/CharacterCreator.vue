@@ -1,7 +1,27 @@
-
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <div class="w-full h-full mx-auto">
+  <div class="min-h-screen bg-zinc-950 text-zinc-200 font-sans selection:bg-amber-500/30 overflow-hidden relative">
+    <!-- Background Effects (Global) -->
+    <div class="fixed inset-0 pointer-events-none">
+      <div class="absolute top-0 left-1/4 w-96 h-96 bg-indigo-900/20 rounded-full blur-[128px]"></div>
+      <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-red-900/10 rounded-full blur-[128px]"></div>
+      <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#09090b_100%)]"></div>
+      <div class="absolute inset-0 opacity-[0.03]" style="background-image: url(&quot;data:image/svg+xml,%3Csvg)" width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg' fill='none' fill-rule='evenodd' fill-opacity='0.4' path d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'></div>
+    </div>
+
+    <!-- Grimoire Button (Global) -->
+    <!-- Shown only if not in the final step (Summary) where it might be redundant or part of the UI -->
+    <button
+      v-if="step < steps.length - 1"
+      @click="showSummary = true"
+      class="fixed top-4 right-4 sm:top-6 sm:right-8 z-50 bg-zinc-900/80 backdrop-blur-md border border-zinc-700 text-zinc-300 hover:text-amber-500 hover:border-amber-500 rounded-full p-3 transition-all duration-300 shadow-xl group"
+      title="Voir le Grimoire"
+    >
+      <svg class="w-6 h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+      </svg>
+    </button>
+
+    <div class="relative w-full h-full mx-auto z-10">
       <!-- Wizard principal -->
       <div class="h-full">
         <transition name="fade" mode="out-in">
@@ -18,6 +38,13 @@
         </transition>
       </div>
     </div>
+    
+    <!-- Modal de récapitulatif (Global) -->
+    <CharacterSummaryModal
+      :is-open="showSummary"
+      :character="character"
+      @close="showSummary = false"
+    />
   </div>
 </template>
 
@@ -31,6 +58,7 @@ import StepSubclass from '@/components/CreateCharacterSteps/6-Subclass/StepSubcl
 import StepProficiencies from '@/components/CreateCharacterSteps/7-Proficiencies/StepProficiencies.vue'
 import StepSpecialChoices from '@/components/CreateCharacterSteps/8-SpecialChoices/StepSpecialChoices.vue'
 import StepSummary from '@/components/CreateCharacterSteps/9-Summary/StepSummary.vue'
+import CharacterSummaryModal from '@/components/CharacterSummaryModal.vue'
 import { computed, reactive, ref } from 'vue'
 import { getSubracesByParentRace } from '@/utils/subrace'
 import { getAllFeaturesByClass } from '@/utils/features'
@@ -52,6 +80,7 @@ const steps = [
 ]
 
 const step = ref(0)
+const showSummary = ref(false)
 
 const character = reactive<Character>({
   name: '',
@@ -90,10 +119,6 @@ const character = reactive<Character>({
   features: [] as SRDFeature[]
 })
 
-const completion = computed(() => {
-  return Math.round(((step.value + 1) / steps.length) * 100)
-})
-
 const currentStepComponent = computed(() => steps[step.value])
 
 async function hasSubraces(raceIndex: string): Promise<boolean> {
@@ -105,12 +130,7 @@ async function hasSubraces(raceIndex: string): Promise<boolean> {
   }
 }
 
-function updateCharacter(updatedCharacter: any) {
-  Object.assign(character, updatedCharacter)
-}
-
 async function handleNext(payload: any) {
-  console.log('handleNext payload:', payload, character)
   if (step.value === 0 && payload) {
     character.race = payload
     payload.traits.forEach((trait: any) => {
@@ -131,7 +151,7 @@ async function handleNext(payload: any) {
     payload.racial_traits.forEach((trait: any) => {
       trait.category = "subrace"
     });
-    character.allTraits = [...character.allTraits, ...payload.racial_traits]
+    character.allTraits = [...character.allTraits || [], ...payload.racial_traits]
     character.vision = character.allTraits.find(trait => trait.index === 'darkvision') ? 'Vision dans le noir (18m)' : 'Vision normale'
     character.vision = character.allTraits.find(trait => trait.index === 'superior-darkvision') ? 'Vision dans le noir suppérieure (36m)' : character.vision
   }
@@ -162,7 +182,9 @@ async function handleNext(payload: any) {
   if (step.value === 6 && payload) {
     character.proficiencies = payload.selectedProficiencies
     character.allProficiencies = payload.allProficiencies
+    character.proficiencies = payload.proficiencies
   }
+
   
   if (step.value < steps.length - 1) {
     step.value++
@@ -175,12 +197,24 @@ function handlePrev() {
   }
 }
 
-function handleFinalize(finalCharacter: any) {
-  console.log('🎉 Personnage finalisé :', finalCharacter)
-  // Idées :
-  // - Sauvegarder dans une base de données
-  // - Rediriger vers la fiche de personnage
-  // - Exporter en PDF
-  // - etc.
+function updateCharacter(payload: Partial<Character>) {
+    Object.assign(character, payload)
+}
+
+function handleFinalize() {
+  alert('Personnage créé avec succès ! (Voir la console)')
+  // Ici vous pourriez sauvegarder le personnage dans un store Pinia ou une base de données
 }
 </script>
+
+<style>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

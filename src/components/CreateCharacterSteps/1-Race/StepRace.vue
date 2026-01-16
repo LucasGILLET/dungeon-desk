@@ -1,92 +1,92 @@
 <template>
-  <div>
-    <div class="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex flex-col relative">
-    <!-- Bouton récapitulatif -->
-    <button
-      @click="showSummary = true"
-      class="cursor-pointer absolute top-4 right-4 z-10 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white rounded-full p-3 transition-all duration-200 shadow-lg"
-      title="Voir le récapitulatif"
-    >
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-      </svg>
-    </button>
-
-    <div class="flex flex-col justify-center px-4 my-auto">
+  <div class="h-full flex flex-col">
+    <div class="mb-24 flex-1 flex flex-col relative pt-8 pb-2">
+    
+    <div class="flex flex-col justify-center px-4 my-auto h-full">
       <div class="text-center mb-8">
-        <h2 class="text-4xl font-bold text-white mb-2">Choisissez votre Race</h2>
-        <p class="text-xl text-blue-100">Votre origine détermine vos capacités naturelles</p>
-        <div v-if="loading" class="text-white">Chargement des races...</div>
-        <div v-if="error" class="text-red-400">{{ error }}</div>
+        <h2 class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-amber-200 to-amber-600 mb-3 font-serif drop-shadow-sm">Choisissez votre Race</h2>
+        <div class="h-0.5 w-24 bg-gradient-to-r from-transparent via-amber-800 to-transparent mx-auto mb-4"></div>
+        <p class="text-xl text-zinc-400 font-light italic">Votre origine détermine vos capacités naturelles</p>
+        <div v-if="loading" class="text-amber-500/80 animate-pulse mt-4">Invocation des races...</div>
+        <div v-if="error" class="text-red-400 mt-4 bg-red-900/20 px-4 py-2 rounded border border-red-900/50">{{ error }}</div>
       </div>
       
-      <div class="races-container w-full flex justify-center gap-2 overflow-hidden mb-8">
+      <div class="races-container w-full flex-1 flex justify-center gap-2 overflow-hidden py-4 min-h-[500px]">
         <div 
           v-for="race in races" 
           :key="race.index" 
           @click="selectedRace = race"
           :class="[
-            `race-card cursor-pointer bg-white/10 backdrop-blur-md rounded-2xl p-4 border-2 transition-all duration-100 ease-out`,
+            `race-card cursor-pointer relative overflow-hidden rounded-2xl border transition-all duration-500 ease-out`,
             selectedRace?.index === race.index 
-              ? 'border-yellow-400 ring-4 ring-yellow-400/50 bg-white/25 opacity-100' 
-              : 'border-white/20 hover:border-white/40 opacity-50'
+              ? 'border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.15)] z-20 opacity-100 scale-100 flex-[2_!important]' 
+              : 'border-zinc-800 grayscale hover:grayscale-0 opacity-40 hover:opacity-100 hover:border-zinc-600'
           ]"
-          style="flex: 1; min-width: 120px;"
-          :style="{ backgroundImage: `url(${getImageUrl(race.index + '.jpg')})` }"
+          style="flex: 1; min-width: 80px;"
         >
+          <!-- Background Image with Gradient Overlay -->
+          <div class="absolute inset-0 bg-cover bg-center transition-transform duration-700"
+               :style="{ backgroundImage: `url(${getImageUrl(race.index + '.jpg')})` }"
+               :class="selectedRace?.index === race.index ? 'scale-110' : 'scale-100'">
+          </div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent transition-opacity duration-300"
+               :class="selectedRace?.index === race.index ? 'opacity-90' : 'opacity-60 hover:opacity-80'">
+          </div>
+
           <!-- Contenu de la carte -->
-          <div class="h-full flex flex-col items-center justify-center text-center">
-            <!-- Image de la race -->
-            <div class="relative mb-4">
-              <!-- Badge sélectionné -->
-              <div 
+          <div class="relative h-full flex flex-col items-center justify-end text-center p-6 pb-12">
+            <!-- Badge sélectionné -->
+             <div 
                 v-if="selectedRace?.index === race.index"
-                class="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center"
+                class="absolute top-4 right-4 w-8 h-8 bg-amber-500 text-black rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(245,158,11,0.5)] animate-bounce-slow"
               >
-                <svg class="w-4 h-4 text-yellow-900" fill="currentColor" viewBox="0 0 20 20">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                 </svg>
               </div>
-              
-              <!-- Bouton détails -->
-              <button 
+
+            <!-- Bouton détails (Old style removed/hidden or replaced) -->
+             <button 
                 @click.stop="openRaceDetails(race)"
-                class="race-info-btn absolute -top-15 -right-35 w-8 h-8 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 transition-opacity duration-200 hover:bg-white/30"
+                class="absolute top-4 left-4 w-8 h-8 bg-black/40 hover:bg-amber-600 text-zinc-300 hover:text-white rounded-lg flex items-center justify-center border border-white/10 hover:border-amber-400 transition-all opacity-0 group-hover:opacity-100"
+                :class="selectedRace?.index === race.index ? 'opacity-100' : ''"
               >
-                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
+                <span class="text-sm font-serif">i</span>
               </button>
-            </div>
             
             <!-- Nom de la race -->
-            <h3 class="text-lg backdrop-brightness-40 font-bold text-white mb-2 race-name transition-all duration-300">
+            <h3 class="text-2xl font-bold text-amber-50 mb-2 font-serif tracking-wide drop-shadow-lg transition-all duration-300 transform"
+                 :class="selectedRace?.index === race.index ? '-translate-y-2' : ''">
               {{ translateRaceName(race.name) }}
             </h3>
             
-            <!-- Description (visible au hover) -->
-            <div class="race-details opacity-0 transition-all duration-300 overflow-auto">
-              <p class="text-sm text-blue-100 mb-3 leading-relaxed">
+            <!-- Description (visible au hover ou si selectionné) -->
+            <div class="transition-all duration-500 ease-out overflow-hidden"
+                 :class="selectedRace?.index === race.index ? 'max-h-[300px] opacity-100' : 'max-h-0 opacity-0'">
+              
+              <div class="w-full h-px bg-gradient-to-r from-transparent via-amber-500/50 to-transparent mb-4"></div>
+
+              <p class="text-sm text-zinc-300 mb-4 leading-relaxed line-clamp-4 px-2 font-light">
                 {{ getRaceDescription(race) }}
               </p>
               
               <!-- Stats bonus -->
-              <div class="flex flex-wrap justify-center gap-1 mb-2">
+              <div class="flex flex-wrap justify-center gap-2 mb-3">
                 <span 
                   v-for="stat in getRaceStats(race)" 
                   :key="stat" 
-                  class="bg-blue-500/30 text-blue-100 px-2 py-1 rounded-full text-xs font-medium border border-blue-400/30"
+                  class="bg-amber-500/10 text-amber-200 px-3 py-1 rounded border border-amber-500/30 text-xs font-bold tracking-wider uppercase"
                 >
                   {{ stat }}
                 </span>
               </div>
               
               <!-- Traits raciaux -->
-              <div v-if="getRaceTraits(race).length > 0" class="flex flex-wrap justify-center gap-1">
+              <div v-if="getRaceTraits(race).length > 0" class="flex flex-wrap justify-center gap-1.5">
                 <span 
                   v-for="trait in getRaceTraits(race)" 
                   :key="trait" 
-                  class="bg-green-500/30 text-green-100 px-2 py-1 rounded-full text-xs font-medium border border-green-400/30"
+                  class="bg-zinc-800/80 text-zinc-300 px-2 py-0.5 rounded text-[10px] border border-zinc-700 font-medium"
                 >
                   {{ trait }}
                 </span>
@@ -116,121 +116,46 @@
     />
   </div>
 
-  <!-- Modal de récapitulatif -->
-  <CharacterSummaryModal
-    :is-open="showSummary"
-    :character="character"
-    @close="showSummary = false"
-  />
   </div>
 </template>
 
 
 <style scoped>
+/* Accordion Effect */
 .races-container:hover .race-card {
-  flex: 0.3 !important;
-  opacity: 0.4;
-  transform: scale(0.95);
+  opacity: 0.3;
+  transform: scale(0.98);
+  filter: grayscale(100%);
 }
 
 .races-container:hover .race-card:hover {
-  flex: 0.7 !important;
   opacity: 1;
-  transform: scale(1);
-  z-index: 10;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-  min-width: 250px !important;
+  transform: scale(1.02);
+  z-index: 30;
+  filter: grayscale(0%);
+  border-color: #f59e0b; /* amber-500 */
+  box-shadow: 0 0 40px rgba(245, 158, 11, 0.3);
 }
 
-.race-card:hover .race-details {
-  opacity: 1;
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-.race-card:hover .race-name {
-  font-size: 1.25rem;
-}
-
+/* Transition douce */
 .race-card {
-  transition: all 0.35s ease-out;
-  background-size: cover;
-  background-position: center;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.race-card:hover .race-info-btn {
-  opacity: 1;
+.animate-bounce-slow {
+  animation: bounce-slow 3s infinite ease-in-out;
 }
 
-.race-card > div {
-  width: 100%;
-  height: 500px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
 }
-
-.race-card .relative {
-  position: absolute;
-  top: 60px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.race-card .race-name {
-  position: absolute;
-  top: 150px;
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 90%;
-  transition: font-size 0.35s ease-out;
-}
-
-.race-card .race-details {
-  position: absolute;
-  top: 190px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 90%;
-  transition: opacity 0.35s ease-out;
-  max-height: 250px;
-  overflow-y: auto;
-  padding: 1px;
-  border-radius: 4px;
-}
-
-.race-card .race-details::-webkit-scrollbar {
-  width: 6px;
-}
-
-.race-card .race-details::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-}
-
-.race-card .race-details::-webkit-scrollbar-thumb {
-  background: rgba(59, 130, 246, 0.6);
-  border-radius: 3px;
-}
-
-.race-card .race-details::-webkit-scrollbar-thumb:hover {
-  background: rgba(59, 130, 246, 0.8);
-}
-
-
 </style>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import StepNavigation from '../StepNavigation.vue'
 import RaceDetailsModal from './RaceDetailsModal.vue'
-import CharacterSummaryModal from '../../CharacterSummaryModal.vue'
 import { loadRaces } from '@/utils/dataLoader'
 import type { SRDRace } from '@/types/srd'
 import { getRaceDescription, translateRaceName, getRaceStats, getRaceTraits } from '@/utils/race';
@@ -251,7 +176,6 @@ const loading = ref(true)
 const error = ref<string | null>(null)
 const showRaceDetails = ref(false)
 const selectedDetailRace = ref<SRDRace | null>(null)
-const showSummary = ref(false)
 
 onMounted(async () => {
   try {
