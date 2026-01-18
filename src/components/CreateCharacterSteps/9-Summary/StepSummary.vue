@@ -90,6 +90,18 @@
                                 <p v-for="desc in feature.desc" :key="desc" class="mb-1 last:mb-0">{{ desc }}</p>
                              </div>
                          </div>
+
+                         <div class="my-4 border-t border-zinc-800/50" v-if="(character.allTraits?.length || displayedFeatures.length) && character.background?.feature"></div>
+
+                         <!-- Feature d'Historique -->
+                         <div v-if="character.background?.feature" class="group">
+                             <div class="flex justify-between items-baseline mb-1">
+                                <span class="text-sm font-bold text-zinc-300 group-hover:text-amber-400 transition-colors">{{ character.background.feature.name }}</span>
+                             </div>
+                             <div class="text-xs text-zinc-500 leading-relaxed pl-3 border-l hover:border-zinc-600 border-zinc-800 transition-colors">
+                                <p v-for="desc in character.background.feature.desc" :key="desc" class="mb-1 last:mb-0">{{ desc }}</p>
+                             </div>
+                         </div>
                     </div>
                 </div>
 
