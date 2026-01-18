@@ -1041,9 +1041,9 @@
       }
     ],
     "feature": {
-      "name": "Bad Reputation",
+      "name": "Place à bord",
       "desc": [
-        "No matter where you go, people are afraid of you due to your reputation. When you are in a civilized settlement, you can get away with minor criminal offenses, such as refusing to pay for food at a tavern or breaking down doors at a local shop, since most people will not report your activity to the authorities."
+        "Lorsque vous devez effectuer un voyage en mer, vous pouvez obtenir un passage gratuit sur un navire pour vous et vos compagnons d'aventure. Vous pouvez embarquer sur le navire sur lequel vous avez servi, ou sur un autre navire avec lequel vous avez de bonnes relations (peut-être commandé par un ancien camarade). Comme vous demandez une faveur, vous ne pouvez pas être certain d'un horaire ou d'un itinéraire qui répondra parfaitement à vos besoins. Votre MD déterminera combien de temps il faut pour arriver à destination. En échange de votre passage gratuit, on attend de vous et de vos compagnons que vous aidiez l'équipage pendant le voyage."
       ]
     }
   },

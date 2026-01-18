@@ -30,6 +30,24 @@ export function getSubraceEmoji(parentRaceIndex: string): string {
   return emojiMap[parentRaceIndex] || '❓'
 }
 
+export function translateSubraceName(englishName: string): string {
+  const translations: Record<string, string> = {
+    'Hill Dwarf': 'Nain des collines',
+    'Mountain Dwarf': 'Nain des montagnes',
+    'High Elf': 'Haut-elfe',
+    'Wood Elf': 'Elfe des bois',
+    'Dark Elf (Drow)': 'Elfe noir (Drow)',
+    'Lightfoot Halfling': 'Pied-léger',
+    'Stout Halfling': 'Robuste',
+    'Forest Gnome': 'Gnome des forêts',
+    'Rock Gnome': 'Gnome des roches',
+    'Deep Gnome': 'Gnome des profondeurs', // Svirfneblin
+    'Duergar': 'Duergar',
+    'Eladrin': 'Eladrin',
+  }
+  return translations[englishName] || englishName
+}
+
 export function getSubraceAbilityBonuses(subrace: SRDSubclass): Record<string, number> {
   const bonuses: Record<string, number> = {}
   subrace.ability_bonuses.forEach(bonus => {

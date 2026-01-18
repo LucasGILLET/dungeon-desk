@@ -37,16 +37,13 @@
                 Langues raciales
               </h3>
               <div class="flex flex-wrap gap-2">
-                <div v-for="language in automaticRacialLanguages" :key="language.name" class="relative group/tooltip">
-                  <div class="bg-zinc-800 text-zinc-300 px-3 py-1.5 rounded border border-zinc-700 text-xs font-medium cursor-help hover:bg-zinc-700 transition-colors">
-                    {{ language.name }}
-                  </div>
-                  <!-- Tooltip -->
-                  <div class="absolute bottom-full left-0 mb-2 w-64 p-3 bg-zinc-950 border border-zinc-700 rounded-lg shadow-xl opacity-0 invisible group-hover/tooltip:visible group-hover/tooltip:opacity-100 transition-all duration-200 pointer-events-none z-50">
-                    <div class="font-bold text-xs mb-1 text-zinc-200">{{ language.name }}</div>
-                    <div class="text-[10px] text-zinc-400 leading-relaxed">{{ language.description }}</div>
-                  </div>
-                </div>
+                <ProficiencyBadge
+                  v-for="language in automaticRacialLanguages"
+                  :key="language.name"
+                  :name="language.name"
+                  :description="language.description"
+                  variant="default"
+                />
               </div>
             </div>
 
@@ -57,16 +54,13 @@
                 Compétences
               </h3>
               <div class="flex flex-wrap gap-2">
-                <div v-for="skill in automaticSkills" :key="skill.id" class="relative group/tooltip">
-                  <div class="bg-zinc-800 text-amber-200/80 px-3 py-1.5 rounded border border-zinc-700 text-xs font-medium cursor-help hover:text-amber-100 hover:border-amber-900/50 transition-colors">
-                    {{ skill.name }}
-                  </div>
-                  <!-- Tooltip -->
-                  <div class="absolute bottom-full left-0 mb-2 w-64 p-3 bg-zinc-950 border border-zinc-700 rounded-lg shadow-xl opacity-0 invisible group-hover/tooltip:visible group-hover/tooltip:opacity-100 transition-all duration-200 pointer-events-none z-50">
-                    <div class="font-bold text-xs mb-1 text-amber-500">{{ skill.name }}</div>
-                    <div class="text-[10px] text-zinc-400 leading-relaxed">{{ skill.description }}</div>
-                  </div>
-                </div>
+                <ProficiencyBadge
+                  v-for="skill in automaticSkills"
+                  :key="skill.id"
+                  :name="skill.name"
+                  :description="skill.description"
+                  variant="skill"
+                />
               </div>
             </div>
 
@@ -78,27 +72,21 @@
               </h3>
               <div class="flex flex-wrap gap-2">
                 <!-- Langues -->
-                <div v-for="language in automaticLanguages" :key="language.id" class="relative group/tooltip">
-                  <div class="bg-zinc-800 text-cyan-200/80 px-3 py-1.5 rounded border border-zinc-700 text-xs font-medium cursor-help hover:text-cyan-100 transition-colors">
-                    {{ language.name }}
-                  </div>
-                   <!-- Tooltip -->
-                  <div class="absolute bottom-full left-0 mb-2 w-64 p-3 bg-zinc-950 border border-zinc-700 rounded-lg shadow-xl opacity-0 invisible group-hover/tooltip:visible group-hover/tooltip:opacity-100 transition-all duration-200 pointer-events-none z-50">
-                    <div class="font-bold text-xs mb-1 text-cyan-400">{{ language.name }}</div>
-                    <div class="text-[10px] text-zinc-400 leading-relaxed">{{ language.description }}</div>
-                  </div>
-                </div>
+                <ProficiencyBadge
+                  v-for="language in automaticLanguages"
+                  :key="language.id"
+                  :name="language.name"
+                  :description="language.description"
+                  variant="language"
+                />
                 <!-- Outils -->
-                <div v-for="tool in automaticTools" :key="tool.id" class="relative group/tooltip">
-                   <div class="bg-zinc-800 text-orange-200/80 px-3 py-1.5 rounded border border-zinc-700 text-xs font-medium cursor-help hover:text-orange-100 transition-colors">
-                    {{ tool.name }}
-                  </div>
-                   <!-- Tooltip -->
-                  <div class="absolute bottom-full left-0 mb-2 w-64 p-3 bg-zinc-950 border border-zinc-700 rounded-lg shadow-xl opacity-0 invisible group-hover/tooltip:visible group-hover/tooltip:opacity-100 transition-all duration-200 pointer-events-none z-50">
-                    <div class="font-bold text-xs mb-1 text-orange-400">{{ tool.name }}</div>
-                    <div class="text-[10px] text-zinc-400 leading-relaxed">{{ tool.description }}</div>
-                  </div>
-                </div>
+                <ProficiencyBadge
+                  v-for="tool in automaticTools"
+                  :key="tool.id"
+                  :name="tool.name"
+                  :description="tool.description"
+                  variant="tool"
+                />
               </div>
             </div>
           </div>
@@ -201,6 +189,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import ProficiencyBadge from './ProficiencyBadge.vue'
 import { 
   getAllCharacterProficiencies, 
   getAutomaticLanguages,

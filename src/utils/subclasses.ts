@@ -257,3 +257,106 @@ export function getSubclassEmoji(subclassId: string): string {
   }
   return emojis[subclassId] || '🔮'
 }
+
+export function translateSubclassName(subclassName: string): string {
+  const translations: Record<string, string> = {
+    // Barbarian
+    'Berserker': 'Berserker',
+    'Totem Warrior': 'Guerrier totémique',
+    'Path of the Berserker': 'Voie du Berserker',
+    'Path of the Totem Warrior': 'Voie du Guerrier totémique',
+    
+    // Bard
+    'Lore': 'Savoir',
+    'Valor': 'Vaillance',
+    'College of Lore': 'Collège du Savoir',
+    'College of Valor': 'Collège de la Vaillance',
+
+    // Clerc
+    'Life': 'Vie',
+    'Life Domain': 'Domaine de la Vie',
+    'Light': 'Lumière',
+    'Light Domain': 'Domaine de la Lumière',
+    'Nature': 'Nature',
+    'Nature Domain': 'Domaine de la Nature',
+    'Tempest': 'Tempête',
+    'Tempest Domain': 'Domaine de la Tempête',
+    'Trickery': 'Duperie',
+    'Trickery Domain': 'Domaine de la Duperie',
+    'War': 'Guerre',
+    'War Domain': 'Domaine de la Guerre',
+    'Knowledge': 'Savoir',
+    'Knowledge Domain': 'Domaine du Savoir',
+
+    // Druid
+    'Land': 'Terre',
+    'Circle of the Land': 'Cercle de la Terre',
+    'Moon': 'Lune',
+    'Circle of the Moon': 'Cercle de la Lune',
+
+    // Fighter
+    'Champion': 'Champion',
+    'Battle Master': 'Maître de guerre',
+    'Eldritch Knight': 'Chevalier occulte',
+    'Martial Archetype: Champion': 'Archétype Martial : Champion',
+    
+    // Monk
+    'Open Hand': 'Main ouverte',
+    'Way of the Open Hand': 'Voie de la Main ouverte',
+    'Shadow': 'Ombre',
+    'Way of Shadow': 'Voie de l\'Ombre',
+    'Four Elements': 'Quatre éléments',
+    'Way of the Four Elements': 'Voie des Quatre éléments',
+
+    // Paladin
+    'Devotion': 'Dévotion',
+    'Oath of Devotion': 'Serment de Dévotion',
+    'Ancients': 'Anciens',
+    'Oath of the Ancients': 'Serment des Anciens',
+    'Vengeance': 'Vengeance',
+    'Oath of Vengeance': 'Serment de Vengeance',
+
+    // Ranger
+    'Hunter': 'Chasseur',
+    'Beast Master': 'Maître des bêtes',
+    'Hunter Archetype': 'Archétype de Chasseur',
+
+    // Rogue
+    'Thief': 'Voleur',
+    'Assassin': 'Assassin',
+    'Arcane Trickster': 'Escroc arcanique',
+    'Roguish Archetype: Thief': 'Archétype de Roublard : Voleur',
+
+    // Sorcerer
+    'Draconic': 'Lignée draconique',
+    'Draconic Bloodline': 'Lignée draconique',
+    'Wild Magic': 'Magie sauvage',
+
+    // Warlock
+    'Fiend': 'Fiélon',
+    'The Fiend': 'Le Fiélon',
+    'Archfey': 'Archifée',
+    'The Archfey': 'L\'Archifée',
+    'Great Old One': 'Grand Ancien',
+    'The Great Old One': 'Le Grand Ancien',
+
+    // Wizard
+    'Abjuration': 'Abjuration',
+    'School of Abjuration': 'École d\'Abjuration',
+    'Conjuration': 'Invocation',
+    'School of Conjuration': 'École d\'Invocation',
+    'Divination': 'Divination',
+    'School of Divination': 'École de Divination',
+    'Enchantment': 'Enchantement',
+    'School of Enchantment': 'École d\'Enchantement',
+    'Evocation': 'Évocation',
+    'School of Evocation': 'École d\'Évocation',
+    'Illusion': 'Illusion',
+    'School of Illusion': 'École d\'Illusion',
+    'Necromancy': 'Nécromancie',
+    'School of Necromancy': 'École de Nécromancie',
+    'Transmutation': 'Transmutation',
+    'School of Transmutation': 'École de Transmutation'
+  }
+  return translations[subclassName] || subclassName
+}

@@ -18,7 +18,7 @@
              </div>
           </div>
           <p class="text-zinc-500 mt-4 font-light text-sm uppercase tracking-widest">
-             {{ character.race?.name }} {{ character.subrace.name ? `(${character.subrace.name})` : '' }} • {{ character.class.name }} {{ character.subclass ? `• ${character.subclass.name}` : '' }} • Niv. 1
+             {{ translateRaceName(character.race?.name) }} {{ character.subrace.name ? `(${translateSubraceName(character.subrace.name)})` : '' }} • {{ getTranslatedClassName(character.class.name) }} {{ character.subclass ? `• ${translateSubclassName(character.subclass.name)}` : '' }} • Niv. 1
           </p>
         </div>
 
@@ -37,7 +37,7 @@
                             <span class="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-1">{{ ability.name }}</span>
                             <span class="text-2xl font-bold font-serif text-white">{{ ability.final }}</span>
                             <span class="text-xs font-bold px-2 py-0.5 rounded mt-1 min-w-[30px] text-center" 
-                                  :class="ability.modifier >= 0 ? 'bg-zinc-800 text-zinc-300' : 'bg-red-900/20 text-red-500'">
+                                  :class="ability.modifier > 0 ? 'bg-green-900/20 text-green-500' : ability.modifier < 0 ? 'bg-red-900/20 text-red-500' : 'bg-zinc-800 text-zinc-400'">
                                 {{ ability.modifier >= 0 ? '+' : '' }}{{ ability.modifier }}
                             </span>
                         </div>
@@ -117,27 +117,27 @@
                     <div class="space-y-4 text-sm">
                         <div class="flex justify-between border-b border-zinc-800 pb-2 hover:bg-zinc-900/50 transition-colors px-2 rounded">
                             <span class="text-zinc-500">Race</span>
-                            <span class="text-zinc-300 font-medium">{{ character.race?.name }}</span>
+                            <span class="text-zinc-300 font-medium">{{ translateRaceName(character.race?.name) }}</span>
                         </div>
                          <div v-if="character.subrace" class="flex justify-between border-b border-zinc-800 pb-2 hover:bg-zinc-900/50 transition-colors px-2 rounded">
                             <span class="text-zinc-500">Sous-race</span>
-                            <span class="text-zinc-300 font-medium">{{ character.subrace.name }}</span>
+                            <span class="text-zinc-300 font-medium">{{ translateSubraceName(character.subrace.name) }}</span>
                         </div>
                         <div class="flex justify-between border-b border-zinc-800 pb-2 hover:bg-zinc-900/50 transition-colors px-2 rounded">
                             <span class="text-zinc-500">Classe</span>
-                            <span class="text-zinc-300 font-medium">{{ character.class.name }}</span>
+                            <span class="text-zinc-300 font-medium">{{ getTranslatedClassName(character.class.name) }}</span>
                         </div>
                         <div v-if="character.subclass" class="flex justify-between border-b border-zinc-800 pb-2 hover:bg-zinc-900/50 transition-colors px-2 rounded">
                             <span class="text-zinc-500">Sous-classe</span>
-                            <span class="text-zinc-300 font-medium">{{ character.subclass.name }}</span>
+                            <span class="text-zinc-300 font-medium">{{ translateSubclassName(character.subclass.name) }}</span>
                         </div>
                         <div class="flex justify-between border-b border-zinc-800 pb-2 hover:bg-zinc-900/50 transition-colors px-2 rounded">
                             <span class="text-zinc-500">Historique</span>
-                            <span class="text-zinc-300 font-medium">{{ getBackgroundName() }}</span>
+                            <span class="text-zinc-300 font-medium">{{ getBackgroundName(character.background.name.toLowerCase()) }}</span>
                         </div>
                         <div class="flex justify-between items-center text-xs text-zinc-500 pt-2 px-2">
                            <div class="flex gap-4">
-                              <span><strong class="text-zinc-400">{{ character.race?.size }}</strong> Taille</span>
+                              <span><strong class="text-zinc-400">{{ getSizeDisplay(character.race?.size) }}</strong> Taille</span>
                               <span><strong class="text-zinc-400">{{ convertSpeedToMeters(character.race?.speed) }}m</strong> Vitesse</span>
                            </div>
                            <span class="italic text-zinc-600">{{ getVisionDisplay() }}</span>
@@ -155,50 +155,61 @@
                         <div v-if="skillsProficiencies.length" class="space-y-2">
                             <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block">Compétences</span>
                             <div class="flex flex-wrap gap-1.5">
-                                <span v-for="skill in skillsProficiencies" :key="skill.id" 
-                                      class="px-2.5 py-1 rounded bg-zinc-800 text-zinc-300 text-xs border border-zinc-700">
-                                    {{ skill.name }}
-                                </span>
+                                <ProficiencyBadge 
+                                    v-for="skill in skillsProficiencies" 
+                                    :key="skill.id" 
+                                    :name="skill.name"
+                                    :description="skill.description"
+                                    variant="skill"
+                                />
                             </div>
                         </div>
 
                          <div v-if="toolsProficiencies.length" class="space-y-2">
                             <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block">Outils</span>
                             <div class="flex flex-wrap gap-1.5">
-                                <span v-for="tool in toolsProficiencies" :key="tool.id" 
-                                      class="px-2.5 py-1 rounded bg-zinc-800 text-zinc-300 text-xs border border-zinc-700">
-                                    {{ tool.name }}
-                                </span>
+                                <ProficiencyBadge 
+                                    v-for="tool in toolsProficiencies" 
+                                    :key="tool.id" 
+                                    :name="tool.name"
+                                    :description="tool.description"
+                                    variant="tool"
+                                />
                             </div>
                         </div>
 
                         <div v-if="languagesProficiencies.length" class="space-y-2">
                             <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block">Langues</span>
                             <div class="flex flex-wrap gap-1.5">
-                                <span v-for="lang in languagesProficiencies" :key="lang.id" 
-                                      class="px-2.5 py-1 rounded bg-zinc-800 text-zinc-300 text-xs border border-zinc-700">
-                                    {{ lang.name }}
-                                </span>
+                                <ProficiencyBadge 
+                                    v-for="lang in languagesProficiencies" 
+                                    :key="lang.id" 
+                                    :name="lang.name"
+                                    :description="lang.description"
+                                    variant="language"
+                                />
                             </div>
                         </div>
 
                          <div v-if="categorizedProficiencies.savingThrows.length > 0 && categorizedProficiencies.weapons" class="space-y-2">
                             <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block">Équipement Martial</span>
                              <div class="flex flex-wrap gap-1.5">
-                                <span v-for="w in categorizedProficiencies.weapons" :key="w" 
-                                      class="px-2.5 py-1 rounded bg-zinc-800 text-zinc-300 text-xs border border-zinc-700">
-                                    {{ w }}
-                                </span>
+                                <ProficiencyBadge 
+                                    v-for="w in categorizedProficiencies.weapons" 
+                                    :key="w" 
+                                    :name="w"
+                                />
                             </div>
                          </div>
 
                           <div v-if="categorizedProficiencies.savingThrows.length > 0 && categorizedProficiencies.armor" class="space-y-2">
                             <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block">Armures</span>
                              <div class="flex flex-wrap gap-1.5">
-                                <span v-for="a in categorizedProficiencies.armor" :key="a" 
-                                      class="px-2.5 py-1 rounded bg-zinc-800 text-zinc-300 text-xs border border-zinc-700">
-                                    {{ a }}
-                                </span>
+                                <ProficiencyBadge 
+                                    v-for="a in categorizedProficiencies.armor" 
+                                    :key="a" 
+                                    :name="a"
+                                />
                             </div>
                          </div>
 
@@ -206,10 +217,11 @@
                           <div v-if="categorizedProficiencies.savingThrows.length > 0 && categorizedProficiencies.savingThrows" class="space-y-2">
                             <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block">Jets de sauvegarde</span>
                              <div class="flex flex-wrap gap-1.5">
-                                <span v-for="st in categorizedProficiencies.savingThrows" :key="st" 
-                                      class="px-2.5 py-1 rounded bg-zinc-800 text-zinc-300 text-xs border border-zinc-700">
-                                    {{ st }}
-                                </span>
+                                <ProficiencyBadge 
+                                    v-for="st in categorizedProficiencies.savingThrows" 
+                                    :key="st" 
+                                    :name="st"
+                                />
                             </div>
                          </div>
 
@@ -255,9 +267,15 @@
 import { computed, ref, onMounted } from 'vue'
 import { getTraitDescriptionCombined } from '@/utils/traits'
 import { loadTraits } from '@/utils/dataLoader'
+import { translateRaceName } from '@/utils/race'
+import { getTranslatedClassName } from '@/utils/classes'
+import { translateSubraceName } from '@/utils/subrace'
+import { translateSubclassName } from '@/utils/subclasses'
 import StepNavigation from '../StepNavigation.vue'
+import ProficiencyBadge from '../7-Proficiencies/ProficiencyBadge.vue'
 import type { SRDRace } from '@/types/srd'
 import type { Character } from '@/stores/app'
+import { getBackgroundName } from '@/utils/backgrounds'
 
 const props = defineProps<{
   character: Character
@@ -484,10 +502,23 @@ function getAbilitiesDisplay() {
 
 function getVisionDisplay(): string {
   if (props.character.vision) {
+    if (props.character.vision === 'Darkvision') return 'Vision dans le noir'
     return props.character.vision
   }
   
   return 'Vision normale'
+}
+
+function getSizeDisplay(size: string): string {
+    const map: Record<string, string> = {
+        'Small': 'Petite',
+        'Medium': 'Moyenne',
+        'Large': 'Grande',
+        'Tiny': 'Minuscule',
+        'Huge': 'Gigantesque',
+        'Gargantuan': 'Gargantuesque'
+    }
+    return map[size] || size
 }
 
 function getEstimatedHP(): number {
@@ -520,24 +551,6 @@ function getBaseAC(): number {
 function getInitiative(): string {
   const dexModifier = getModifier(getAbilitiesDisplay().find(a => a.name === 'Dex')?.final || 10)
   return dexModifier >= 0 ? `+${dexModifier}` : `${dexModifier}`
-}
-
-function getBackgroundName(): string {
-  const backgroundNames: Record<string, string> = {
-    'acolyte': 'Acolyte',
-    'artisan': 'Artisan de guilde',
-    'artiste': 'Artiste',
-    'charlatan': 'Charlatan',
-    'criminel': 'Criminel',
-    'ermite': 'Ermite',
-    'héros-du-peuple': 'Héros du peuple',
-    'noble': 'Noble',
-    'sage': 'Sage',
-    'sauvageon': 'Sauvageon',
-    'soldat': 'Soldat'
-  }
-  
-  return backgroundNames[props.character.background.name] || props.character.background.name || 'Non sélectionné'
 }
 
 function finalizeCharacter() {
