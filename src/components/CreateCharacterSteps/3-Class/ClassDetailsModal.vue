@@ -9,7 +9,7 @@
              <!-- blurred BG image -->
             <div 
               class="absolute inset-0 bg-cover bg-center blur-sm opacity-40 grayscale"
-              :style="{ backgroundImage: `url(${getImageUrl(classe.index + '.jpg')})` }"
+              :style="{ backgroundImage: `url(${getImageUrl(classe.index + '.png')})` }"
             ></div>
             <div class="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/60 to-transparent"></div>
 
@@ -18,7 +18,7 @@
                  <div class="flex items-end gap-6">
                     <!-- Icon / Portrait -->
                     <div class="w-24 h-24 rounded-xl border-2 border-zinc-600 shadow-xl overflow-hidden shrink-0 bg-zinc-800">
-                         <img :src="getImageUrl(classe.index + '.jpg')" :alt="getTranslatedClassName(classe.name)" class="w-full h-full object-cover">
+                         <img :src="getImageUrl(classe.index + '.png')" :alt="getTranslatedClassName(classe.name)" class="w-full h-full object-cover">
                     </div>
                     
                     <div class="mb-1">

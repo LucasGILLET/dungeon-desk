@@ -33,7 +33,7 @@
               <div 
                 class="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-in-out group-hover:scale-110"
                 :class="selectedClass?.index === classe.index ? 'scale-110' : 'scale-100'"
-                :style="{ backgroundImage: `url(${getImageUrl(classe.index + '.jpg')})` }"
+                :style="{ backgroundImage: `url(${getImageUrl(classe.index + '.png')})` }"
               ></div>
 
               <!-- Gradient Overlay -->
