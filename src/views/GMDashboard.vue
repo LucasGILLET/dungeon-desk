@@ -125,22 +125,16 @@
             </button>
           </div>
           <div class="space-y-3">
-            <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-              <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                <span class="text-blue-600 font-semibold">TB</span>
-              </div>
-              <div class="flex-1">
-                <div class="font-medium text-gray-900">Tobias Bergamote</div>
-                <div class="text-sm text-gray-600">Marchand • Humain</div>
-              </div>
+            <div v-if="recentNPCs.length === 0" class="text-center text-gray-500 py-4 italic">
+              Aucun PNJ créé
             </div>
-            <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-              <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                <span class="text-green-600 font-semibold">EL</span>
+            <div v-for="npc in recentNPCs" :key="npc.id" class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+              <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                <span class="text-blue-600 font-semibold">{{ getInitials(npc.firstName, npc.lastName) }}</span>
               </div>
               <div class="flex-1">
-                <div class="font-medium text-gray-900">Elara Lunargent</div>
-                <div class="text-sm text-gray-600">Prêtresse • Elfe</div>
+                <div class="font-medium text-gray-900">{{ npc.firstName }} {{ npc.lastName }}</div>
+                <div class="text-sm text-gray-600">{{ npc.profession }} • {{ npc.race.name }}</div>
               </div>
             </div>
           </div>
@@ -177,5 +171,22 @@
 </template>
 
 <script setup lang="ts">
-// Logique du tableau de bord MJ
+import { useNpcStore } from '@/stores/npc'
+import { storeToRefs } from 'pinia'
+import { computed, onMounted } from 'vue'
+
+const store = useNpcStore()
+const { npcs } = storeToRefs(store)
+
+onMounted(() => {
+    store.fetchNpcs()
+})
+
+const recentNPCs = computed(() => {
+  return [...npcs.value].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5)
+})
+
+const getInitials = (firstName: string, lastName: string) => {
+  return `${firstName[0]}${lastName[0]}`.toUpperCase()
+}
 </script>

@@ -265,6 +265,9 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useCharacterStore } from '@/stores/character'
+import { useAuthStore } from '@/stores/auth'
 import { getTraitDescriptionCombined } from '@/utils/traits'
 import { loadTraits } from '@/utils/dataLoader'
 import { translateRaceName } from '@/utils/race'
@@ -283,6 +286,11 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits(['prev', 'finalize'])
+
+const router = useRouter()
+const characterStore = useCharacterStore()
+const authStore = useAuthStore()
+const loading = ref(false)
 
 const srdTraits = ref<any[]>([])
 
@@ -553,13 +561,31 @@ function getInitiative(): string {
   return dexModifier >= 0 ? `+${dexModifier}` : `${dexModifier}`
 }
 
-function finalizeCharacter() {
+async function finalizeCharacter() {
   if (!props.character.name) {
     alert("Veuillez donner un nom à votre personnage !");
     return;
   }
-  emit('finalize', props.character)
-  alert(`🎉 Personnage créé avec succès !\n\n${props.character.name} est prêt pour l'aventure !`)
+
+  // Check auth
+  if (!authStore.token) {
+    if(confirm("Pour sauvegarder votre personnage dans votre profil, vous devez être connecté.\n\nVoulez-vous aller à la page de connexion ? (Attention, la progression non sauvegardée sera perdue)")) {
+        router.push('/login');
+    }
+    return;
+  }
+
+  // Save via store
+  loading.value = true;
+  const result = await characterStore.saveCharacter(props.character);
+  loading.value = false;
+
+  if (result.success) {
+      alert(`🎉 Victoire !\n\n${props.character.name} a été enregistré dans votre profil avec succès. Prêt pour l'aventure !`);
+      router.push('/profile');
+  } else {
+      alert(`Erreur critique lors de la sauvegarde : ${result.error}`);
+  }
 }
 
 function getTraitDescription(trait: any): string {

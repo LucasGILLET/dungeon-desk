@@ -13,23 +13,35 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-20">
           <div class="flex items-center space-x-3 group cursor-pointer">
-            <div class="relative w-10 h-10 flex items-center justify-center transform group-hover:rotate-12 transition-transform duration-300">
-              <div class="absolute inset-0 bg-gradient-to-br from-amber-600 to-red-700 rounded-xl rotate-45 shadow-[0_0_15px_rgba(245,158,11,0.3)]"></div>
-              <span class="relative text-xl z-10 text-amber-100">🐉</span>
-            </div>
+            <!-- <div class="relative w-10 h-10 flex items-center justify-center transform group-hover:rotate-12 transition-transform duration-300"> -->
+              <!-- <div class="absolute inset-0 bg-gradient-to-br from-amber-600 to-red-700 rounded-xl rotate-45 shadow-[0_0_15px_rgba(245,158,11,0.3)]"></div> -->
+              <!-- <span class="relative text-xl z-10 text-amber-100">🐉</span> -->
+            <!-- </div> -->
             <h1 class="text-2xl font-bold bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600 bg-clip-text text-transparent font-serif tracking-wide">
               DungeonDesk
             </h1>
           </div>
           <div class="flex space-x-6 items-center">
-            <button class="text-amber-100/70 hover:text-amber-400 font-serif tracking-wider transition-colors text-sm uppercase">Connexion</button>
-            <button class="relative px-6 py-2 group overflow-hidden rounded-lg">
-              <span class="absolute inset-0 w-full h-full bg-gradient-to-r from-amber-700 to-amber-600 opacity-80 group-hover:opacity-100 transition-opacity"></span>
-              <span class="absolute bottom-0 left-0 w-full h-1/4 bg-gradient-to-t from-black/20 to-transparent"></span>
-              <span class="relative text-amber-50 font-serif font-bold tracking-wide text-sm flex items-center gap-2">
-                Rejoignez l'Aventure
-              </span>
-            </button>
+            <template v-if="!isAuthenticated">
+                <router-link to="/login" class="text-amber-100/70 hover:text-amber-400 font-serif tracking-wider transition-colors text-sm uppercase">Connexion</router-link>
+                <router-link to="/register" class="relative px-6 py-2 group overflow-hidden rounded-lg">
+                  <span class="absolute inset-0 w-full h-full bg-gradient-to-r from-amber-700 to-amber-600 opacity-80 group-hover:opacity-100 transition-opacity"></span>
+                  <span class="absolute bottom-0 left-0 w-full h-1/4 bg-gradient-to-t from-black/20 to-transparent"></span>
+                  <span class="relative text-amber-50 font-serif font-bold tracking-wide text-sm flex items-center gap-2">
+                    Rejoignez l'Aventure
+                  </span>
+                </router-link>
+            </template>
+            <template v-else>
+                <div class="flex items-center gap-4">
+                    <router-link to="/profile" class="relative px-6 py-2 group overflow-hidden rounded-lg">
+                        <span class="absolute inset-0 w-full h-full bg-gradient-to-r from-emerald-800 to-teal-800 opacity-80 group-hover:opacity-100 transition-opacity"></span>
+                         <span class="relative text-emerald-50 font-serif font-bold tracking-wide text-sm flex items-center gap-2">
+                            Mon Profil
+                        </span>
+                    </router-link>
+                </div>
+            </template>
           </div>
         </div>
       </div>
@@ -95,6 +107,23 @@
               </div>
             </div>
           </router-link>
+
+          <!-- NPC Generator Button -->
+          <router-link
+            to="/npc-generator"
+            class="group relative w-full sm:w-auto overflow-hidden rounded-xl bg-zinc-900 border border-emerald-900/50 hover:border-emerald-500/50 transition-all duration-300"
+          >
+            <div class="absolute inset-0 bg-gradient-to-br from-emerald-900/20 to-black opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div class="relative px-8 py-5 flex items-center gap-4">
+              <div class="w-12 h-12 rounded-full bg-emerald-900/30 border border-emerald-500/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+                <span class="text-2xl">🎭</span>
+              </div>
+              <div class="text-left">
+                <div class="text-emerald-200 font-serif font-bold text-lg group-hover:text-emerald-100 transition-colors">PNJ</div>
+                <div class="text-emerald-400/60 text-sm font-medium uppercase tracking-wider">Création rapide</div>
+              </div>
+            </div>
+          </router-link>
         </div>
       </div>
     </div>
@@ -154,6 +183,19 @@
 </template>
 
 <script setup lang="ts">
+import { useAuthStore } from '@/stores/auth'
+import { storeToRefs } from 'pinia'
+import { useRouter } from 'vue-router'
+
+const store = useAuthStore()
+const { isAuthenticated, user } = storeToRefs(store)
+const router = useRouter()
+
+const logout = () => {
+    store.logout()
+    router.push('/')
+}
+
 const features = [
   {
     icon: '🗺️',

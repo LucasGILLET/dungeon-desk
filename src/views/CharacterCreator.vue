@@ -63,7 +63,8 @@ import { computed, reactive, ref } from 'vue'
 import { getSubracesByParentRace } from '@/utils/subrace'
 import { getAllFeaturesByClass } from '@/utils/features'
 import type { SRDBackground, SRDClass, SRDFeature, SRDRace, SRDSubclass } from '@/types/srd'
-import type { Character } from '@/stores/app'
+import { useAppStore, type Character } from '@/stores/app'
+import { useRouter } from 'vue-router'
 import type { Subrace } from '@/utils/subrace'
 
 // Ajoutez ici les autres étapes au fur et à mesure
@@ -79,6 +80,8 @@ const steps = [
   StepSummary
 ]
 
+const store = useAppStore()
+const router = useRouter()
 const step = ref(0)
 const showSummary = ref(false)
 
@@ -201,9 +204,15 @@ function updateCharacter(payload: Partial<Character>) {
     Object.assign(character, payload)
 }
 
-function handleFinalize() {
-  alert('Personnage créé avec succès ! (Voir la console)')
-  // Ici vous pourriez sauvegarder le personnage dans un store Pinia ou une base de données
+async function handleFinalize() {
+  try {
+    await store.createCharacter({ ...character })
+    alert('Personnage enregistré avec succès !')
+    router.push('/')
+  } catch (e) {
+    console.error(e)
+    alert("Erreur lors de l'enregistrement du personnage.")
+  }
 }
 </script>
 

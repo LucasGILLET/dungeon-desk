@@ -16,12 +16,19 @@
 
         <div class="flex items-center space-x-4">
           <slot name="actions">
-            <button class="text-gray-600 hover:text-gray-900 transition-colors">
-              Connexion
-            </button>
-            <button class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all">
-              S'inscrire
-            </button>
+            <template v-if="authStore.isAuthenticated">
+                <router-link to="/profile" class="text-gray-600 hover:text-gray-900 transition-colors font-medium">
+                  Mon Profil
+                </router-link>
+            </template>
+            <template v-else>
+              <router-link to="/login" class="text-gray-600 hover:text-gray-900 transition-colors">
+                Connexion
+              </router-link>
+              <router-link to="/register" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all">
+                S'inscrire
+              </router-link>
+            </template>
           </slot>
         </div>
       </div>
@@ -30,6 +37,10 @@
 </template>
 
 <script setup lang="ts">
+import { useAuthStore } from '@/stores/auth';
+
+const authStore = useAuthStore();
+
 interface Props {
   subtitle?: string
   subtitleColor?: string

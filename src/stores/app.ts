@@ -61,13 +61,34 @@ export interface Campaign {
 
 export interface NPC {
   id: string
-  name: string
-  race: string
-  class?: string
+  firstName: string
+  lastName: string
+  race: SRDRace
+  class?: SRDClass | null
+  gender: string
+  age: number
+  ageCategory: string
+  height: string
+  weight: string
+  bodyType: string
+  profession: string
+  socialStatus: string
+  relations: string
+  history: string
+  stats: {
+    FOR: number
+    DEX: number
+    CON: number
+    INT: number
+    SAG: number
+    CHA: number
+  }
+  alignment: string
   personality: string
   motivation: string
+  quirk: string
   location?: string
-  campaignId: string
+  campaignId?: string
   createdAt: Date
 }
 
@@ -103,16 +124,51 @@ export const useAppStore = defineStore('app', () => {
   const quests = ref<Quest[]>([])
 
   // Actions pour les personnages
-  const createCharacter = (character: Omit<Character, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const newCharacter: Character = {
-      ...character,
-      id: crypto.randomUUID(),
-      createdAt: new Date(),
-      updatedAt: new Date()
+  const createCharacter = async (character: Omit<Character, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error("Not authenticated");
+
+      const payload = {
+        name: character.name,
+        race: character.race.name,
+        class: character.class.name,
+        level: character.level,
+        data: character
+      };
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/characters`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save character');
+      }
+
+      const savedChar = await response.json();
+      
+      const newCharacter: Character = {
+        ...character,
+        id: savedChar.id,
+        createdAt: new Date(savedChar.createdAt),
+        updatedAt: new Date(savedChar.updatedAt)
+      }
+      characters.value.push(newCharacter)
+      currentCharacter.value = newCharacter
+      return newCharacter;
+    } catch (error) {
+      console.error("Error saving character:", error);
+      // Fallback local only if offline or error? Or allow failure in UI
+      // For now, let's keep the local adding as fallback or just re-throw
+      // But preserving specific ID behavior is hard.
+      // Let's just alert the user in the view if this fails.
+      throw error;
     }
-    characters.value.push(newCharacter)
-    currentCharacter.value = newCharacter
-    return newCharacter
   }
 
   const updateCharacter = (id: string, updates: Partial<Character>) => {
@@ -144,24 +200,21 @@ export const useAppStore = defineStore('app', () => {
   }
 
   // Actions pour les PNJ
-  const generateNPC = (campaignId: string) => {
-    const names = ['Tobias Bergamote', 'Elara Lunargent', 'Grim Barbe-de-fer', 'Luna Chantebrise', 'Theron Ventdacier']
-    const races = ['Humain', 'Elfe', 'Nain', 'Halfelin', 'Tieffelin']
-    const personalities = ['Amical', 'Mystérieux', 'Colérique', 'Sage', 'Cupide', 'Loyal']
-    const motivations = ['Richesse', 'Pouvoir', 'Connaissance', 'Vengeance', 'Protection', 'Liberté']
-
+  const saveNPC = (npc: Omit<NPC, 'id' | 'createdAt'>) => {
     const newNPC: NPC = {
+      ...npc,
       id: crypto.randomUUID(),
-      name: names[Math.floor(Math.random() * names.length)] || 'Personnage Mystérieux',
-      race: races[Math.floor(Math.random() * races.length)] || 'Humain',
-      personality: personalities[Math.floor(Math.random() * personalities.length)] || 'Amical',
-      motivation: motivations[Math.floor(Math.random() * motivations.length)] || 'Inconnu',
-      campaignId,
       createdAt: new Date()
     }
-
     npcs.value.push(newNPC)
     return newNPC
+  }
+
+  const deleteNPC = (id: string) => {
+    const index = npcs.value.findIndex(n => n.id === id)
+    if (index !== -1) {
+      npcs.value.splice(index, 1)
+    }
   }
 
   // Actions pour les quêtes
@@ -180,6 +233,20 @@ export const useAppStore = defineStore('app', () => {
   const login = (userData: { id: string; name: string; email: string; role: 'player' | 'gm' }) => {
     user.value = userData
     isAuthenticated.value = true
+    // Mock persistence
+    localStorage.setItem('user', JSON.stringify(userData))
+  }
+  
+  const register = (userData: { name: string; email: string; password: string }) => {
+    // Mock registration - in a real app, this would be an API call
+    const newUser = {
+      id: crypto.randomUUID(),
+      name: userData.name,
+      email: userData.email,
+      role: 'player' as const
+    }
+    login(newUser)
+    return newUser
   }
 
   const logout = () => {
@@ -187,12 +254,22 @@ export const useAppStore = defineStore('app', () => {
     isAuthenticated.value = false
     currentCharacter.value = null
     currentCampaign.value = null
+    localStorage.removeItem('user')
   }
 
-  // Getters
   const getCharactersByUser = (userId: string) => {
-    return characters.value.filter(c => c.id === userId)
+    return characters.value.filter(c => c.createdAt && c.createdAt.toString().includes(userId)) // Mock filter, replace with actual userId field in character
   }
+  
+  // Initialize from local storage
+  const initAuth = () => {
+    const savedUser = localStorage.getItem('user')
+    if (savedUser) {
+        user.value = JSON.parse(savedUser)
+        isAuthenticated.value = true
+    }
+  }
+
 
   const getCampaignsByGM = (gmId: string) => {
     return campaigns.value.filter(c => c.gmId === gmId)
@@ -221,7 +298,9 @@ export const useAppStore = defineStore('app', () => {
     createCharacter,
     updateCharacter,
     createCampaign,
-    generateNPC,
+    saveNPC,
+    deleteNPC,
+    register,
     createQuest,
     login,
     logout,
