@@ -24,10 +24,10 @@ const openSubCategory = (sub: 'attack') => {
 </script>
 
 <template>
-  <div class="h-screen bg-zinc-950 text-zinc-200 font-sans selection:bg-yellow-500/30 overflow-x-hidden">
+  <div class="min-h-[100dvh] bg-zinc-950 text-zinc-200 font-sans selection:bg-yellow-500/30 overflow-x-hidden">
     
     <!-- En-tête Global -->
-    <header class="p-6 text-center pt-8 md:pt-12 mb-4">
+    <header class="p-6 text-center pt-8 md:pt-12">
       <h1 class="text-4xl md:text-5xl font-serif text-yellow-500 font-bold mb-2 drop-shadow-md">Combat</h1>
       <p class="text-zinc-400 font-light text-base uppercase tracking-widest">Tout ce que tu peux faire en combat</p>
     </header>
