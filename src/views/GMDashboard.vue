@@ -1,169 +1,53 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen bg-zinc-950 text-zinc-200 font-sans selection:bg-amber-500/30 flex flex-col relative overflow-hidden">
+    <!-- Background Effects -->
+    <div class="fixed inset-0 pointer-events-none">
+      <div class="absolute top-0 left-1/4 w-96 h-96 bg-red-900/20 rounded-full blur-[128px]"></div>
+      <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-amber-900/10 rounded-full blur-[128px]"></div>
+      <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#09090b_100%)]"></div>
+      <div class="absolute inset-0 opacity-[0.03]" style="background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\' fill=\'%23ffffff\' fill-rule=\'evenodd\'/%3E%3C/svg%3E')"></div>    </div>
+
     <!-- Navigation -->
-    <nav class="bg-white shadow-sm border-b">
+    <nav class="sticky top-0 z-50 border-b border-red-900/30 bg-zinc-950/80 backdrop-blur-md">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-          <div class="flex items-center space-x-4">
-            <router-link to="/" class="flex items-center space-x-2">
-              <div class="w-8 h-8 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center">
-                <span class="text-lg">🎲</span>
-              </div>
-              <span class="text-lg font-semibold text-gray-900">DungeonDesk</span>
-            </router-link>
-            <span class="text-gray-400">|</span>
-            <span class="text-red-600 font-medium">Assistant MJ</span>
-          </div>
-          <div class="flex items-center space-x-4">
-            <button class="text-gray-600 hover:text-gray-900 transition-colors">
-              Profil
-            </button>
-            <button class="text-gray-600 hover:text-gray-900 transition-colors">
-              Déconnexion
-            </button>
-          </div>
+        <div class="flex justify-between items-center h-20">
+          <router-link to="/" class="flex items-center space-x-3 group cursor-pointer hover:opacity-80 transition-opacity">
+            <h1 class="text-xl md:text-2xl font-bold bg-gradient-to-r from-red-400 via-red-500 to-amber-600 bg-clip-text text-transparent font-serif tracking-wide">
+              Assistant MJ
+            </h1>
+          </router-link>
         </div>
       </div>
     </nav>
 
-    <!-- Header -->
-    <div class="bg-gradient-to-r from-red-500 to-red-600 text-white">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="flex items-center space-x-4">
-          <span class="text-4xl">🧙‍♂️</span>
-          <div>
-            <h1 class="text-3xl font-bold">Tableau de Bord MJ</h1>
-            <p class="text-red-100">Gérez vos campagnes, PNJ et quêtes en toute simplicité</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Quick Actions -->
-      <div class="mb-8">
-        <h2 class="text-2xl font-bold text-gray-900 mb-4">Actions rapides</h2>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <button class="bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow text-center group">
-            <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">🗺️</div>
-            <div class="font-semibold text-gray-900">Nouvelle Campagne</div>
-            <div class="text-sm text-gray-600">Créer une campagne</div>
-          </button>
-          
-          <button class="bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow text-center group">
-            <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">👥</div>
-            <div class="font-semibold text-gray-900">Générer PNJ</div>
-            <div class="text-sm text-gray-600">Créer un personnage</div>
-          </button>
-          
-          <button class="bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow text-center group">
-            <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">⚔️</div>
-            <div class="font-semibold text-gray-900">Nouvelle Quête</div>
-            <div class="text-sm text-gray-600">Créer une mission</div>
-          </button>
-          
-          <button class="bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow text-center group">
-            <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">🎲</div>
-            <div class="font-semibold text-gray-900">Session en Cours</div>
-            <div class="text-sm text-gray-600">Gérer une partie</div>
-          </button>
-        </div>
-      </div>
-
-      <!-- Mes Campagnes -->
-      <div class="mb-8">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-2xl font-bold text-gray-900">Mes Campagnes</h2>
-          <button class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
-            + Nouvelle Campagne
-          </button>
-        </div>
+    <!-- Coming Soon Content -->
+    <div class="flex-grow flex flex-col items-center justify-center p-4 z-10">
+      <div class="relative max-w-lg w-full">
+        <!-- Decorative Glow -->
+        <div class="absolute -inset-1 bg-gradient-to-r from-red-600 to-amber-600 rounded-2xl blur opacity-25"></div>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <!-- Exemple de campagne -->
-          <div class="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow">
-            <div class="h-32 bg-gradient-to-br from-purple-400 to-purple-600"></div>
-            <div class="p-4">
-              <h3 class="font-semibold text-gray-900 mb-2">La Malédiction de Strahd</h3>
-              <p class="text-gray-600 text-sm mb-3">Une campagne gothique dans les brumes de Barovie...</p>
-              <div class="flex items-center justify-between text-sm text-gray-500">
-                <span>4 joueurs</span>
-                <span>Session 8</span>
-              </div>
-              <div class="flex space-x-2 mt-3">
-                <button class="flex-1 bg-red-500 text-white py-2 px-3 rounded text-sm hover:bg-red-600 transition-colors">
-                  Ouvrir
-                </button>
-                <button class="px-3 py-2 border border-gray-300 rounded text-sm hover:bg-gray-50 transition-colors">
-                  ⚙️
-                </button>
-              </div>
-            </div>
+        <div class="relative bg-zinc-900 border border-zinc-800 p-8 rounded-2xl shadow-2xl flex flex-col items-center text-center">
+          
+          <div class="w-20 h-20 mb-6 rounded-full bg-red-900/20 border border-red-500/20 flex items-center justify-center">
+            <span class="text-4xl">🚧</span>
           </div>
 
-          <!-- Placeholder pour nouvelle campagne -->
-          <div class="bg-white rounded-lg shadow-sm border-2 border-dashed border-gray-300 flex items-center justify-center h-64 hover:border-red-400 transition-colors cursor-pointer group">
-            <div class="text-center">
-              <div class="text-4xl mb-2 group-hover:scale-110 transition-transform">➕</div>
-              <div class="font-semibold text-gray-600 group-hover:text-red-500 transition-colors">
-                Créer une nouvelle campagne
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+          <h2 class="text-3xl font-bold text-white mb-4 font-serif">Zone Interdite</h2>
+          
+          <p class="text-lg text-zinc-400 mb-8 leading-relaxed">
+            Cette section du donjon est encore en cours d'excavation par nos gobelins ingénieurs. Revenez plus tard, aventurier !
+          </p>
 
-      <!-- Statistiques et Outils -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- PNJ Récents -->
-        <div class="bg-white rounded-lg shadow-sm border p-6">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-semibold text-gray-900">PNJ Récents</h3>
-            <button class="text-red-500 hover:text-red-600 text-sm font-medium">
-              Voir tous
-            </button>
-          </div>
-          <div class="space-y-3">
-            <div v-if="recentNPCs.length === 0" class="text-center text-gray-500 py-4 italic">
-              Aucun PNJ créé
-            </div>
-            <div v-for="npc in recentNPCs" :key="npc.id" class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-              <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                <span class="text-blue-600 font-semibold">{{ getInitials(npc.firstName, npc.lastName) }}</span>
-              </div>
-              <div class="flex-1">
-                <div class="font-medium text-gray-900">{{ npc.firstName }} {{ npc.lastName }}</div>
-                <div class="text-sm text-gray-600">{{ npc.profession }} • {{ npc.race.name }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
+          <router-link 
+            to="/" 
+            class="group relative inline-flex items-center justify-center px-8 py-3 overflow-hidden font-serif font-bold tracking-wide text-white transition-all duration-300 bg-red-900/50 rounded-lg hover:bg-red-800 border border-red-700/50 hover:border-red-500"
+          >
+            <span class="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease"></span>
+            <span class="relative flex items-center gap-2">
+              <span>🛡️</span> Retour à l'accueil
+            </span>
+          </router-link>
 
-        <!-- Quêtes Actives -->
-        <div class="bg-white rounded-lg shadow-sm border p-6">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-semibold text-gray-900">Quêtes Actives</h3>
-            <button class="text-red-500 hover:text-red-600 text-sm font-medium">
-              Voir toutes
-            </button>
-          </div>
-          <div class="space-y-3">
-            <div class="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <div class="flex items-center justify-between">
-                <div class="font-medium text-gray-900">La Taverne Hantée</div>
-                <span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">En cours</span>
-              </div>
-              <div class="text-sm text-gray-600 mt-1">Enquête sur les événements étranges...</div>
-            </div>
-            <div class="p-3 bg-green-50 border border-green-200 rounded-lg">
-              <div class="flex items-center justify-between">
-                <div class="font-medium text-gray-900">Le Trésor Perdu</div>
-                <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Terminée</span>
-              </div>
-              <div class="text-sm text-gray-600 mt-1">Recherche d'un ancien trésor de pirate</div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -171,22 +55,5 @@
 </template>
 
 <script setup lang="ts">
-import { useNpcStore } from '@/stores/npc'
-import { storeToRefs } from 'pinia'
-import { computed, onMounted } from 'vue'
-
-const store = useNpcStore()
-const { npcs } = storeToRefs(store)
-
-onMounted(() => {
-    store.fetchNpcs()
-})
-
-const recentNPCs = computed(() => {
-  return [...npcs.value].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5)
-})
-
-const getInitials = (firstName: string, lastName: string) => {
-  return `${firstName[0]}${lastName[0]}`.toUpperCase()
-}
+// Pas de logique spécifique
 </script>
