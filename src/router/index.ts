@@ -42,6 +42,11 @@ const router = createRouter({
       component: CharacterCreator
     },
     {
+      path: '/character/:id',
+      name: 'character-viewer',
+      component: CharacterCreator
+    },
+    {
       path: '/npc-generator',
       name: 'npc-generator',
       component: NPCGenerator

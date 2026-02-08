@@ -59,12 +59,13 @@ import StepProficiencies from '@/components/CreateCharacterSteps/7-Proficiencies
 import StepSpecialChoices from '@/components/CreateCharacterSteps/8-SpecialChoices/StepSpecialChoices.vue'
 import StepSummary from '@/components/CreateCharacterSteps/9-Summary/StepSummary.vue'
 import CharacterSummaryModal from '@/components/CharacterSummaryModal.vue'
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, onMounted } from 'vue'
 import { getSubracesByParentRace } from '@/utils/subrace'
 import { getAllFeaturesByClass } from '@/utils/features'
 import type { SRDBackground, SRDClass, SRDFeature, SRDRace, SRDSubclass } from '@/types/srd'
 import { useAppStore, type Character } from '@/stores/app'
-import { useRouter } from 'vue-router'
+import { useCharacterStore } from '@/stores/character'
+import { useRouter, useRoute } from 'vue-router'
 import type { Subrace } from '@/utils/subrace'
 
 // Ajoutez ici les autres étapes au fur et à mesure
@@ -81,9 +82,13 @@ const steps = [
 ]
 
 const store = useAppStore()
+const characterStore = useCharacterStore()
 const router = useRouter()
+const route = useRoute()
 const step = ref(0)
 const showSummary = ref(false)
+const isLoading = ref(false)
+const currentId = ref<string | undefined>(undefined)
 
 const character = reactive<Character>({
   name: '',
@@ -120,6 +125,27 @@ const character = reactive<Character>({
   level: 1,
   vision: 'Vision normale',
   features: [] as SRDFeature[]
+})
+
+onMounted(async () => {
+  const id = route.params.id
+  if (id) {
+    currentId.value = Array.isArray(id) ? id[0] : id
+    isLoading.value = true
+    try {
+      const fetched = await characterStore.fetchCharacter(Number(currentId.value))
+      if (fetched && fetched.data) {
+        Object.assign(character, fetched.data)
+        if (!character.name) character.name = fetched.name
+        step.value = steps.length - 1
+      }
+    } catch (e) {
+      alert("Impossible de charger le personnage.") 
+      router.push('/profile')
+    } finally {
+      isLoading.value = false
+    }
+  }
 })
 
 const currentStepComponent = computed(() => steps[step.value])
@@ -206,11 +232,15 @@ function updateCharacter(payload: Partial<Character>) {
 
 async function handleFinalize() {
   try {
-    await store.createCharacter({ ...character })
-    alert('Personnage enregistré avec succès !')
+    if (currentId.value) {
+      await store.updateCharacter(currentId.value, { ...character })
+      alert('Personnage mis à jour avec succès !')
+    } else {
+      await store.createCharacter({ ...character })
+      alert('Personnage enregistré avec succès !')
+    }
     router.push('/')
-  } catch (e) {
-    console.error(e)
+  } catch (e: any) {
     alert("Erreur lors de l'enregistrement du personnage.")
   }
 }

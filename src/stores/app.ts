@@ -2,6 +2,7 @@ import type { SRDBackground, SRDClass, SRDFeature, SRDRace, SRDSubclass } from '
 import type { Subrace } from '@/utils/subrace'
 import { defineStore } from 'pinia'
 import { ref, reactive } from 'vue'
+import { useRouter } from 'vue-router'
 
 export interface Character {
   id?: string
@@ -104,6 +105,9 @@ export interface Quest {
   updatedAt: Date
 }
 
+import { authenticatedFetch } from '@/utils/api';
+
+const router = useRouter()
 export const useAppStore = defineStore('app', () => {
   // État utilisateur
   const user = ref<{ id: string; name: string; email: string; role: 'player' | 'gm' } | null>(null)
@@ -137,12 +141,8 @@ export const useAppStore = defineStore('app', () => {
         data: character
       };
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/characters`, {
+      const response = await authenticatedFetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/characters`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
         body: JSON.stringify(payload)
       });
 
@@ -171,18 +171,43 @@ export const useAppStore = defineStore('app', () => {
     }
   }
 
-  const updateCharacter = (id: string, updates: Partial<Character>) => {
-    const index = characters.value.findIndex(c => c.id === id)
-    if (index !== -1) {
-      const currentChar = characters.value[index]
-      characters.value[index] = {
-        ...currentChar,
-        ...updates,
-        updatedAt: new Date()
-      } as Character
-      if (currentCharacter.value?.id === id) {
-        currentCharacter.value = characters.value[index]
+  const updateCharacter = async (id: string | number, updates: Partial<Character>) => {
+    try {
+      const payload: any = { data: updates };
+      if (updates.name) payload.name = updates.name;
+      if (updates.race?.name) payload.race = updates.race.name;
+      if (updates.class?.name) payload.class = updates.class.name;
+      if (updates.level) payload.level = updates.level;
+
+      const response = await authenticatedFetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/characters/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update character');
       }
+      
+      const updatedChar = await response.json();
+      
+      const index = characters.value.findIndex(c => c.id == id)
+      if (index !== -1) {
+        const newChar = {
+          ...characters.value[index],
+          ...updatedChar,
+          id: updatedChar.id,
+          createdAt: new Date(updatedChar.createdAt),
+          updatedAt: new Date(updatedChar.updatedAt)
+        }
+        characters.value[index] = newChar
+        if (currentCharacter.value?.id == id) {
+          currentCharacter.value = newChar
+        }
+      }
+      return updatedChar;
+    } catch (error) {
+      console.error("Error updating character:", error);
+      throw error;
     }
   }
 
@@ -255,6 +280,8 @@ export const useAppStore = defineStore('app', () => {
     currentCharacter.value = null
     currentCampaign.value = null
     localStorage.removeItem('user')
+    localStorage.removeItem('token')
+    if (router) router.push('/login')
   }
 
   const getCharactersByUser = (userId: string) => {

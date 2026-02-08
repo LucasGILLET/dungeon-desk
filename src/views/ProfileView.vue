@@ -172,7 +172,7 @@
                             <span class="text-xs text-zinc-600">Joueur</span>
                             <div class="flex gap-2">
                                 <!-- Future: Edit/View buttons -->
-                                <button class="text-xs font-medium text-zinc-400 hover:text-white transition-colors">Voir</button>
+                                <router-link :to="`/character/${char.id}`" class="text-xs font-medium text-zinc-400 hover:text-white transition-colors">Voir</router-link>
                                 <button class="text-zinc-600 hover:text-red-500 p-1 transition-colors">🗑️</button>
                             </div>
                         </div>

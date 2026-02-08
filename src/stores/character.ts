@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { useAuthStore } from './auth';
+import { authenticatedFetch } from '@/utils/api';
 
 export const useCharacterStore = defineStore('character', () => {
     const characters = ref<any[]>([]);
@@ -14,14 +15,7 @@ export const useCharacterStore = defineStore('character', () => {
         loading.value = true;
         error.value = null;
         try {
-            const token = authStore.token;
-            if (!token) throw new Error("Not authenticated");
-
-            const response = await fetch(API_URL, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await authenticatedFetch(API_URL);
 
             if (!response.ok) throw new Error('Failed to fetch characters');
 
@@ -33,13 +27,27 @@ export const useCharacterStore = defineStore('character', () => {
         }
     };
 
+    const fetchCharacter = async (id: number) => {
+        loading.value = true;
+        error.value = null;
+        try {
+            const response = await authenticatedFetch(`${API_URL}/${id}`);
+
+            if (!response.ok) throw new Error('Failed to fetch character');
+            
+            return await response.json();
+        } catch(err: any){
+            error.value = err.message;
+             throw err;
+        } finally {
+            loading.value = false;
+        }
+    }
+
     const saveCharacter = async (charData: any) => {
         loading.value = true;
         error.value = null;
         try {
-            const token = authStore.token;
-            if (!token) throw new Error("Not authenticated");
-
             // Extract main fields for the DB columns
             const payload = {
                 name: charData.name,
@@ -49,12 +57,8 @@ export const useCharacterStore = defineStore('character', () => {
                 data: charData
             };
 
-            const response = await fetch(API_URL, {
+            const response = await authenticatedFetch(API_URL, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
                 body: JSON.stringify(payload)
             });
 
@@ -71,5 +75,5 @@ export const useCharacterStore = defineStore('character', () => {
         }
     };
 
-    return { characters, loading, error, fetchCharacters, saveCharacter };
+    return { characters, loading, error, fetchCharacters, fetchCharacter, saveCharacter };
 });

@@ -575,17 +575,7 @@ async function finalizeCharacter() {
     return;
   }
 
-  // Save via store
-  loading.value = true;
-  const result = await characterStore.saveCharacter(props.character);
-  loading.value = false;
-
-  if (result.success) {
-      alert(`🎉 Victoire !\n\n${props.character.name} a été enregistré dans votre profil avec succès. Prêt pour l'aventure !`);
-      router.push('/profile');
-  } else {
-      alert(`Erreur critique lors de la sauvegarde : ${result.error}`);
-  }
+  emit('finalize');
 }
 
 function getTraitDescription(trait: any): string {

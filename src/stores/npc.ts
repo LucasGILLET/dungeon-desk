@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { useAuthStore } from './auth';
+import { authenticatedFetch } from '@/utils/api';
 
 export const useNpcStore = defineStore('npc', () => {
     const npcs = ref<any[]>([]);
@@ -14,14 +15,7 @@ export const useNpcStore = defineStore('npc', () => {
         loading.value = true;
         error.value = null;
         try {
-            const token = authStore.token;
-            if (!token) throw new Error("Not authenticated");
-
-            const response = await fetch(API_URL, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await authenticatedFetch(API_URL);
 
             if (!response.ok) throw new Error('Failed to fetch NPCs');
 
@@ -37,9 +31,6 @@ export const useNpcStore = defineStore('npc', () => {
         loading.value = true;
         error.value = null;
         try {
-            const token = authStore.token;
-            if (!token) throw new Error("Not authenticated");
-
             // Prepare payload
             const payload = {
                 name: `${npcData.firstName} ${npcData.lastName}`,
@@ -48,12 +39,8 @@ export const useNpcStore = defineStore('npc', () => {
                 data: npcData
             };
 
-            const response = await fetch(API_URL, {
+            const response = await authenticatedFetch(API_URL, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
                 body: JSON.stringify(payload)
             });
 
@@ -73,14 +60,8 @@ export const useNpcStore = defineStore('npc', () => {
     const deleteNpc = async (id: number) => {
         loading.value = true;
         try {
-            const token = authStore.token;
-             if (!token) throw new Error("Not authenticated");
-
-            const response = await fetch(`${API_URL}/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+            const response = await authenticatedFetch(`${API_URL}/${id}`, {
+                method: 'DELETE'
             });
 
             if (!response.ok) throw new Error('Failed to delete NPC');
