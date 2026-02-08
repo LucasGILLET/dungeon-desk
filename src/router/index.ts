@@ -3,6 +3,7 @@ import HomeView from '@/views/HomeView.vue'
 import GMDashboard from '@/views/GMDashboard.vue'
 import CharacterCreator from '@/views/CharacterCreator.vue'
 import NPCGenerator from '@/views/NPCGenerator.vue'
+import CombatCheatSheetView from '@/views/CombatCheatSheetView.vue'
 import LoginView from '@/views/LoginView.vue'
 import RegisterView from '@/views/RegisterView.vue'
 import ProfileView from '@/views/ProfileView.vue'
@@ -50,8 +51,11 @@ const router = createRouter({
       path: '/npc-generator',
       name: 'npc-generator',
       component: NPCGenerator
-    }
-  ],
+    },    {
+      path: '/combat-cheat-sheet',
+      name: 'combat-cheat-sheet',
+      component: CombatCheatSheetView
+    },  ],
 })
 
 export default router

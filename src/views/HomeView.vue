@@ -13,31 +13,29 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-20">
           <div class="flex items-center space-x-3 group cursor-pointer">
-            <!-- <div class="relative w-10 h-10 flex items-center justify-center transform group-hover:rotate-12 transition-transform duration-300"> -->
-              <!-- <div class="absolute inset-0 bg-gradient-to-br from-amber-600 to-red-700 rounded-xl rotate-45 shadow-[0_0_15px_rgba(245,158,11,0.3)]"></div> -->
-              <!-- <span class="relative text-xl z-10 text-amber-100">🐉</span> -->
-            <!-- </div> -->
-            <h1 class="text-2xl font-bold bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600 bg-clip-text text-transparent font-serif tracking-wide">
+            <h1 class="text-base sm:text-2xl font-bold bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600 bg-clip-text text-transparent font-serif tracking-wide">
               DungeonDesk
             </h1>
           </div>
-          <div class="flex space-x-6 items-center">
+          <div class="flex gap-2 sm:gap-6 items-center">
             <template v-if="!isAuthenticated">
-                <router-link to="/login" class="text-amber-100/70 hover:text-amber-400 font-serif tracking-wider transition-colors text-sm uppercase">Connexion</router-link>
-                <router-link to="/register" class="relative px-6 py-2 group overflow-hidden rounded-lg">
+                <router-link to="/login" class="text-amber-100/70 hover:text-amber-400 font-serif tracking-wider transition-colors text-xs sm:text-sm uppercase">Connexion</router-link>
+                <router-link to="/register" class="relative px-3 sm:px-6 py-2 group overflow-hidden rounded-lg">
                   <span class="absolute inset-0 w-full h-full bg-gradient-to-r from-amber-700 to-amber-600 opacity-80 group-hover:opacity-100 transition-opacity"></span>
                   <span class="absolute bottom-0 left-0 w-full h-1/4 bg-gradient-to-t from-black/20 to-transparent"></span>
-                  <span class="relative text-amber-50 font-serif font-bold tracking-wide text-sm flex items-center gap-2">
-                    Rejoignez l'Aventure
+                  <span class="relative text-amber-50 font-serif font-bold tracking-wide text-xs sm:text-sm flex items-center gap-2">
+                    <span class="hidden sm:inline">Rejoignez l'Aventure</span>
+                    <span class="sm:hidden">Inscription</span>
                   </span>
                 </router-link>
             </template>
             <template v-else>
                 <div class="flex items-center gap-4">
-                    <router-link to="/profile" class="relative px-6 py-2 group overflow-hidden rounded-lg">
+                    <router-link to="/profile" class="relative px-4 sm:px-6 py-2 group overflow-hidden rounded-lg">
                         <span class="absolute inset-0 w-full h-full bg-gradient-to-r from-emerald-800 to-teal-800 opacity-80 group-hover:opacity-100 transition-opacity"></span>
-                         <span class="relative text-emerald-50 font-serif font-bold tracking-wide text-sm flex items-center gap-2">
-                            Mon Profil
+                         <span class="relative text-emerald-50 font-serif font-bold tracking-wide text-xs sm:text-sm flex items-center gap-2">
+                            <span class="hidden sm:inline">Mon Profil</span>
+                            <span class="sm:hidden">Profil</span>
                         </span>
                     </router-link>
                 </div>
@@ -73,20 +71,20 @@
         </p>
         
         <!-- CTA Buttons -->
-        <div class="flex flex-col sm:flex-row gap-6 justify-center items-center">
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 max-w-6xl mx-auto">
           <!-- GM Button -->
           <router-link
             to="/gm-dashboard" 
-            class="group relative w-full sm:w-auto overflow-hidden rounded-xl bg-zinc-900 border border-red-900/50 hover:border-red-500/50 transition-all duration-300"
+            class="group relative w-full overflow-hidden rounded-xl bg-zinc-900 border border-red-900/50 hover:border-red-500/50 transition-all duration-300"
           >
             <div class="absolute inset-0 bg-gradient-to-br from-red-900/20 to-black opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div class="relative px-8 py-5 flex items-center gap-4">
-              <div class="w-12 h-12 rounded-full bg-red-900/30 border border-red-500/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-[0_0_15px_rgba(153,27,27,0.3)]">
+            <div class="relative px-6 py-5 flex items-center gap-4">
+              <div class="shrink-0 w-12 h-12 rounded-full bg-red-900/30 border border-red-500/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-[0_0_15px_rgba(153,27,27,0.3)]">
                 <span class="text-2xl">📜</span>
               </div>
-              <div class="text-left">
-                <div class="text-red-200 font-serif font-bold text-lg group-hover:text-red-100 transition-colors">Maître du Jeu</div>
-                <div class="text-red-400/60 text-sm font-medium uppercase tracking-wider">Orchestrer le monde</div>
+              <div class="text-left min-w-0">
+                <div class="text-red-200 font-serif font-bold text-lg group-hover:text-red-100 transition-colors truncate">Maître du Jeu</div>
+                <div class="text-red-400/60 text-sm font-medium uppercase tracking-wider truncate">Orchestrer</div>
               </div>
             </div>
           </router-link>
@@ -94,16 +92,16 @@
           <!-- Player Button -->
           <router-link
             to="/character-creator"
-            class="group relative w-full sm:w-auto overflow-hidden rounded-xl bg-zinc-900 border border-blue-900/50 hover:border-blue-500/50 transition-all duration-300"
+            class="group relative w-full overflow-hidden rounded-xl bg-zinc-900 border border-blue-900/50 hover:border-blue-500/50 transition-all duration-300"
           >
             <div class="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-black opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div class="relative px-8 py-5 flex items-center gap-4">
-              <div class="w-12 h-12 rounded-full bg-blue-900/30 border border-blue-500/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-[0_0_15px_rgba(30,58,138,0.3)]">
+            <div class="relative px-6 py-5 flex items-center gap-4">
+              <div class="shrink-0 w-12 h-12 rounded-full bg-blue-900/30 border border-blue-500/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-[0_0_15px_rgba(30,58,138,0.3)]">
                 <span class="text-2xl">⚔️</span>
               </div>
-              <div class="text-left">
-                <div class="text-blue-200 font-serif font-bold text-lg group-hover:text-blue-100 transition-colors">Aventurier</div>
-                <div class="text-blue-400/60 text-sm font-medium uppercase tracking-wider">Forger son héros</div>
+              <div class="text-left min-w-0">
+                <div class="text-blue-200 font-serif font-bold text-lg group-hover:text-blue-100 transition-colors truncate">Aventurier</div>
+                <div class="text-blue-400/60 text-sm font-medium uppercase tracking-wider truncate">Forger son héros</div>
               </div>
             </div>
           </router-link>
@@ -111,16 +109,33 @@
           <!-- NPC Generator Button -->
           <router-link
             to="/npc-generator"
-            class="group relative w-full sm:w-auto overflow-hidden rounded-xl bg-zinc-900 border border-emerald-900/50 hover:border-emerald-500/50 transition-all duration-300"
+            class="group relative w-full overflow-hidden rounded-xl bg-zinc-900 border border-emerald-900/50 hover:border-emerald-500/50 transition-all duration-300"
           >
             <div class="absolute inset-0 bg-gradient-to-br from-emerald-900/20 to-black opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div class="relative px-8 py-5 flex items-center gap-4">
-              <div class="w-12 h-12 rounded-full bg-emerald-900/30 border border-emerald-500/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+            <div class="relative px-6 py-5 flex items-center gap-4">
+              <div class="shrink-0 w-12 h-12 rounded-full bg-emerald-900/30 border border-emerald-500/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
                 <span class="text-2xl">🎭</span>
               </div>
-              <div class="text-left">
-                <div class="text-emerald-200 font-serif font-bold text-lg group-hover:text-emerald-100 transition-colors">PNJ</div>
-                <div class="text-emerald-400/60 text-sm font-medium uppercase tracking-wider">Création rapide</div>
+              <div class="text-left min-w-0">
+                <div class="text-emerald-200 font-serif font-bold text-lg group-hover:text-emerald-100 transition-colors truncate">PNJ</div>
+                <div class="text-emerald-400/60 text-sm font-medium uppercase tracking-wider truncate">Création rapide</div>
+              </div>
+            </div>
+          </router-link>
+
+          <!-- Combat Cheat Sheet Button -->
+          <router-link
+            to="/combat-cheat-sheet"
+            class="group relative w-full overflow-hidden rounded-xl bg-zinc-900 border border-yellow-900/50 hover:border-yellow-500/50 transition-all duration-300"
+          >
+            <div class="absolute inset-0 bg-gradient-to-br from-yellow-900/20 to-black opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div class="relative px-6 py-5 flex items-center gap-4">
+              <div class="shrink-0 w-12 h-12 rounded-full bg-yellow-900/30 border border-yellow-500/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-[0_0_15px_rgba(234,179,8,0.3)]">
+                <span class="text-2xl">⚡</span>
+              </div>
+              <div class="text-left min-w-0">
+                <div class="text-yellow-200 font-serif font-bold text-lg group-hover:text-yellow-100 transition-colors truncate">Combat</div>
+                <div class="text-yellow-400/60 text-sm font-medium uppercase tracking-wider truncate">Aide-mémoire</div>
               </div>
             </div>
           </router-link>
