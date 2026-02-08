@@ -33,7 +33,7 @@ const openSubCategory = (sub: 'attack') => {
     </header>
 
     <!-- GRILLE PRINCIPALE -->
-    <main class="flex-1 w-full mx-auto p-3 flex flex-col gap-2 min-h-0 pb-6 max-w-md md:max-w-5xl md:grid md:grid-cols-2 md:grid-rows-[auto_3fr_1fr] md:gap-x-6 md:gap-y-2 md:p-6 md:pb-8 md:items-stretch">
+    <main class="flex-1 w-full mx-auto p-3 flex flex-col gap-4 min-h-0 pb-6 max-w-md md:max-w-5xl md:grid md:grid-cols-2 md:grid-rows-[auto_3fr_1fr] md:gap-x-6 md:gap-y-2 md:p-6 md:pb-8 md:items-stretch">
       
       <!-- HEADER LIGNE 1 : PENDANT TON TOUR -->
       <div class="shrink-0 flex items-center gap-2 px-1 md:col-span-2">
@@ -42,42 +42,42 @@ const openSubCategory = (sub: 'attack') => {
       </div>
 
       <!-- Ligne 1 : ACTION PRINCIPALE -->
-      <section class="flex flex-col flex-[1.1] min-h-0 md:h-full">
+      <section class="flex flex-col flex-[0.9] min-h-0 md:h-full">
         <ActionCard 
           title="Action" 
           icon="⚔️" 
           category="action"
-          class="flex-1 w-full"
+          class="flex-1 w-full !min-h-0 !p-3"
           @click="openCategory('action')"
         />
       </section>
 
       <!-- Ligne 2 : GRILLE SECONDAIRE -->
       <section class="flex flex-col flex-[1.4] min-h-0 md:h-full">
-        <div class="grid grid-cols-2 gap-2 h-full md:grid-cols-1 md:grid-rows-2 md:gap-3">
+        <div class="grid grid-cols-2 gap-3 h-full md:grid-cols-1 md:grid-rows-2 md:gap-3">
           <!-- Mouvement -->
           <ActionCard 
             title="Mouv." 
             icon="🦶" 
             category="movement"
-            class="h-full w-full"
+            class="h-full w-full !min-h-0 !p-3"
             @click="openCategory('movement')"
           />
           
           <!-- Colonne avec Bonus et Autre empilés -->
-          <div class="flex flex-col gap-2 h-full md:flex-row md:gap-3">
+          <div class="flex flex-col gap-3 h-full md:flex-row md:gap-3">
             <ActionCard 
               title="Bonus" 
               icon="⚡" 
               category="bonus"
-              class="flex-1"
+              class="flex-1 !min-h-0 !p-3"
               @click="openCategory('bonus')"
             />
             <ActionCard 
               title="Autre" 
               icon="💬" 
               category="other"
-              class="flex-1"
+              class="flex-1 !min-h-0 !p-3"
               @click="openCategory('other')"
             />
           </div>
@@ -85,8 +85,8 @@ const openSubCategory = (sub: 'attack') => {
       </section>
 
       <!-- Ligne 3: HORS TOUR -->
-      <section class="flex flex-col flex-[0.8] min-h-0 shrink-0 opacity-80 hover:opacity-100 transition-opacity md:col-span-2 md:h-full">
-        <div class="shrink-0 flex items-center gap-2 mb-1 px-1 pt-1 md:pt-0">
+      <section class="flex flex-col flex-1 min-h-0 opacity-80 hover:opacity-100 transition-opacity md:col-span-2 md:h-full">
+        <div class="shrink-0 flex items-center gap-2 mb-1 px-1 pt-6 md:pt-0">
           <span class="text-[10px] uppercase font-bold text-zinc-600 tracking-wider">Hors de ton tour</span>
           <div class="h-px bg-zinc-800 flex-1"></div>
         </div>
@@ -94,7 +94,7 @@ const openSubCategory = (sub: 'attack') => {
           title="Réaction" 
           icon="💥" 
           category="reaction"
-          class="flex-1 w-full"
+          class="flex-1 w-full !min-h-0 !p-3"
           @click="openCategory('reaction')"
         />
       </section>
