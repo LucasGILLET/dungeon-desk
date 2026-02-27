@@ -12,10 +12,16 @@
   --color-gold-600: #d97706;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  background-color: #09090b; /* Zinc 950 */
+  background-color: transparent; /* Changed from #09090b to allow particles */
   color: #e4e4e7; /* Zinc 200 */
   font-family: var(--font-sans);
+  position: relative;
+  /* z-index: 0; - Removing explicit z-index to avoid trapping particles */
 }
 
 h1, h2, h3, h4, h5, h6 {

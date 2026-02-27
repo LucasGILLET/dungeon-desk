@@ -8,9 +8,6 @@
 
     <div class="max-w-md w-full space-y-8 relative z-10 bg-zinc-900/50 p-8 rounded-2xl border border-zinc-800 backdrop-blur-sm shadow-xl">
       <div>
-        <div class="mx-auto w-16 h-16 flex items-center justify-center bg-gradient-to-br from-emerald-600 to-teal-700 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.3)]">
-            <span class="text-3xl">📜</span>
-        </div>
         <h2 class="mt-6 text-center text-3xl font-extrabold text-white font-serif tracking-wide">
           Inscrivez votre Nom
         </h2>
