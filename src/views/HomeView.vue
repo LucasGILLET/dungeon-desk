@@ -101,7 +101,7 @@
 
 
     <!-- Players Section -->
-    <div id="players-section" class="relative min-h-screen flex items-center border-t border-white/5 bg-zinc-950/20 scroll-mt-0 z-10">
+    <div id="players-section" class="relative min-h-[45rem] flex items-center border-t border-white/5 bg-zinc-950/20 scroll-mt-20 z-10">
       <div class="absolute inset-0 bg-gradient-to-br from-blue-950/80 via-zinc-950/95 to-blue-950/0 pointer-events-none opacity-50"></div>
       <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(30,58,138,0.15),transparent_0%)] pointer-events-none"></div>
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full py-24">
@@ -155,10 +155,10 @@
     </div>
 
     <!-- GM Section -->
-    <div id="gm-section" class="relative min-h-screen flex items-center bg-zinc-950/20 scroll-mt-0 z-10">
+    <div id="gm-section" class="relative min-h-[45rem] flex items-center bg-zinc-950/20 scroll-mt-47 z-10">
       <div class="absolute inset-0 bg-gradient-to-tl from-red-950/80 via-zinc-950/95 to-red-950/0 pointer-events-none opacity-50"></div>
       <div class="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(127,29,29,0.15),transparent_0%)] pointer-events-none"></div>
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full py-24">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full pb-24 pt-0">
         <div class="text-center mb-16">
            <h2 class="text-3xl md:text-5xl font-bold text-red-50 mb-6 font-serif tracking-tight">Pour les Maîtres du Jeu</h2>
            <p class="text-red-200/40 text-lg md:text-xl max-w-2xl mx-auto font-light leading-relaxed">Orchestrez vos mondes et donnez vie à vos histoires.</p>
