@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { authGuard } from '@auth0/auth0-vue';
 import HomeView from '@/views/HomeView.vue'
 import GMDashboard from '@/views/GMDashboard.vue'
 import CharacterCreator from '@/views/CharacterCreator.vue'
@@ -20,7 +21,7 @@ const router = createRouter({
       path: '/profile',
       name: 'profile',
       component: ProfileView,
-      meta: { requiresAuth: true }
+      beforeEnter: authGuard,
     },
     {
       path: '/login',

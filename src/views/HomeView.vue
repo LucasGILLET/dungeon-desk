@@ -19,26 +19,26 @@
           </div>
           <div class="flex gap-2 sm:gap-6 items-center">
             <template v-if="!isAuthenticated">
-                <router-link to="/login" class="text-amber-100/70 hover:text-amber-400 font-serif tracking-wider transition-colors text-xs sm:text-sm uppercase">Connexion</router-link>
-                <router-link to="/register" class="relative px-3 sm:px-6 py-2 group overflow-hidden rounded-lg">
+                <button @click="store.login()" class="text-amber-100/70 hover:text-amber-400 font-serif tracking-wider transition-colors text-xs sm:text-sm uppercase">Connexion</button>
+                <button @click="store.login({ authorizationParams: { screen_hint: 'signup' } })" class="relative px-3 sm:px-6 py-2 group overflow-hidden rounded-lg">
                   <span class="absolute inset-0 w-full h-full bg-gradient-to-r from-amber-700 to-amber-600 opacity-80 group-hover:opacity-100 transition-opacity"></span>
                   <span class="absolute bottom-0 left-0 w-full h-1/4 bg-gradient-to-t from-black/20 to-transparent"></span>
                   <span class="relative text-amber-50 font-serif font-bold tracking-wide text-xs sm:text-sm flex items-center gap-2">
                     <span class="hidden sm:inline">Rejoignez l'Aventure</span>
                     <span class="sm:hidden">Inscription</span>
                   </span>
-                </router-link>
+                </button>
             </template>
             <template v-else>
-                <div class="flex items-center gap-4">
-                    <router-link to="/profile" class="relative px-4 sm:px-6 py-2 group overflow-hidden rounded-lg">
-                        <span class="absolute inset-0 w-full h-full bg-gradient-to-r from-emerald-800 to-teal-800 opacity-80 group-hover:opacity-100 transition-opacity"></span>
-                         <span class="relative text-emerald-50 font-serif font-bold tracking-wide text-xs sm:text-sm flex items-center gap-2">
-                            <span class="hidden sm:inline">Mon Profil</span>
-                            <span class="sm:hidden">Profil</span>
-                        </span>
-                    </router-link>
-                </div>
+               <router-link to="/profile" class="flex items-center gap-3 bg-zinc-900/50 border border-amber-900/30 px-4 py-2 rounded-full hover:bg-zinc-800 transition-colors">
+                  <div class="w-8 h-8 rounded-full overflow-hidden border border-amber-500/30">
+                     <img v-if="user?.picture" :src="user.picture" alt="Avatar" class="w-full h-full object-cover">
+                     <div v-else class="w-full h-full bg-amber-900/50 flex items-center justify-center text-amber-500 font-bold">
+                        {{ user?.name?.charAt(0) }}
+                     </div>
+                  </div>
+                  <span class="text-amber-100 font-serif hidden sm:inline">{{ user?.name }}</span>
+               </router-link>
             </template>
           </div>
         </div>

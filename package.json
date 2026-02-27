@@ -16,9 +16,11 @@
     "type-check": "vue-tsc --build"
   },
   "dependencies": {
+    "@auth0/auth0-vue": "^2.5.0",
     "@tailwindcss/vite": "^4.1.14",
     "@tsparticles/slim": "^3.9.1",
     "@tsparticles/vue3": "^3.0.1",
+    "express-oauth2-jwt-bearer": "^1.7.4",
     "pinia": "^3.0.3",
     "tailwindcss": "^4.1.14",
     "vue": "^3.5.22",

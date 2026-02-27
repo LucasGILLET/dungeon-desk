@@ -1,68 +1,37 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { useRouter } from 'vue-router';
+import { useAuth0 } from '@auth0/auth0-vue';
 
 export const useAuthStore = defineStore('auth', () => {
-    const user = ref(JSON.parse(localStorage.getItem('user') || 'null'));
-    const token = ref(localStorage.getItem('token') || null);
-    const router = useRouter();
+    const { loginWithRedirect, logout, user, isAuthenticated, getAccessTokenSilently } = useAuth0();
 
-    const API_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/auth`;
+    const token = ref<string | null>(null);
 
-    const isAuthenticated = computed(() => !!token.value);
+    const login = async (options?: any) => {
+        await loginWithRedirect(options);
+    };
 
-    const login = async (email: string, password: string) => {
+    const handleLogout = () => {
+        logout({ logoutParams: { returnTo: window.location.origin } });
+    };
+
+    const getToken = async () => {
         try {
-            const response = await fetch(`${API_URL}/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'Login failed');
-            }
-
-            const data = await response.json();
-            token.value = data.token;
-            user.value = data.user;
-
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
-
-            return { success: true };
-        } catch (error: any) {
-            return { success: false, error: error.message };
+            const accessToken = await getAccessTokenSilently();
+            token.value = accessToken;
+            return accessToken;
+        } catch (e) {
+            console.error("Erreur lors de la récupération du token:", e);
+            return null;
         }
     };
 
-    const register = async (username: string, email: string, password: string) => {
-        try {
-            const response = await fetch(`${API_URL}/register`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, email, password }),
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'Registration failed');
-            }
-
-            return { success: true };
-        } catch (error: any) {
-            return { success: false, error: error.message };
-        }
+    return {
+        user,
+        isAuthenticated,
+        login,
+        logout: handleLogout,
+        getToken,
+        token
     };
-
-    const logout = () => {
-        token.value = null;
-        user.value = null;
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        router.push('/login');
-    };
-
-    return { user, token, isAuthenticated, login, register, logout };
 });

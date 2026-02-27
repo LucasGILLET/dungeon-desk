@@ -17,17 +17,23 @@
         <div class="flex items-center space-x-4">
           <slot name="actions">
             <template v-if="authStore.isAuthenticated">
-                <router-link to="/profile" class="text-gray-600 hover:text-gray-900 transition-colors font-medium">
-                  Mon Profil
-                </router-link>
+              <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
+                  <img v-if="authStore.user?.picture" :src="authStore.user.picture" alt="Profile" class="h-8 w-8 rounded-full">
+                  <span class="text-sm font-medium text-gray-700">{{ authStore.user?.name }}</span>
+                </div>
+                <button @click="authStore.logout" class="text-gray-600 hover:text-gray-900 transition-colors font-medium">
+                  Déconnexion
+                </button>
+              </div>
             </template>
             <template v-else>
-              <router-link to="/login" class="text-gray-600 hover:text-gray-900 transition-colors">
+              <button @click="authStore.login()" class="text-gray-600 hover:text-gray-900 transition-colors">
                 Connexion
-              </router-link>
-              <router-link to="/register" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all">
+              </button>
+              <button @click="authStore.login({ authorizationParams: { screen_hint: 'signup' } })" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all">
                 S'inscrire
-              </router-link>
+              </button>
             </template>
           </slot>
         </div>

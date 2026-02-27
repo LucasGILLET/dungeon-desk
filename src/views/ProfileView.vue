@@ -12,7 +12,7 @@
         </div>
         <div class="flex items-center gap-4 mt-4 md:mt-0">
              <div class="text-right mr-4 hidden md:block">
-                <div class="text-white font-bold">{{ authStore.user?.username }}</div>
+                <div class="text-white font-bold">{{ authStore.user?.nickname || authStore.user?.name }}</div>
                 <div class="text-xs text-zinc-500">{{ authStore.user?.email }}</div>
              </div>
              <button @click="handleLogout" class="bg-red-900/20 hover:bg-red-900/40 text-red-400 px-4 py-2 rounded-lg border border-red-900/50 transition-colors text-sm">
@@ -201,13 +201,12 @@ const characterStore = useCharacterStore();
 const viewMode = ref<'npcs' | 'characters'>('characters'); 
 
 onMounted(async () => {
-    if (!authStore.token) {
-        router.push('/login');
-        return;
-    }
+    // Le guard de route assure déjà l'authentification
+    // Le token sera récupéré automatiquement par authenticatedFetch si nécessaire
+    
     await Promise.all([
-        npcStore.fetchNpcs(),
-        characterStore.fetchCharacters()
+        npcStore.fetchNpcs().catch(e => console.error(e)),
+        characterStore.fetchCharacters().catch(e => console.error(e))
     ]);
 });
 
