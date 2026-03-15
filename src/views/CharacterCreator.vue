@@ -181,7 +181,11 @@ async function handleNext(payload: any) {
     payload.racial_traits.forEach((trait: any) => {
       trait.category = "subrace"
     });
-    character.allTraits = [...character.allTraits || [], ...payload.racial_traits]
+    
+    // Filter out previous subrace traits to avoid accumulation
+    const otherTraits = (character.allTraits || []).filter((t: any) => t.category !== 'subrace');
+    character.allTraits = [...otherTraits, ...payload.racial_traits];
+
     character.vision = character.allTraits.find(trait => trait.index === 'darkvision') ? 'Vision dans le noir (18m)' : 'Vision normale'
     character.vision = character.allTraits.find(trait => trait.index === 'superior-darkvision') ? 'Vision dans le noir suppérieure (36m)' : character.vision
   }

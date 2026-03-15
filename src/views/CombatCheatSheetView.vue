@@ -112,13 +112,13 @@ const openSubCategory = (sub: 'attack') => {
     >
       <div 
         v-if="selectedCategory" 
-        class="fixed inset-0 z-50 bg-zinc-900 overflow-y-auto flex flex-col"
+        class="fixed inset-0 z-[100] bg-zinc-900 overflow-y-auto flex flex-col"
       >
         <!-- Bouton Fermer -->
-        <div class="sticky top-0 z-50 bg-zinc-900/95 backdrop-blur-md p-4 flex justify-between items-center border-b border-zinc-800">
+        <div class="sticky top-0 z-[100] bg-zinc-900/95 backdrop-blur-md p-4 flex justify-between items-center border-b border-zinc-800">
           <button 
             @click="selectedSubCategory ? (selectedSubCategory = null) : (selectedCategory = null)"
-            class="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors"
+            class="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors flex-shrink-0"
           >
             <span class="text-xl">←</span>
             <span class="font-bold text-sm uppercase tracking-wider">

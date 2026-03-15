@@ -209,7 +209,7 @@
     </div>
 
     <!-- Features Section (Transparent for particles) -->
-    <div class="relative bg-transparent overflow-hidden border-t border-white/5 z-10 min-h-screen flex items-center">
+    <!-- <div class="relative bg-transparent overflow-hidden border-t border-white/5 z-10 min-h-screen flex items-center">
       <div class="absolute inset-0 pointer-events-none"></div>
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 relative z-10 w-full">
         <div class="text-center mb-16">
@@ -239,7 +239,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </div> -->
 
     <!-- Footer -->
     <footer class="bg-black border-t border-white/10 relative overflow-hidden">

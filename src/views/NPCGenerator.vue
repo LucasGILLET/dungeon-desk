@@ -386,10 +386,8 @@ onMounted(async () => {
 })
 
 const rollStat = () => {
-  // 4d6 keep 3 best
-  const rolls = Array.from({length: 4}, () => Math.floor(Math.random() * 6) + 1)
-  rolls.sort((a, b) => b - a)
-  return rolls.slice(0, 3).reduce((a, b) => a + b, 0)
+  // 3d6 (more balanced stats for NPCs)
+  return Array.from({length: 3}, () => Math.floor(Math.random() * 6) + 1).reduce((a, b) => a + b, 0)
 }
 
 const generateName = (raceName: string = 'Human') => {
