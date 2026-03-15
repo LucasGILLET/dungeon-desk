@@ -146,7 +146,7 @@ import { getSpellDescription } from '@/utils/spells'
 import { getFeatureDescription } from '@/utils/features'
 import StepNavigation from '../StepNavigation.vue'
 import type { SRDRace } from '@/types/srd'
-import type { Character } from '@/stores/app'
+import type { Character } from '@/types/character'
 
 const props = defineProps<{
   character: Character

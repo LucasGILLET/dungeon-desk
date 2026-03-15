@@ -63,7 +63,8 @@ import { computed, reactive, ref, onMounted } from 'vue'
 import { getSubracesByParentRace } from '@/utils/subrace'
 import { getAllFeaturesByClass } from '@/utils/features'
 import type { SRDBackground, SRDClass, SRDFeature, SRDRace, SRDSubclass } from '@/types/srd'
-import { useAppStore, type Character } from '@/stores/app'
+import { useAppStore } from '@/stores/app'
+import type { Character } from '@/types/character'
 import { useCharacterStore } from '@/stores/character'
 import { useRouter, useRoute } from 'vue-router'
 import type { Subrace } from '@/utils/subrace'
@@ -97,18 +98,18 @@ const character = reactive<Character>({
   class: {} as  SRDClass,
   subclass: {} as  SRDSubclass,
   background: {} as SRDBackground,
-  abilities: {} as {
-    force: number
-    dexterite: number
-    constitution: number
-    intelligence: number
-    sagesse: number
-    charisme: number
+  abilities: {
+    str: 8,
+    dex: 8,
+    con: 8,
+    int: 8,
+    wis: 8,
+    cha: 8
   },
-  proficiencies: {} as {
-    skills: string[]
-    languages: string[]
-    tools: string[]
+  proficiencies: {
+    skills: [],
+    languages: [],
+    tools: []
   },
   allProficiencies: {} as {
     skills: { name: string; id: string; description: string; category: string }[]
@@ -134,8 +135,8 @@ onMounted(async () => {
     isLoading.value = true
     try {
       const fetched = await characterStore.fetchCharacter(Number(currentId.value))
-      if (fetched && fetched.data) {
-        Object.assign(character, fetched.data)
+      if (fetched) {
+        Object.assign(character, fetched) // fetched is already flattened
         if (!character.name) character.name = fetched.name
         step.value = steps.length - 1
       }

@@ -126,7 +126,7 @@
 
 <script setup lang="ts">
 import { computed, reactive } from 'vue'
-import type { Character } from '../../../stores/app'
+import type { Character } from '@/types/character'
 import { getRequiredSpecialChoices, type SpecialChoice, type SpecialChoiceOption } from '../../../utils/specialChoices'
 import StepNavigation from '../StepNavigation.vue'
 import type { SRDRace } from '@/types/srd'

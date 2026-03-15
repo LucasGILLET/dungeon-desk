@@ -177,10 +177,10 @@
 </style>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import StepNavigation from '../StepNavigation.vue'
 import type { SRDRace } from '@/types/srd'
-import type { Character } from '@/stores/app'
+import type { Character } from '@/types/character'
 import type { Ability } from '@/utils/abilities'
 import { getAbilityPointCost, getAbilityDescription } from '@/utils/abilities'
 import { getClassMainStats } from '@/utils/classes'
@@ -207,6 +207,28 @@ const abilities = ref<Ability[]>([
   { name: 'Sagesse', value: 8 },
   { name: 'Charisme', value: 8 }
 ])
+
+const abilityNameMap: Record<string, string> = {
+  'Force': 'str',
+  'Dextérité': 'dex',
+  'Constitution': 'con',
+  'Intelligence': 'int',
+  'Sagesse': 'wis',
+  'Charisme': 'cha'
+}
+
+onMounted(() => {
+  if (props.character && props.character.abilities) {
+    abilities.value.forEach(ability => {
+      const engKey = abilityNameMap[ability.name]
+      // @ts-ignore - Dynamic access to mapped keys
+      const savedValue = props.character.abilities[engKey]
+      if (typeof savedValue === 'number' && savedValue >= BASE_VALUE) {
+        ability.value = savedValue
+      }
+    })
+  }
+})
 
 // Vérifie si une caractéristique est importante pour la classe du personnage
 function isImportantStat(abilityName: string): boolean {
@@ -344,7 +366,8 @@ function randomizeAbilities() {
 function validateAbilities() {
   const payload: Record<string, number> = {}
   abilities.value.forEach(a => {
-    payload[a.name] = a.value
+    const engKey = abilityNameMap[a.name] || a.name
+    payload[engKey] = a.value
   })
   emit('next', payload)
 }

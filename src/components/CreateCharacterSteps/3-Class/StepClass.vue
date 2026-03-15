@@ -165,7 +165,7 @@ import StepNavigation from '../StepNavigation.vue'
 import ClassDetailsModal from './ClassDetailsModal.vue'
 import { loadClasses } from '@/utils/dataLoader'
 import type { SRDClass, SRDRace } from '@/types/srd'
-import type { Character } from '@/stores/app'
+import type { Character } from '@/types/character'
 import { getClassDescription, getClassMainStats, getClassDifficulty, isMartialClass, getTranslatedClassName } from '@/utils/classes'
 
 const props = defineProps<{

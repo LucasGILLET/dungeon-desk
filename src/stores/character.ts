@@ -19,7 +19,19 @@ export const useCharacterStore = defineStore('character', () => {
 
             if (!response.ok) throw new Error('Failed to fetch characters');
 
-            characters.value = await response.json();
+            const rawCharacters = await response.json();
+            
+            // Map the nested DB structure { id, name, level, data: { ... } } back to UI flat structure
+            characters.value = rawCharacters.map((char: any) => ({
+                id: char.id,
+                name: char.name,
+                level: char.level,
+                createdAt: char.createdAt,
+                updatedAt: char.updatedAt,
+                userId: char.userId,
+                // Flatten the 'data' JSON content into the top level
+                ...char.data
+            }));
         } catch (err: any) {
             error.value = err.message;
         } finally {
@@ -35,7 +47,18 @@ export const useCharacterStore = defineStore('character', () => {
 
             if (!response.ok) throw new Error('Failed to fetch character');
             
-            return await response.json();
+            const rawChar = await response.json();
+            
+            // Return flattened structure
+            return {
+                id: rawChar.id,
+                name: rawChar.name,
+                level: rawChar.level,
+                createdAt: rawChar.createdAt,
+                updatedAt: rawChar.updatedAt,
+                userId: rawChar.userId,
+                ...rawChar.data
+            };
         } catch(err: any){
             error.value = err.message;
              throw err;
@@ -48,13 +71,12 @@ export const useCharacterStore = defineStore('character', () => {
         loading.value = true;
         error.value = null;
         try {
-            // Extract main fields for the DB columns
+            // Prepare payload for backend: { name, level, data: FLATTENED_OBJECT }
+            // The backend expects the rich data inside 'data'
             const payload = {
                 name: charData.name,
-                race: charData.race.name,
-                class: charData.class.name,
                 level: charData.level,
-                data: charData
+                data: charData // We send the whole object as data, backend will validate
             };
 
             const response = await authenticatedFetch(API_URL, {
@@ -64,7 +86,19 @@ export const useCharacterStore = defineStore('character', () => {
 
             if (!response.ok) throw new Error('Failed to save character');
             
-            const newChar = await response.json();
+            const newRawChar = await response.json();
+            
+            // Flatten the response before adding to store
+            const newChar = {
+                id: newRawChar.id,
+                name: newRawChar.name,
+                level: newRawChar.level,
+                createdAt: newRawChar.createdAt,
+                updatedAt: newRawChar.updatedAt,
+                userId: newRawChar.userId,
+                ...newRawChar.data
+            };
+
             characters.value.push(newChar);
             return { success: true, char: newChar };
         } catch (err: any) {

@@ -51,7 +51,7 @@
                 class="absolute top-4 left-4 w-8 h-8 bg-black/40 hover:bg-amber-600 text-zinc-300 hover:text-white rounded-lg flex items-center justify-center border border-white/10 hover:border-amber-400 transition-all opacity-0 group-hover:opacity-100"
                 :class="selectedRace?.index === race.index ? 'opacity-100' : ''"
               >
-                <span class="text-sm font-serif">i</span>
+                <span class="text-sm">i</span>
               </button>
             
             <!-- Nom de la race -->

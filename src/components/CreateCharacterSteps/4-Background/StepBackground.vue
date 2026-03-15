@@ -139,7 +139,7 @@ import { ref, onMounted } from 'vue'
 import StepNavigation from '../StepNavigation.vue'
 import { loadBackgrounds } from '@/utils/dataLoader'
 import type { SRDBackground, SRDRace } from '@/types/srd'
-import type { Character } from '@/stores/app'
+import type { Character } from '@/types/character'
 import { getBackgroundDescription, getBackgroundSkills, getBackgroundName, getBackgroundEmoji } from '@/utils/backgrounds'
 
 const props = defineProps<{

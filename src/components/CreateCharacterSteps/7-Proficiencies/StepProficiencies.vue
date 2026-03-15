@@ -199,7 +199,7 @@ import {
 } from '@/utils/proficiencies'
 import StepNavigation from '../StepNavigation.vue'
 import type { SRDRace } from '@/types/srd'
-import type { Character } from '@/stores/app'
+import type { Character } from '@/types/character'
 
 const props = defineProps<{
   character: Character

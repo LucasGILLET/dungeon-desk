@@ -175,7 +175,7 @@ import StepNavigation from '../StepNavigation.vue'
 import SubraceDetailsModal from './SubraceDetailsModal.vue'
 import type { SRDRace } from '@/types/srd'
 import { getSubracesByParentRace, getSubraceEmoji, getSubraceDescription } from '@/utils/subrace'
-import type { Character } from '@/stores/app'
+import type { Character } from '@/types/character'
 
 const props = defineProps<{
   character: Character

@@ -1,52 +1,8 @@
-import type { SRDBackground, SRDClass, SRDFeature, SRDRace, SRDSubclass } from '@/types/srd'
-import type { Subrace } from '@/utils/subrace'
 import { defineStore } from 'pinia'
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-
-export interface Character {
-  id?: string
-  name: string
-  race: SRDRace
-  subrace: Subrace
-  class: SRDClass
-  subclass?: SRDSubclass
-  level: number
-  abilities: {
-    force: number
-    dexterite: number
-    constitution: number
-    intelligence: number
-    sagesse: number
-    charisme: number
-  }
-  // hitPoints: number
-  // armorClass: number
-  background: SRDBackground
-  // equipment: string[]
-  // spells: string[]
-  proficiencies?: { // usefulleness ???
-    skills: string[]
-    languages: string[]
-    tools: string[]
-  }
-  specialChoices?: Record<string, string[]>
-  createdAt?: Date
-  updatedAt?: Date
-  allProficiencies?: {
-    skills: { name: string; id: string; description: string; category: string }[]
-    languages: { name: string; id: string; description: string; category: string }[]
-    tools: { name: string; id: string; description: string; category: string }[]
-  }
-  allTraits?: {
-    index: string
-    name: string
-    url: string
-    category: string
-  }[]
-  features?: SRDFeature[]
-  vision?: string
-}
+import type { SRDRace, SRDClass } from '@/types/srd'
+import type { Character } from '@/types/character'
 
 export interface Campaign {
   id: string

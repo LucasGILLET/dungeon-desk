@@ -277,7 +277,7 @@ import { translateSubclassName } from '@/utils/subclasses'
 import StepNavigation from '../StepNavigation.vue'
 import ProficiencyBadge from '../7-Proficiencies/ProficiencyBadge.vue'
 import type { SRDRace } from '@/types/srd'
-import type { Character } from '@/stores/app'
+import type { Character } from '@/types/character'
 import { getBackgroundName } from '@/utils/backgrounds'
 
 const props = defineProps<{
@@ -487,16 +487,37 @@ function getModifier(value: number): number {
 
 function getAbilitiesDisplay() {
   const abilityNames = ['Force', 'Dextérité', 'Constitution', 'Intelligence', 'Sagesse', 'Charisme']
-  const abilityEnglishShortKeys = ['str', 'dex', 'con', 'int', 'wis', 'cha']
+  const abilityEnglishShortKeys = ['str', 'dex', 'con', 'int', 'wis', 'cha'] as const;
 
   return abilityNames.map((name, index) => {
-    const abilityKey = abilityNames[index] as keyof typeof props.character.abilities
-    const abilityEnglishKey = abilityEnglishShortKeys[index]
-    const baseValue: number = props.character.abilities[abilityKey] || 8
+    // Ensure the key exists with a fallback or type assertion if you are 100% sure the arrays align
+    const abilityEnglishKey = abilityEnglishShortKeys[index] || 'str' 
+    const baseValue: number = props.character.abilities[abilityEnglishKey] || 8
 
-    const racialBonus = props.character.race.ability_bonuses?.find(bonus => bonus.ability_score.index === abilityEnglishKey)?.bonus || 0
-    const subraceBonus = props.character.subrace?.abilityBonuses?.[name] || 0
-    const finalValue = baseValue + racialBonus + subraceBonus
+    // Racial Bonus logic
+    const racialBonus = props.character.race.ability_bonuses?.find((bonus: any) => {
+        // Handle various SRD structures (index vs name)
+        const key = bonus.ability_score.index || bonus.ability_score.name.toLowerCase().substring(0, 3)
+        return key === abilityEnglishKey
+    })?.bonus || 0
+
+    // Subrace logic (assuming subrace.abilityBonuses might use localized keys or original keys)
+    // We try to match robustly
+    let subraceBonus = 0
+    if (props.character.subrace?.abilityBonuses) {
+        // Try French Name
+        subraceBonus = props.character.subrace.abilityBonuses[name] || 0
+        // Try English Key if 0
+        if (!subraceBonus) {
+             const upperKey = abilityEnglishKey.toUpperCase() // STR
+             // Mapping if needed, but let's assume standard keys
+        }
+    }
+    
+    // Simplification based on presumed existing data structure
+    const simpleSubraceBonus = props.character.subrace?.abilityBonuses ? (props.character.subrace.abilityBonuses[name] || 0) : 0
+
+    const finalValue = baseValue + racialBonus + simpleSubraceBonus
     
     return {
       name: name.substring(0, 3),

@@ -175,7 +175,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { Character } from '@/stores/app';
+import type { Character } from '@/types/character'
 import { getClassDescription } from '@/utils/classes';
 
 interface Props {
