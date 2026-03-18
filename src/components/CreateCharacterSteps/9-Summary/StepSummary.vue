@@ -640,8 +640,14 @@ async function finalizeCharacter() {
 
   // Check auth
   if (!authStore.token) {
-    if(confirm("Pour sauvegarder votre personnage dans votre profil, vous devez être connecté.\n\nVoulez-vous aller à la page de connexion ? (Attention, la progression non sauvegardée sera perdue)")) {
-        router.push('/login');
+    if(confirm("Pour sauvegarder votre personnage dans votre profil, vous devez être connecté.\n\nNous allons sauvegarder votre progression actuelle et vous rediriger vers la page de connexion.")) {
+        // Sauvegarder la progression
+        localStorage.setItem('pendingCharacter', JSON.stringify(props.character));
+        
+        // Rediriger vers Auth0 avec l'état de l'application pour le retour
+        authStore.login({
+            appState: { target: '/character-creator' }
+        });
     }
     return;
   }

@@ -146,6 +146,24 @@ onMounted(async () => {
     } finally {
       isLoading.value = false
     }
+  } else {
+      // Check for pending character checks (e.g. after login redirect)
+      const pending = localStorage.getItem('pendingCharacter');
+      if (pending) {
+          if (confirm("Une création de personnage non sauvegardée a été trouvée. Voulez-vous la reprendre ?")) {
+                try {
+                    const parsed = JSON.parse(pending);
+                    Object.assign(character, parsed);
+                    // Jump to Summary
+                    step.value = steps.length - 1;
+                } catch (e) {
+                    console.error("Failed to restore pending character", e);
+                    localStorage.removeItem('pendingCharacter');
+                }
+          } else {
+              localStorage.removeItem('pendingCharacter');
+          }
+      }
   }
 })
 
@@ -244,6 +262,7 @@ async function handleFinalize() {
       await store.createCharacter({ ...character })
       alert('Personnage enregistré avec succès !')
     }
+    localStorage.removeItem('pendingCharacter');
     router.push('/')
   } catch (e: any) {
     alert("Erreur lors de l'enregistrement du personnage.")
