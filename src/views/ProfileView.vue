@@ -156,15 +156,15 @@
                              <div class="space-y-1 my-3">
                                  <div class="flex items-center justify-between text-sm">
                                      <span class="text-zinc-500">Race</span>
-                                     <span class="text-zinc-300">{{ char.race }}</span>
+                                     <span class="text-zinc-300">{{ translateRaceName(char.race?.name) || char.race }}</span>
                                  </div>
                                  <div class="flex items-center justify-between text-sm">
                                      <span class="text-zinc-500">Classe</span>
-                                     <span class="text-zinc-300">{{ char.class }}</span>
+                                     <span class="text-zinc-300">{{ getTranslatedClassName(char.class?.name) || char.class }}</span>
                                  </div>
-                                  <div class="flex items-center justify-between text-sm">
+                                 <div class="flex items-center justify-between text-sm">
                                      <span class="text-zinc-500">Sous-classe</span>
-                                     <span class="text-zinc-300 truncate max-w-[100px]">{{ char.data.subclass?.name || '-' }}</span>
+                                     <span class="text-zinc-300 truncate max-w-[100px]">{{ (char.subclass && char.subclass.name) ? translateSubclassName(char.subclass.name) : '-' }}</span>
                                  </div>
                              </div>
                         </div>
@@ -192,6 +192,9 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { useNpcStore } from '../stores/npc';
 import { useCharacterStore } from '../stores/character';
+import { translateRaceName } from '@/utils/race';
+import { getTranslatedClassName } from '@/utils/classes';
+import { translateSubclassName } from '@/utils/subclasses';
 
 const router = useRouter();
 const authStore = useAuthStore();

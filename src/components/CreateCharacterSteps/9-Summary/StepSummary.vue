@@ -639,7 +639,12 @@ async function finalizeCharacter() {
   }
 
   // Check auth
-  if (!authStore.token) {
+  // Ensure we have a token if the user is authenticated
+  if (authStore.isAuthenticated && !authStore.token) {
+      await authStore.getToken();
+  }
+
+  if (!authStore.isAuthenticated || !authStore.token) {
     if(confirm("Pour sauvegarder votre personnage dans votre profil, vous devez être connecté.\n\nNous allons sauvegarder votre progression actuelle et vous rediriger vers la page de connexion.")) {
         // Sauvegarder la progression
         localStorage.setItem('pendingCharacter', JSON.stringify(props.character));

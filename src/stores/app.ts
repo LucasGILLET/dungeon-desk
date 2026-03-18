@@ -86,9 +86,6 @@ export const useAppStore = defineStore('app', () => {
   // Actions pour les personnages
   const createCharacter = async (character: Omit<Character, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error("Not authenticated");
-
       const payload = {
         name: character.name,
         race: character.race.name,
