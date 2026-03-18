@@ -1,15 +1,40 @@
 <template>
-  <div class="h-full flex flex-col">
+  <div class="h-full flex flex-col relative">
+    <!-- Tutorial Guide -->
+    <TutorialGuide
+      :visible="showTutorial"
+      :step="currentStep"
+      :current-step-index="tutorialStep"
+      :total-steps="totalSteps"
+      :is-first-step="isFirstStep"
+      :is-last-step="isLastStep"
+      @close="stopTutorial"
+      @next="nextTutorialStep"
+      @prev="prevTutorialStep"
+    />
+
     <div class="mb-24 flex-1 flex flex-col relative pt-8 pb-2 overflow-hidden">
       
       <div class="flex flex-col px-4 h-full max-w-7xl mx-auto w-full">
         <!-- En-tête -->
-        <div class="text-center mb-6 shrink-0 z-10">
-          <h2 class="text-3xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-amber-200 to-amber-600 mb-3 font-serif drop-shadow-sm">
-            {{ selectedRace?.name }}
-          </h2>
+        <div class="text-center mb-6 shrink-0 z-10 relative">
+          <div class="flex items-center justify-center gap-3 mb-3 relative">
+            <h2 class="text-3xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-amber-200 to-amber-600 font-serif drop-shadow-sm">
+              {{ selectedRace?.name }}
+            </h2>
+            <!-- Help Button -->
+            <button 
+              @click="startTutorial"
+              class="p-2 text-sky-400 hover:text-sky-200 bg-sky-900/10 hover:bg-sky-900/30 rounded-full transition-colors border border-sky-500/20 hover:border-sky-500/50 hidden md:block"
+              title="Aide, comment choisir ?"
+            >
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </button>
+          </div>
+
           <div class="h-0.5 w-24 bg-gradient-to-r from-transparent via-amber-800 to-transparent mx-auto mb-4"></div>
           <p class="text-xl text-zinc-400 font-light italic">Choisissez votre lignée ancestrale</p>
+          
           <div v-if="loading" class="text-amber-500/80 animate-pulse mt-4 font-serif">Consultation des archives...</div>
         </div>
       
@@ -33,10 +58,11 @@
           <div 
             v-else-if="!loading"
             :class="[
-              'grid gap-6 auto-rows-fr',
+              'grid gap-6 auto-rows-fr transition-all duration-300',
               availableSubraces.length === 1 ? 'grid-cols-1 max-w-xl mx-auto' :
               availableSubraces.length === 2 ? 'grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto' :
-              'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+              'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+              {'relative z-40': isTutorialStep(1) || isTutorialStep(2) || isTutorialStep(3)}
             ]"
           >
             <div 
@@ -47,7 +73,9 @@
                 'subrace-card cursor-pointer group relative bg-zinc-900/40 backdrop-blur-sm rounded-2xl border transition-all duration-300 ease-out flex flex-col overflow-hidden',
                 selectedSubrace?.index === subrace.index 
                   ? 'border-amber-500 bg-zinc-800/60 shadow-[0_0_20px_rgba(245,158,11,0.15)] transform scale-[1.02] z-10' 
-                  : 'border-zinc-800 hover:border-amber-500/30 hover:bg-zinc-800/40'
+                  : 'border-zinc-800 hover:border-amber-500/30 hover:bg-zinc-800/40',
+                {'grayscale opacity-40': (isTutorialStep(1) || isTutorialStep(2) || isTutorialStep(3)) && selectedSubrace?.index !== subrace.index && selectedSubrace},
+                {'ring-4 ring-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.6)] z-50 scale-105': (isTutorialStep(2) || isTutorialStep(3)) && selectedSubrace?.index === subrace.index}
               ]"
             >
               <!-- Background accent -->
@@ -89,13 +117,18 @@
                 
                 <div class="mt-auto space-y-5">
                    <!-- Traits -->
-                    <div v-if="subrace.racial_traits && subrace.racial_traits.length > 0">
+                    <div 
+                      v-if="subrace.racial_traits && subrace.racial_traits.length > 0"
+                      class="transition-all duration-300 rounded p-1 -m-1"
+                      :class="{'bg-black/40 ring-2 ring-amber-500 shadow-md': isTutorialStep(1) && selectedSubrace?.index === subrace.index}"
+                    >
                       <div class="text-[10px] uppercase font-bold text-zinc-600 tracking-widest mb-2">Traits hérités</div>
                       <div class="flex flex-wrap gap-1.5">
                         <span 
                           v-for="trait in subrace.racial_traits" 
                           :key="trait.index" 
                           class="bg-zinc-950/50 text-zinc-300 px-2 py-1 rounded border border-zinc-700 text-xs hover:border-zinc-500 transition-colors"
+                          :class="{'border-amber-500 text-amber-200': isTutorialStep(1) && selectedSubrace?.index === subrace.index}"
                         >
                           {{ trait.name }}
                         </span>
@@ -104,12 +137,13 @@
 
                    <!-- Bonus de caractéristiques -->
                    <div v-if="subrace.ability_bonuses && subrace.ability_bonuses.length > 0">
-                      <div class="text-[10px] uppercase font-bold text-zinc-600 tracking-widest mb-2">Bonus naturels</div>
+                      <div class="text-[10px] uppercase font-bold text-zinc-600 tracking-widest mb-2 mt-4">Bonus naturels</div>
                       <div class="flex flex-wrap gap-2">
                         <span 
                           v-for="bonus in subrace.ability_bonuses" 
                           :key="bonus.ability_score.index" 
-                          class="bg-amber-900/20 text-amber-500 px-2 py-1 rounded border border-amber-900/50 text-xs font-bold"
+                          class="bg-amber-900/20 text-amber-500 px-2 py-1 rounded border border-amber-900/50 text-xs font-bold transition-all duration-300"
+                          :class="{'scale-110 shadow-lg ring-1 ring-amber-500 bg-amber-900/40': isTutorialStep(1) && selectedSubrace?.index === subrace.index}"
                         >
                           +{{ bonus.bonus }} {{ bonus.ability_score.name }}
                         </span>
@@ -124,14 +158,16 @@
       </div>
     
       <!-- Navigation -->
-      <StepNavigation 
-        :current-step="2" 
-        :total-steps="9"
-        step-name="Lignée"
-        :disable-next="availableSubraces.length > 0 && !selectedSubrace"
-        @previous="emit('prev')"
-        @next="validateSubrace"
-      />
+      <div class="transition-all duration-300 rounded-xl">
+        <StepNavigation 
+          :current-step="2" 
+          :total-steps="9"
+          step-name="Lignée"
+          :disable-next="availableSubraces.length > 0 && !selectedSubrace"
+          @previous="emit('prev')"
+          @next="validateSubrace"
+        />
+      </div>
     </div>
 
     <!-- Modal de détails de sous-race -->
@@ -173,6 +209,8 @@
 import { ref, onMounted, watch } from 'vue'
 import StepNavigation from '../StepNavigation.vue'
 import SubraceDetailsModal from './SubraceDetailsModal.vue'
+import TutorialGuide from '@/components/TutorialGuide.vue'
+import { useTutorial } from '@/composables/useTutorial'
 import type { SRDRace } from '@/types/srd'
 import { getSubracesByParentRace, getSubraceEmoji, getSubraceDescription } from '@/utils/subrace'
 import type { Character } from '@/types/character'
@@ -193,14 +231,48 @@ const loading = ref(false)
 const showSubraceDetails = ref(false)
 const selectedDetailSubrace = ref<any | null>(null)
 
+/* --- Tutorial Logic --- */
+const tutorialSteps = [
+    { title: "Lignée Ancestrale", text: "Certaines races se divisent en lignées distinctes. Votre choix précisera vos capacités." },
+    { title: "Votre Hérédité", text: "Chaque sous-race apporte ses propres traits et bonus de caractéristiques qui s'ajoutent à ceux de votre race principale." },
+    { title: "La Sélection", text: "Cliquez sur une carte pour choisir la sous-race qui correspond à l'histoire que vous voulez raconter." },
+    { title: "Validation", text: "Une fois votre choix arrêté, le bouton 'Suivant' s'activera pour passer à l'étape suivante." }
+]
+
+const { 
+  isVisible: showTutorial, 
+  currentStepIndex: tutorialStep, 
+  currentStep, 
+  totalSteps, 
+  isFirstStep, 
+  isLastStep, 
+  start: startTutorial, 
+  stop: stopTutorial, 
+  next, 
+  prev: prevTutorialStep, 
+  isStep: isTutorialStep 
+} = useTutorial('subrace-selection', tutorialSteps)
+
+function nextTutorialStep() {
+    // Auto-select first available subrace at traits step to show them
+    if (tutorialStep.value === 1 && !selectedSubrace.value && availableSubraces.value.length > 0) {
+        selectedSubrace.value = availableSubraces.value[0]
+    }
+    next()
+}
+/* --- End Tutorial Logic --- */
+
 async function loadSubraces() {
   if (!props.selectedRace) return
   
   loading.value = true
   try {
     availableSubraces.value = await getSubracesByParentRace(props.selectedRace.index)
-    // Si une seule sous-race disponible, on pourrait la sélectionner automatiquement ?
-    // Non, laissons le choix explicite ou le clic.
+    
+    // Si pas de sous-races, on ferme le tutoriel s'il est ouvert car inutile
+    if (availableSubraces.value.length === 0 && showTutorial.value) {
+      stopTutorial()
+    }
   } catch (error) {
     console.error("Erreur lors du chargement des sous-races:", error)
     availableSubraces.value = []

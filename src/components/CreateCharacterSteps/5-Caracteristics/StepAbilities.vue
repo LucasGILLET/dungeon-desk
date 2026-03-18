@@ -3,9 +3,16 @@
     
     <!-- Standard Header (Centered) -->
     <div class="pt-8 pb-2 px-6 text-center relative z-10 shrink-0">
-        <h2 class="text-3xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-amber-200 to-amber-600 mb-3 font-serif drop-shadow-sm">
-          Attributs Héroïques
-        </h2>
+        <div class="flex items-center justify-center gap-3 mb-3 relative">
+            <h2 class="text-3xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-amber-200 to-amber-600 font-serif drop-shadow-sm">
+            Attributs Héroïques
+            </h2>
+             <!-- Tutorial Button -->
+             <button @click="startTutorial" class="p-2 text-sky-400 hover:text-sky-200 bg-sky-900/10 hover:bg-sky-900/30 rounded-full transition-colors border border-sky-500/20 hover:border-sky-500/50" title="Aide, comment choisir ?">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </button>
+        </div>
+        
         <div class="h-0.5 w-24 bg-gradient-to-r from-transparent via-amber-800 to-transparent mx-auto mb-4"></div>
         <p class="text-zinc-400 text-lg max-w-2xl mx-auto font-light">
            Définissez les capacités naturelles de votre aventurier
@@ -14,11 +21,17 @@
     </div>
 
     <!-- Action Bar (Specific to Abilities) -->
-    <div class="shrink-0 px-4 py-2 relative z-10">
+    <div class="shrink-0 px-4 py-2 relative transition-all duration-300" :class="(isTutorialStep(1) || isTutorialStep(2)) ? 'z-40' : 'z-10'">
        <div class="max-w-4xl mx-auto bg-zinc-900/60 border border-zinc-700/50 rounded-xl p-2 sm:p-3 flex flex-col md:flex-row items-center justify-between gap-3 backdrop-blur-md shadow-lg">
            
            <!-- Left: Class Priorities -->
-           <div class="flex items-center gap-3 text-sm">
+           <div class="relative flex items-center gap-3 text-sm p-2 rounded-lg transition-colors" :class="{'bg-black/40 ring-2 ring-amber-500/50 shadow-[0_0_30px_rgba(245,158,11,0.2)]': isTutorialStep(1)}">
+               
+               <!-- Tutorial Highlight -->
+               <div v-if="isTutorialStep(1)" class="absolute -top-3 left-4 bg-amber-500 text-black text-[10px] font-bold px-2 py-0.5 rounded-full animate-bounce">
+                  IMPORTANT
+               </div>
+
                <div v-if="character.class" class="flex items-center gap-2">
                    <span class="text-zinc-400 font-medium text-xs uppercase tracking-wider hidden sm:inline">Priorité {{ character.class.name }}</span>
                    <div class="flex gap-1.5">
@@ -34,7 +47,7 @@
            <!-- Center/Right: Points & Tools -->
            <div class="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
                <!-- Points Counter -->
-               <div class="flex items-center gap-3">
+               <div class="relative flex items-center gap-3 p-1 rounded-lg" :class="{'bg-black/40 ring-2 ring-amber-500/50': isTutorialStep(2)}">
                   <div class="text-right leading-tight hidden sm:block">
                      <div class="text-[10px] text-zinc-500 uppercase tracking-wider font-bold">Capital</div>
                      <div class="text-xs text-amber-500 font-bold">Points</div>
@@ -48,6 +61,8 @@
 
                <!-- Tools Buttons -->
                <div class="flex items-center gap-2">
+                   <!-- Tutorial Button Removed -->
+
                   <button @click="resetAbilities" class="p-2 text-zinc-400 hover:text-white bg-zinc-800/50 hover:bg-zinc-700 rounded-lg transition-colors border border-zinc-700 hover:border-zinc-500" title="Réinitialiser">
                       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                   </button>
@@ -63,13 +78,14 @@
     <div class="flex-1 px-4 py-2 sm:p-6 flex items-start justify-center overflow-y-auto custom-scrollbar">
        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-5 w-full max-w-5xl pb-24">
           <div 
-            v-for="ability in abilities" 
+            v-for="(ability, index) in abilities" 
             :key="ability.name" 
             :class="[
               'relative rounded-xl p-3 md:p-4 border transition-all duration-300 group flex flex-col justify-between h-auto shadow-lg',
               isImportantStat(ability.name) 
                 ? 'bg-gradient-to-br from-zinc-800 to-zinc-900/80 border-amber-500/30 shadow-[0_4px_20px_rgba(245,158,11,0.05)]' 
-                : 'bg-zinc-900/40 border-zinc-800 hover:bg-zinc-800 hover:border-zinc-700'
+                : 'bg-zinc-900/40 border-zinc-800 hover:bg-zinc-800 hover:border-zinc-700',
+              (index === 0 && (isTutorialStep(3) || isTutorialStep(4) || isTutorialStep(5))) ? 'ring-4 ring-amber-500 ring-offset-4 ring-offset-zinc-950 z-40 scale-105 bg-zinc-900' : ''
             ]"
           >
             <!-- Card Header -->
@@ -97,7 +113,8 @@
                  :class="{'text-amber-500': isImportantStat(ability.name)}">
                   {{ ability.value + getRacialBonus(ability.name) }}
                </span>
-               <div class="flex flex-col -mb-1 ml-2">
+               <div class="flex flex-col -mb-1 ml-2 relative" :class="{'z-30': index === 0 && isTutorialStep(4)}">
+                  <div v-if="index === 0 && isTutorialStep(4)" class="absolute -inset-2 bg-amber-500/20 rounded-lg animate-pulse"></div>
                   <span class="text-[10px] uppercase font-black text-zinc-600 tracking-wider">MOD</span>
                   <span :class="[
                      'text-xs font-bold px-1.5 py-0.5 rounded border',
@@ -111,8 +128,10 @@
             </div>
 
             <!-- Controls Footer with Integrated Labels -->
-            <div class="mt-2 bg-zinc-950/40 rounded-lg p-1.5 border border-zinc-800/50 flex flex-col gap-2">
+            <div class="mt-2 bg-zinc-950/40 rounded-lg p-1.5 border border-zinc-800/50 flex flex-col gap-2 relative">
                
+               <div v-if="index === 0 && isTutorialStep(5)" class="absolute inset-0 border-2 border-amber-500 rounded-lg animate-pulse pointer-events-none"></div>
+
                <!-- Buttons Row -->
                <div class="flex items-center justify-between gap-2">
                    <button 
@@ -147,6 +166,19 @@
        </div>
     </div>
 
+    <!-- Tutorial Box -->
+    <TutorialGuide
+      :visible="showTutorial"
+      :step="currentStep!"
+      :current-step-index="tutorialStep"
+      :total-steps="totalSteps"
+      :is-first-step="isFirstStep"
+      :is-last-step="isLastStep"
+      @close="stopTutorial"
+      @next="nextTutorialStep"
+      @prev="prevTutorialStep"
+    />
+
     <!-- Navigation (Fixed Bottom) -->
     <StepNavigation 
       :current-step="5" 
@@ -179,6 +211,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import StepNavigation from '../StepNavigation.vue'
+import TutorialGuide from '@/components/TutorialGuide.vue'
+import { useTutorial } from '@/composables/useTutorial'
 import type { SRDRace } from '@/types/srd'
 import type { Character } from '@/types/character'
 import type { Ability } from '@/utils/abilities'
@@ -216,6 +250,32 @@ const abilityNameMap: Record<string, string> = {
   'Sagesse': 'wis',
   'Charisme': 'cha'
 }
+
+/* --- Tutorial Logic --- */
+const tutorialSteps = [
+    { title: "Bienvenue", text: "Définissez les attributs de votre héros. C'est ici que vous décidez s'il sera fort, agile, ou intelligent." },
+    { title: "Priorités de Classe", text: "Regardez ici ! Votre classe a besoin de certaines statistiques pour briller. Essayez de les maximiser." },
+    { title: "Votre Capital", text: "Vous avez 27 points. Passer de 8 à 13 coûte 1 point. Monter à 14 ou 15 coûte plus cher. Gérez bien votre budget !" },
+    { title: "Les Caractéristiques", text: "Chaque carte représente un attribut. Le gros chiffre est votre score total (incluant les bonus de race)." },
+    { title: "Le Modificateur", text: "C'est LE chiffre important (+2, -1...). C'est ce bonus qui sera ajouté à vos jets de dés en jeu." },
+    { title: "Ajustements", text: "Utilisez ces boutons pour dépenser vos points. Vous ne pouvez pas dépasser 15 (avant bonus) à la création." }
+]
+
+const { 
+  isVisible: showTutorial, 
+  currentStepIndex: tutorialStep, 
+  currentStep, 
+  totalSteps, 
+  isFirstStep, 
+  isLastStep, 
+  start: startTutorial, 
+  stop: stopTutorial, 
+  next: nextTutorialStep, 
+  prev: prevTutorialStep, 
+  isStep: isTutorialStep 
+} = useTutorial('abilities', tutorialSteps)
+
+/* --- End Tutorial Logic --- */
 
 onMounted(() => {
   if (props.character && props.character.abilities) {

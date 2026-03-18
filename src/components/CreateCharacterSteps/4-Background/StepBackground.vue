@@ -1,11 +1,31 @@
 <template>
   <div class=" flex flex-col h-full bg-black/20">
     
+    <!-- Tutorial Guide -->
+    <TutorialGuide
+      :visible="showTutorial"
+      :step="currentStep"
+      :current-step-index="tutorialStep"
+      :total-steps="totalSteps"
+      :is-first-step="isFirstStep"
+      :is-last-step="isLastStep"
+      @close="stopTutorial"
+      @next="nextTutorialStep"
+      @prev="prevTutorialStep"
+    />
+
     <!-- En-tête Centré (Style harmonisé) -->
     <div class="pt-8 pb-2 px-6 text-center relative z-10 shrink-0">
-        <h2 class="text-3xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-amber-200 to-amber-600 mb-3 font-serif drop-shadow-sm">
-          L'Origine de votre Héros
-        </h2>
+        <div class="flex items-center justify-center gap-3 mb-3 relative">
+            <h2 class="text-3xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-amber-200 to-amber-600 font-serif drop-shadow-sm">
+            L'Origine de votre Héros
+            </h2>
+             <!-- Tutorial Button -->
+             <button @click="startTutorial" class="p-2 text-sky-400 hover:text-sky-200 bg-sky-900/10 hover:bg-sky-900/30 rounded-full transition-colors border border-sky-500/20 hover:border-sky-500/50" title="Aide, comment choisir ?">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </button>
+        </div>
+        
         <div class="h-0.5 w-24 bg-gradient-to-r from-transparent via-amber-800 to-transparent mx-auto mb-4"></div>
         <p class="text-zinc-400 text-lg max-w-2xl mx-auto font-light">
           Quelle vie avez-vous menée avant le début de votre quête ?
@@ -31,12 +51,16 @@
         </div>
 
         <!-- Grille des Historiques Compacte -->
-        <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-4 gap-4 px-6 overflow-auto">
+        <div v-else 
+             class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-4 gap-4 px-6 overflow-auto transition-all duration-300"
+             :class="{'relative z-40': isTutorialStep(1) || isTutorialStep(2)}"
+        >
           <div 
-            v-for="background in backgrounds" 
+            v-for="(background, index) in backgrounds" 
             :key="background.index" 
             @click="selectedBackground = background"
-            class="group relative h-full flex flex-col"
+            class="group relative h-full flex flex-col transition-all duration-300"
+            :class="{'ring-4 ring-amber-500 ring-offset-4 ring-offset-black rounded-xl z-50 scale-105': index === 0 && isTutorialStep(1)}"
           >
              <!-- Card Container -->
              <div 
@@ -137,6 +161,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import StepNavigation from '../StepNavigation.vue'
+import TutorialGuide from '@/components/TutorialGuide.vue'
+import { useTutorial } from '@/composables/useTutorial'
 import { loadBackgrounds } from '@/utils/dataLoader'
 import type { SRDBackground, SRDRace } from '@/types/srd'
 import type { Character } from '@/types/character'
@@ -151,6 +177,34 @@ const emit = defineEmits<{
   next: [background: SRDBackground]
   prev: []
 }>()
+
+// Tutorial
+const {
+  isVisible: showTutorial,
+  currentStepIndex: tutorialStep,
+  currentStep,
+  totalSteps,
+  isFirstStep,
+  isLastStep,
+  start: startTutorial,
+  stop: stopTutorial,
+  next: nextTutorialStep,
+  prev: prevTutorialStep,
+  isStep: isTutorialStep
+} = useTutorial('step-background', [
+  {
+    title: 'Votre Passé',
+    text: 'Votre personnage ne vient pas de nulle part. Son historique (Background) définit d\'où il vient, ce qu\'il a fait avant de partir à l\'aventure et sa place dans le monde.'
+  },
+  {
+    title: 'Compétences & Maîtrises',
+    text: 'Chaque historique vous octroie la maîtrise de deux compétences, ainsi que d\'autres avantages comme des langues ou des outils.'
+  },
+  {
+    title: 'Faites votre choix',
+    text: 'Sélectionnez l\'historique qui résonne le plus avec l\'idée que vous vous faites de votre personnage. Un soldat ? Un érudit ? Un criminel ? Cela façonnera vos interactions.'
+  }
+])
 
 const backgrounds = ref<SRDBackground[]>([])
 const selectedBackground = ref<SRDBackground | null>(null)

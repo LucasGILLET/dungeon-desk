@@ -1,15 +1,36 @@
+
 <template>
   <div class="flex flex-col h-full bg-zinc-950">
+
+    <!-- Tutorial Guide -->
+    <TutorialGuide
+      :visible="showTutorial"
+      :step="currentStep"
+      :current-step-index="tutorialStep"
+      :total-steps="totalSteps"
+      :is-first-step="isFirstStep"
+      :is-last-step="isLastStep"
+      @close="stopTutorial"
+      @next="nextTutorialStep"
+      @prev="prevTutorialStep"
+    />
+
     <!-- Contenu défilable -->
     <div class="mb-24 flex-1 overflow-y-auto custom-scrollbar p-6 sm:p-8">
       <div class="max-w-7xl mx-auto">
         
         <!-- En-tête -->
-        <div class="text-center mb-10 relative">
-          <h2 class="text-3xl sm:text-4xl font-bold font-serif text-white mb-3 drop-shadow-md">
-            Voie de Spécialisation
-          </h2>
-          <p class="text-zinc-400 text-lg max-w-2xl mx-auto font-light">
+        <div class="text-center mb-10 relative z-10 shrink-0">
+          <div class="flex items-center justify-center gap-3 mb-3 relative">
+             <h2 class="text-3xl sm:text-4xl font-bold font-serif text-white mb-0 drop-shadow-md">
+                Voie de Spécialisation
+             </h2>
+             <!-- Tutorial Button -->
+             <button @click="startTutorial" class="p-2 text-sky-400 hover:text-sky-200 bg-sky-900/10 hover:bg-sky-900/30 rounded-full transition-colors border border-sky-500/20 hover:border-sky-500/50" title="Aide, comment choisir ?">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </button>
+          </div>
+          <p class="text-zinc-400 text-lg max-w-2xl mx-auto font-light mt-2">
             Définissez l'archétype qui guidera votre puissance en tant que <span class="text-amber-500 font-serif">{{ character.class.name }}</span>.
           </p>
           <div v-if="character.subrace" class="mt-4">
@@ -32,9 +53,9 @@
         </div>
 
         <!-- Grille des sous-classes -->
-        <div v-else :class="['grid gap-6 pb-20', getGridColumns()]">
+        <div v-else :class="['grid gap-6 pb-20 transition-all duration-300', getGridColumns(), {'relative z-40': isTutorialStep(1)}]">
           <div 
-            v-for="subclass in availableSubclasses" 
+            v-for="(subclass, index) in availableSubclasses" 
             :key="subclass.id"
             @click="selectedSubclass = subclass"
             class="group relative"
@@ -43,7 +64,8 @@
                'h-full flex flex-col rounded-xl overflow-hidden border transition-all duration-300 cursor-pointer bg-zinc-900',
                selectedSubclass?.id === subclass.id 
                  ? 'border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.2)]' 
-                 : 'border-zinc-800 hover:border-zinc-600 hover:bg-zinc-800'
+                 : 'border-zinc-800 hover:border-zinc-600 hover:bg-zinc-800',
+               (index === 0 && isTutorialStep(1)) ? 'ring-4 ring-amber-500 ring-offset-4 ring-offset-black scale-105 z-50' : ''
              ]">
                 
                 <!-- Header -->
@@ -145,6 +167,8 @@ import { getSubclassesByClassName, getSubclassEmoji, type SubclassData } from '@
 import { getSpellDescription } from '@/utils/spells'
 import { getFeatureDescription } from '@/utils/features'
 import StepNavigation from '../StepNavigation.vue'
+import TutorialGuide from '@/components/TutorialGuide.vue'
+import { useTutorial } from '@/composables/useTutorial'
 import type { SRDRace } from '@/types/srd'
 import type { Character } from '@/types/character'
 
@@ -157,6 +181,28 @@ const emit = defineEmits<{
   next: [payload: any]
   prev: []
 }>()
+
+/* --- Tutorial Logic --- */
+const tutorialSteps = [
+    { title: "Voie de Spécialisation", text: "Certaines classes (comme le Clerc ou le Sorcier) choisissent leur archétype dès le niveau 1." },
+    { title: "Un Choix Déterminant", text: "Cette sous-classe définit vos pouvoirs uniques, vos sorts de domaine ou votre pacte. Lisez bien les descriptions !" },
+    { title: "Pas de choix ?", text: "Si votre classe ne demande rien ici (comme le Guerrier ou le Voleur), pas d'inquiétude : votre spécialisation arrivera au niveau 3." }
+]
+
+const { 
+  isVisible: showTutorial, 
+  currentStepIndex: tutorialStep, 
+  currentStep, 
+  totalSteps, 
+  isFirstStep, 
+  isLastStep, 
+  start: startTutorial, 
+  stop: stopTutorial, 
+  next: nextTutorialStep, 
+  prev: prevTutorialStep, 
+  isStep: isTutorialStep 
+} = useTutorial('subclass', tutorialSteps)
+/* --- End Tutorial Logic --- */
 
 const selectedSubclass = ref<SubclassData | null>(null)
 const level1SubclassClasses = ref<string[]>([])

@@ -1,15 +1,35 @@
 <template>
   <div class="flex flex-col h-full bg-zinc-950">
+
+    <!-- Tutorial Guide -->
+    <TutorialGuide
+      :visible="showTutorial"
+      :step="currentStep!"
+      :current-step-index="tutorialStep"
+      :total-steps="totalSteps"
+      :is-first-step="isFirstStep"
+      :is-last-step="isLastStep"
+      @close="stopTutorial"
+      @next="nextTutorialStep"
+      @prev="prevTutorialStep"
+    />
+
     <!-- Contenu défilable -->
     <div class="mb-24 flex-1 overflow-y-auto custom-scrollbar p-6 sm:p-8">
       <div class="max-w-6xl mx-auto space-y-10">
 
         <!-- En-tête -->
-        <div class="text-center relative">
-          <h2 class="text-3xl sm:text-4xl font-bold font-serif text-white mb-3 drop-shadow-md">
-            Talents Uniques
-          </h2>
-          <p class="text-zinc-400 text-lg max-w-2xl mx-auto font-light">
+        <div class="text-center relative z-10 shrink-0">
+          <div class="flex items-center justify-center gap-3 mb-3 relative">
+             <h2 class="text-3xl sm:text-4xl font-bold font-serif text-white mb-0 drop-shadow-md">
+                Talents Uniques
+             </h2>
+             <!-- Tutorial Button -->
+             <button @click="startTutorial" class="p-2 text-sky-400 hover:text-sky-200 bg-sky-900/10 hover:bg-sky-900/30 rounded-full transition-colors border border-sky-500/20 hover:border-sky-500/50" title="Aide, comment choisir ?">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </button>
+          </div>
+          <p class="text-zinc-400 text-lg max-w-2xl mx-auto font-light mt-2">
             Votre héritage et votre vocation vous offrent des capacités spéciales.
           </p>
           <div class="mt-4 flex justify-center">
@@ -29,9 +49,12 @@
         </div>
 
         <!-- Choices List -->
-        <div v-else class="space-y-12 pb-12">
+        <div v-else class="space-y-12 pb-12 transition-all duration-300" 
+             :class="{'relative z-50': isTutorialStep(1) || isTutorialStep(2)}">
             <div v-for="(choice, index) in specialChoicesData.choices" :key="choice.id" 
-               class="animate-fade-in-up" :style="{ animationDelay: `${index * 150}ms` }">
+               class="animate-fade-in-up transition-all duration-300 rounded-xl" 
+               :class="{'ring-4 ring-amber-500 ring-offset-4 ring-offset-zinc-950 bg-zinc-900/90 p-4 shadow-[0_0_50px_rgba(0,0,0,0.8)]': (isTutorialStep(1) && index === 0)}"
+               :style="{ animationDelay: `${index * 150}ms` }">
             
             <!-- Choice Header -->
             <div class="flex flex-col md:flex-row md:items-end justify-between mb-6 gap-4 border-b border-zinc-800 pb-4">
@@ -39,16 +62,20 @@
                     <h2 class="text-2xl font-bold font-serif text-amber-500 mb-2">{{ choice.name }}</h2>
                     <p class="text-zinc-400 text-sm max-w-2xl leading-relaxed">{{ choice.description }}</p>
                 </div>
-                 <div class="flex-shrink-0">
-                     <span class="px-3 py-1 rounded-full text-xs font-bold border transition-colors duration-300"
-                        :class="getSelectionCount(choice.id) === getMaxSelections(choice) ? 'bg-amber-900/30 text-amber-500 border-amber-500/50' : 'bg-zinc-800 text-zinc-400 border-zinc-700'">
+                 <div class="flex-shrink-0 relative">
+                     <span class="px-3 py-1 rounded-full text-xs font-bold border transition-colors duration-300 relative z-10"
+                        :class="[
+                           getSelectionCount(choice.id) === getMaxSelections(choice) ? 'bg-amber-900/30 text-amber-500 border-amber-500/50' : 'bg-zinc-800 text-zinc-400 border-zinc-700',
+                           {'ring-4 ring-red-500 ring-offset-2 ring-offset-zinc-900 animate-pulse': isTutorialStep(2) && index === 0}
+                        ]">
                       {{ getSelectionCount(choice.id) }} / {{ getMaxSelections(choice) }} Choix
                    </span>
                  </div>
             </div>
 
             <!-- Grid -->
-            <div class="grid gap-4" :class="getGridClass(choice)">
+            <div class="grid gap-4 transition-all duration-300" 
+                 :class="[getGridClass(choice), {'opacity-100 scale-100': !(isTutorialStep(1) && index === 0), 'ring-4 ring-amber-500 ring-offset-4 ring-offset-zinc-900 rounded-xl p-2': isTutorialStep(1) && index === 0}]">
               <div 
                 v-for="option in choice.options"
                 :key="option.id"
@@ -127,8 +154,11 @@
 <script setup lang="ts">
 import { computed, reactive } from 'vue'
 import type { Character } from '@/types/character'
-import { getRequiredSpecialChoices, type SpecialChoice, type SpecialChoiceOption } from '../../../utils/specialChoices'
+import { getRequiredSpecialChoices } from '@/utils/specialChoices'
+import type { SpecialChoice, SpecialChoiceOption } from '@/utils/specialChoices'
 import StepNavigation from '../StepNavigation.vue'
+import TutorialGuide from '@/components/TutorialGuide.vue'
+import { useTutorial } from '@/composables/useTutorial'
 import type { SRDRace } from '@/types/srd'
 
 interface Props {
@@ -144,6 +174,28 @@ interface Emits {
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
+
+/* --- Tutorial Logic --- */
+const tutorialSteps = [
+    { title: "Talents Uniques", text: "Certaines classes ont accès à des pouvoirs très spécifiques dès le début : style de combat, origine de sorcellerie, ennemi juré..." },
+    { title: "Faites votre choix", text: "Cliquez sur les options pour voir leurs effets. Ces choix définissent souvent votre rôle en combat." },
+    { title: "Restrictions", text: "Attention, certains choix (comme l'Expertise du Roublard) nécessitent d'avoir déjà la maîtrise de la compétence." }
+]
+
+const { 
+  isVisible: showTutorial, 
+  currentStepIndex: tutorialStep, 
+  currentStep, 
+  totalSteps, 
+  isFirstStep, 
+  isLastStep, 
+  start: startTutorial, 
+  stop: stopTutorial, 
+  next: nextTutorialStep, 
+  prev: prevTutorialStep, 
+  isStep: isTutorialStep 
+} = useTutorial('special-choices', tutorialSteps)
+/* --- End Tutorial Logic --- */
 
 const selections = reactive<Record<string, string[]>>({})
 

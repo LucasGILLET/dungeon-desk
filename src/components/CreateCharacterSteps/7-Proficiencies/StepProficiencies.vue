@@ -1,15 +1,35 @@
 <template>
-  <div class="flex flex-col h-full bg-zinc-950">
+  <div class="flex flex-col h-full bg-zinc-950 relative">
+
+    <!-- Tutorial Guide -->
+    <TutorialGuide
+      :visible="showTutorial"
+      :step="currentStep"
+      :current-step-index="tutorialStep"
+      :total-steps="totalSteps"
+      :is-first-step="isFirstStep"
+      :is-last-step="isLastStep"
+      @close="stopTutorial"
+      @next="nextTutorialStep"
+      @prev="prevTutorialStep"
+    />
+
     <!-- Contenu défilable -->
     <div class="mb-24 flex-1 overflow-y-auto custom-scrollbar p-6 sm:p-8">
       <div class="max-w-6xl mx-auto space-y-10">
 
         <!-- En-tête -->
-        <div class="text-center relative">
-          <h2 class="text-3xl sm:text-4xl font-bold font-serif text-white mb-3 drop-shadow-md">
-            Savoirs & Talents
-          </h2>
-          <p class="text-zinc-400 text-lg max-w-2xl mx-auto font-light">
+        <div class="text-center relative z-10 shrink-0">
+          <div class="flex items-center justify-center gap-3 mb-3 relative">
+              <h2 class="text-3xl sm:text-4xl font-bold font-serif text-white mb-0 drop-shadow-md">
+                Savoirs & Talents
+              </h2>
+             <!-- Tutorial Button -->
+             <button @click="startTutorial" class="p-2 text-sky-400 hover:text-sky-200 bg-sky-900/10 hover:bg-sky-900/30 rounded-full transition-colors border border-sky-500/20 hover:border-sky-500/50" title="Aide, comment choisir ?">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </button>
+          </div>
+          <p class="text-zinc-400 text-lg max-w-2xl mx-auto font-light mt-2">
             Votre passé et votre entraînement vous ont conféré des compétences uniques.
           </p>
           <div class="mt-4 flex justify-center">
@@ -21,7 +41,8 @@
 
         
         <!-- Maîtrises automatiques -->
-        <div class="bg-zinc-900/50 backdrop-blur-sm rounded-xl border border-zinc-700/50 overflow-hidden">
+        <div class="bg-zinc-900/50 backdrop-blur-sm rounded-xl border border-zinc-700/50 overflow-hidden transition-all duration-300"
+             :class="{'ring-4 ring-amber-500 ring-offset-4 ring-offset-zinc-950 scale-[1.02] relative z-50 bg-zinc-900 shadow-[0_0_50px_rgba(0,0,0,0.8)]': isTutorialStep(1)}">
           <div class="px-6 py-4 border-b border-zinc-700/50 bg-zinc-900/80 flex items-center justify-between">
              <h2 class="text-lg font-bold font-serif text-white flex items-center gap-2">
                <span class="text-amber-500">✦</span> Acquis Naturels
@@ -93,8 +114,12 @@
         </div>
 
         <!-- Choix à faire -->
-        <div v-if="choiceGroups.length > 0" class="space-y-8 pb-12">
-          <div v-for="(group, groupIndex) in choiceGroups" :key="group.id" class="animate-fade-in-up" :style="{ animationDelay: `${groupIndex * 100}ms` }">
+        <div v-if="choiceGroups.length > 0" class="space-y-8 pb-12 transition-all duration-300" 
+             :class="{'relative z-50': isTutorialStep(2) || isTutorialStep(3)}">
+          <div v-for="(group, groupIndex) in choiceGroups" :key="group.id" 
+               class="animate-fade-in-up transition-all duration-300" 
+               :class="{'ring-4 ring-amber-500 ring-offset-4 ring-offset-zinc-950 rounded-xl p-4 bg-zinc-900/90 shadow-[0_0_50px_rgba(0,0,0,0.8)]': ((isTutorialStep(2) || isTutorialStep(3)) && groupIndex === 0)}"
+               :style="{ animationDelay: `${groupIndex * 100}ms` }">
             
             <div class="flex items-center justify-between mb-4">
                <div>
@@ -102,8 +127,11 @@
                      <span class="text-zinc-500 text-sm">#{{ groupIndex + 1 }}</span> {{ group.name }}
                   </h2>
                </div>
-               <div class="px-3 py-1 rounded-full text-xs font-bold border transition-colors duration-300"
-                    :class="(selections[group.id]?.length || 0) === group.count ? 'bg-amber-900/30 text-amber-500 border-amber-500/50' : 'bg-zinc-800 text-zinc-400 border-zinc-700'">
+               <div class="px-3 py-1 rounded-full text-xs font-bold border transition-colors duration-300 relative"
+                    :class="[
+                      (selections[group.id]?.length || 0) === group.count ? 'bg-amber-900/30 text-amber-500 border-amber-500/50' : 'bg-zinc-800 text-zinc-400 border-zinc-700',
+                      {'ring-4 ring-amber-500 ring-offset-2 ring-offset-zinc-900 z-50 animate-pulse': isTutorialStep(3) && groupIndex === 0}
+                    ]">
                   {{ selections[group.id]?.length || 0 }} / {{ group.count }} Choix
                </div>
             </div>
@@ -198,6 +226,8 @@ import {
   type ProficiencyData
 } from '@/utils/proficiencies'
 import StepNavigation from '../StepNavigation.vue'
+import TutorialGuide from '@/components/TutorialGuide.vue'
+import { useTutorial } from '@/composables/useTutorial'
 import type { SRDRace } from '@/types/srd'
 import type { Character } from '@/types/character'
 
@@ -207,13 +237,32 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  next: [payload: { selectedProficiencies: Record<string, ProficiencyChoice[]>, allProficiencies: {
-    skills: ProficiencyChoice[]
-    languages: ProficiencyChoice[]
-    tools: ProficiencyChoice[]
-  } }]
+  next: [payload: any]
   prev: []
 }>()
+
+/* --- Tutorial Logic --- */
+const tutorialSteps = [
+    { title: "Savoirs & Talents", text: "Votre race, votre classe et votre historique vous ont donné des bases solides. Mais vous avez encore des choix à faire !" },
+    { title: "Acquis Naturels", text: "Cette section liste ce que vous savez déjà faire. Pas besoin de choisir ici, c'est cadeau !" },
+    { title: "À vous de jouer", text: "Regardez les sections numérotées (#1, #2...). Vous devez choisir des compétences, des langues ou des outils supplémentaires." },
+    { title: "Compteur", text: "Surveillez la jauge à droite de chaque titre de section. Elle vous indique combien de choix il vous reste à faire." }
+]
+
+const { 
+  isVisible: showTutorial, 
+  currentStepIndex: tutorialStep, 
+  currentStep, 
+  totalSteps, 
+  isFirstStep, 
+  isLastStep, 
+  start: startTutorial, 
+  stop: stopTutorial, 
+  next: nextTutorialStep, 
+  prev: prevTutorialStep, 
+  isStep: isTutorialStep 
+} = useTutorial('proficiencies', tutorialSteps)
+/* --- End Tutorial Logic --- */
 
 const proficiencyData = ref<ProficiencyData>({ automaticProficiencies: [], choiceGroups: [] })
 const selections = ref<Record<string, ProficiencyChoice[]>>({})

@@ -1,15 +1,37 @@
 <template>
   <div class="block h-full bg-zinc-950">
+
+    <!-- Tutorial Guide -->
+    <TutorialGuide
+      :visible="showTutorial"
+      :step="currentStep"
+      :current-step-index="tutorialStep"
+      :total-steps="totalSteps"
+      :is-first-step="isFirstStep"
+      :is-last-step="isLastStep"
+      @close="stopTutorial"
+      @next="nextTutorialStep"
+      @prev="prevTutorialStep"
+    />
+
     <!-- Contenu défilable -->
     <div class="mb-30 overflow-y-auto custom-scrollbar p-6 sm:p-8">
       <div class="max-w-5xl mx-auto space-y-10 pb-12">
 
         <!-- En-tête -->
-        <div class="text-center relative pt-4">
-          <h2 class="text-3xl sm:text-5xl font-bold font-serif text-white mb-6 drop-shadow-md">
-            Votre Légende Commence
-          </h2>
-          <div class="max-w-md mx-auto relative group">
+        <div class="text-center relative pt-4 shrink-0 transition-all duration-300" :class="isTutorialStep(0) ? 'z-50' : 'z-10'">
+          <div class="flex items-center justify-center gap-3 mb-6 relative">
+            <h2 class="text-3xl sm:text-5xl font-bold font-serif text-white mb-0 drop-shadow-md">
+              Votre Légende Commence
+            </h2>
+            <!-- Tutorial Button -->
+            <button @click="startTutorial" class="p-2 text-sky-400 hover:text-sky-200 bg-sky-900/10 hover:bg-sky-900/30 rounded-full transition-colors border border-sky-500/20 hover:border-sky-500/50 mb-1" title="Aide, que faire maintenant ?">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </button>
+          </div>
+
+          <div class="max-w-md mx-auto relative group transition-all duration-300"
+               :class="{'z-50 ring-4 ring-amber-500 ring-offset-4 ring-offset-zinc-950 rounded bg-zinc-900 px-4 py-2 shadow-[0_0_50px_rgba(0,0,0,0.8)]': isTutorialStep(0)}">
              <input type="text" v-model="character.name" 
                      placeholder="Nommez votre Héros..." 
                      class="w-full bg-transparent text-center text-3xl font-serif font-bold text-amber-500 placeholder-zinc-700 border-b-2 border-zinc-800 focus:border-amber-500 focus:outline-none py-2 transition-colors duration-300" />
@@ -22,7 +44,8 @@
           </p>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 transition-all duration-300" 
+             :class="{'ring-4 ring-amber-500 ring-offset-4 ring-offset-zinc-950 rounded-xl p-4 bg-zinc-900/95 relative z-50 shadow-[0_0_50px_rgba(0,0,0,0.8)]': isTutorialStep(1)}">
             <!-- Colonne Gauche: Stats & Combat -->
             <div class="space-y-6">
                 
@@ -253,13 +276,16 @@
     </div>
     
     <!-- Navigation -->
-      <StepNavigation 
-        :current-step="9" 
-        :total-steps="9"
-        step-name="Finalisation"
-        @previous="$emit('prev')"
-        @next="finalizeCharacter"
-      />
+      <div class="transition-all duration-300 rounded-xl"
+           :class="{'ring-4 ring-amber-500 ring-offset-4 ring-offset-zinc-950 p-2 bg-zinc-900 relative z-50 shadow-[0_0_50px_rgba(0,0,0,0.8)]': isTutorialStep(2)}">
+        <StepNavigation 
+          :current-step="9" 
+          :total-steps="9"
+          step-name="Finalisation"
+          @previous="$emit('prev')"
+          @next="finalizeCharacter"
+        />
+      </div>
   </div>
 </template>
 
@@ -268,6 +294,8 @@ import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCharacterStore } from '@/stores/character'
 import { useAuthStore } from '@/stores/auth'
+import TutorialGuide from '@/components/TutorialGuide.vue'
+import { useTutorial } from '@/composables/useTutorial'
 import { getTraitDescriptionCombined } from '@/utils/traits'
 import { loadTraits } from '@/utils/dataLoader'
 import { translateRaceName } from '@/utils/race'
@@ -286,6 +314,28 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits(['prev', 'finalize'])
+
+/* --- Tutorial Logic --- */
+const tutorialSteps = [
+    { title: "Votre Légende Commence", text: "C'est le moment de vérité ! Donnez un nom épique à votre héros pour l'ancrer dans l'histoire." },
+    { title: "Vérification", text: "Prenez un instant pour relire vos caractéristiques, vos maîtrises et vos capacités spéciales." },
+    { title: "Prêt à l'aventure !", text: "Une fois satisfait, cliquez sur 'Terminer' pour valider votre fiche de personnage et commencer à jouer !" }
+]
+
+const { 
+  isVisible: showTutorial, 
+  currentStepIndex: tutorialStep, 
+  currentStep, 
+  totalSteps, 
+  isFirstStep, 
+  isLastStep, 
+  start: startTutorial, 
+  stop: stopTutorial, 
+  next: nextTutorialStep, 
+  prev: prevTutorialStep, 
+  isStep: isTutorialStep 
+} = useTutorial('summary', tutorialSteps)
+/* --- End Tutorial Logic --- */
 
 const router = useRouter()
 const characterStore = useCharacterStore()
