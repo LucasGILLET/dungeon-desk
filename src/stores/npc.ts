@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { useAuthStore } from './auth';
-import { authenticatedFetch } from '@/utils/api';
+import { authenticatedFetch, buildApiUrl } from '@/utils/api';
 
 export const useNpcStore = defineStore('npc', () => {
     const npcs = ref<any[]>([]);
@@ -9,7 +9,7 @@ export const useNpcStore = defineStore('npc', () => {
     const error = ref<string | null>(null);
     
     const authStore = useAuthStore();
-    const API_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/npcs`;
+    const API_URL = buildApiUrl('/npcs');
 
     const fetchNpcs = async () => {
         loading.value = true;

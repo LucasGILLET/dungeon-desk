@@ -61,7 +61,7 @@ export interface Quest {
   updatedAt: Date
 }
 
-import { authenticatedFetch } from '@/utils/api';
+import { authenticatedFetch, buildApiUrl } from '@/utils/api';
 
 const router = useRouter()
 export const useAppStore = defineStore('app', () => {
@@ -94,7 +94,7 @@ export const useAppStore = defineStore('app', () => {
         data: character
       };
 
-      const response = await authenticatedFetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/characters`, {
+      const response = await authenticatedFetch(buildApiUrl('/characters'), {
         method: 'POST',
         body: JSON.stringify(payload)
       });
@@ -132,7 +132,7 @@ export const useAppStore = defineStore('app', () => {
       if (updates.class?.name) payload.class = updates.class.name;
       if (updates.level) payload.level = updates.level;
 
-      const response = await authenticatedFetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/characters/${id}`, {
+      const response = await authenticatedFetch(buildApiUrl(`/characters/${id}`), {
         method: 'PUT',
         body: JSON.stringify(payload)
       });

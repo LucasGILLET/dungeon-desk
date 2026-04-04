@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
+import { VueQueryPlugin } from '@tanstack/vue-query'
 import Particles from "@tsparticles/vue3";
 import { loadSlim } from "@tsparticles/slim"; // Correct import for v3
 import { createAuth0 } from '@auth0/auth0-vue';
@@ -10,6 +11,7 @@ import router from './router'
 const app = createApp(App)
 
 app.use(createPinia())
+app.use(VueQueryPlugin)
 app.use(router)
 app.use(
   createAuth0({

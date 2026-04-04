@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { useAuthStore } from './auth';
-import { authenticatedFetch } from '@/utils/api';
+import { authenticatedFetch, buildApiUrl } from '@/utils/api';
 
 export const useCharacterStore = defineStore('character', () => {
     const characters = ref<any[]>([]);
@@ -9,7 +9,7 @@ export const useCharacterStore = defineStore('character', () => {
     const error = ref<string | null>(null);
     
     const authStore = useAuthStore();
-    const API_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/characters`;
+    const API_URL = buildApiUrl('/characters');
 
     const fetchCharacters = async () => {
         loading.value = true;

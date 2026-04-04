@@ -1,5 +1,18 @@
 import { useAuthStore } from '@/stores/auth';
 
+export function buildApiUrl(path: string): string {
+    if (/^https?:\/\//i.test(path)) {
+        return path;
+    }
+
+    const backendOrigin = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
+    const normalizedOrigin = new URL(backendOrigin).origin;
+    const normalizedPath = path.startsWith('/') ? path.slice(1) : path;
+    const apiPath = normalizedPath.startsWith('api/') ? normalizedPath : `api/${normalizedPath}`;
+
+    return new URL(apiPath, `${normalizedOrigin}/`).toString();
+}
+
 export async function authenticatedFetch(url: string, options: RequestInit = {}) {
     const authStore = useAuthStore();
     let token = authStore.token;
@@ -32,7 +45,7 @@ export async function authenticatedFetch(url: string, options: RequestInit = {})
         } else {
              // Si le refresh échoue ou que le token est le même, c'est une vraie erreur 401
              console.error("401 Unauthorized - Logout triggered");
-             // authStore.logout(); // <-- COMMENTÉ: Éviter la déconnexion automatique brutale pour le debug
+             authStore.logout();
              throw new Error("Session expired or Unauthorized");
         }
     }
