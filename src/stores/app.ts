@@ -1,8 +1,19 @@
 import { defineStore } from 'pinia'
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { useQueryClient } from '@tanstack/vue-query'
+import {
+  getGetCharactersQueryKey,
+  useCreateCharacter,
+  useUpdateCharacter,
+} from '@/api/generated/endpoints'
 import type { SRDRace, SRDClass } from '@/types/srd'
-import type { Character } from '@/types/character'
+import {
+  mapApiCharacterToCharacter,
+  toCharacterCreateInput,
+  type ApiCharacterModel,
+  type Character,
+} from '@/types/character'
 
 export interface Campaign {
   id: string
@@ -61,10 +72,12 @@ export interface Quest {
   updatedAt: Date
 }
 
-import { authenticatedFetch, buildApiUrl } from '@/utils/api';
-
 const router = useRouter()
 export const useAppStore = defineStore('app', () => {
+  const queryClient = useQueryClient()
+  const createCharacterMutation = useCreateCharacter()
+  const updateCharacterMutation = useUpdateCharacter()
+
   // État utilisateur
   const user = ref<{ id: string; name: string; email: string; role: 'player' | 'gm' } | null>(null)
   const isAuthenticated = ref(false)
@@ -86,33 +99,14 @@ export const useAppStore = defineStore('app', () => {
   // Actions pour les personnages
   const createCharacter = async (character: Omit<Character, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
-      const payload = {
-        name: character.name,
-        race: character.race.name,
-        class: character.class.name,
-        level: character.level,
-        data: character
-      };
-
-      const response = await authenticatedFetch(buildApiUrl('/characters'), {
-        method: 'POST',
-        body: JSON.stringify(payload)
+      const response = await createCharacterMutation.mutateAsync({
+        data: toCharacterCreateInput(character as Character),
       });
+      const newCharacter = mapApiCharacterToCharacter(response.data as ApiCharacterModel)
 
-      if (!response.ok) {
-        throw new Error('Failed to save character');
-      }
-
-      const savedChar = await response.json();
-      
-      const newCharacter: Character = {
-        ...character,
-        id: savedChar.id,
-        createdAt: new Date(savedChar.createdAt),
-        updatedAt: new Date(savedChar.updatedAt)
-      }
       characters.value.push(newCharacter)
       currentCharacter.value = newCharacter
+      await queryClient.invalidateQueries({ queryKey: getGetCharactersQueryKey() })
       return newCharacter;
     } catch (error) {
       console.error("Error saving character:", error);
@@ -126,37 +120,21 @@ export const useAppStore = defineStore('app', () => {
 
   const updateCharacter = async (id: string | number, updates: Partial<Character>) => {
     try {
-      const payload: any = { data: updates };
-      if (updates.name) payload.name = updates.name;
-      if (updates.race?.name) payload.race = updates.race.name;
-      if (updates.class?.name) payload.class = updates.class.name;
-      if (updates.level) payload.level = updates.level;
-
-      const response = await authenticatedFetch(buildApiUrl(`/characters/${id}`), {
-        method: 'PUT',
-        body: JSON.stringify(payload)
+      const response = await updateCharacterMutation.mutateAsync({
+        id: String(id),
+        data: toCharacterCreateInput(updates as Character),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to update character');
-      }
-      
-      const updatedChar = await response.json();
-      
+      const updatedChar = mapApiCharacterToCharacter(response.data as ApiCharacterModel)
+
       const index = characters.value.findIndex(c => c.id == id)
       if (index !== -1) {
-        const newChar = {
-          ...characters.value[index],
-          ...updatedChar,
-          id: updatedChar.id,
-          createdAt: new Date(updatedChar.createdAt),
-          updatedAt: new Date(updatedChar.updatedAt)
-        }
-        characters.value[index] = newChar
+        characters.value[index] = updatedChar
         if (currentCharacter.value?.id == id) {
-          currentCharacter.value = newChar
+          currentCharacter.value = updatedChar
         }
       }
+      await queryClient.invalidateQueries({ queryKey: getGetCharactersQueryKey() })
       return updatedChar;
     } catch (error) {
       console.error("Error updating character:", error);

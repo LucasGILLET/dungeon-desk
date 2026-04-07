@@ -39,8 +39,8 @@
                 <svg class="w-6 h-6 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
              </div>
           </div>
-          <p class="text-zinc-500 mt-4 font-light text-sm uppercase tracking-widest">
-             {{ translateRaceName(character.race?.name) }} {{ character.subrace.name ? `(${translateSubraceName(character.subrace.name)})` : '' }} • {{ getTranslatedClassName(character.class.name) }} {{ character.subclass ? `• ${translateSubclassName(character.subclass.name)}` : '' }} • Niv. 1
+           <p class="text-zinc-500 mt-4 font-light text-sm uppercase tracking-widest">
+             {{ translateRaceName(character.race?.name) }} {{ character.subrace?.name ? `(${translateSubraceName(character.subrace.name)})` : '' }} • {{ getTranslatedClassName(character.class.name) }} {{ character.subclass ? `• ${translateSubclassName(character.subclass.name)}` : '' }} • Niv. 1
           </p>
         </div>
 
@@ -292,7 +292,6 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useCharacterStore } from '@/stores/character'
 import { useAuthStore } from '@/stores/auth'
 import TutorialGuide from '@/components/TutorialGuide.vue'
 import { useTutorial } from '@/composables/useTutorial'
@@ -304,9 +303,11 @@ import { translateSubraceName } from '@/utils/subrace'
 import { translateSubclassName } from '@/utils/subclasses'
 import StepNavigation from '../StepNavigation.vue'
 import ProficiencyBadge from '../7-Proficiencies/ProficiencyBadge.vue'
-import type { SRDRace } from '@/types/srd'
+import type { SRDRace, SRDTrait } from '@/types/srd'
 import type { Character } from '@/types/character'
 import { getBackgroundName } from '@/utils/backgrounds'
+import type { ProficiencyChoice } from '@/utils/proficiencies'
+import type { Subrace } from '@/utils/subrace'
 
 const props = defineProps<{
   character: Character
@@ -338,11 +339,18 @@ const {
 /* --- End Tutorial Logic --- */
 
 const router = useRouter()
-const characterStore = useCharacterStore()
 const authStore = useAuthStore()
 const loading = ref(false)
 
-const srdTraits = ref<any[]>([])
+type CharacterTrait = {
+  index: string
+  name: string
+  desc?: string[]
+}
+
+type CharacterProficienciesMap = Record<string, ProficiencyChoice[]>
+
+const srdTraits = ref<SRDTrait[]>([])
 
 onMounted(async () => {
   try {
@@ -368,7 +376,7 @@ const hasAnyProficiencies = computed(() => {
   if (!prof) return false
   
   return Object.keys(prof).some(key => {
-    const items = (prof as Record<string, any>)[key]
+    const items = (prof as CharacterProficienciesMap)[key]
     return Array.isArray(items) && items.length > 0
   })
 })
@@ -377,10 +385,10 @@ const skillsProficiencies = computed(() => {
   const prof = props.character.allProficiencies
   if (!prof) return []
   
-  const skills: any[] = []
+  const skills: ProficiencyChoice[] = []
   Object.keys(prof).forEach(key => {
     if (key.includes('competences') || key.includes('skills')) {
-      const items = (prof as Record<string, any>)[key]
+      const items = (prof as CharacterProficienciesMap)[key]
       if (Array.isArray(items)) {
         skills.push(...items)
       }
@@ -393,10 +401,10 @@ const languagesProficiencies = computed(() => {
   const prof = props.character.allProficiencies
   if (!prof) return []
   
-  const languages: any[] = []
+  const languages: ProficiencyChoice[] = []
   Object.keys(prof).forEach(key => {
     if (key.includes('langue') || key.includes('languages')) {
-      const items = (prof as Record<string, any>)[key]
+      const items = (prof as CharacterProficienciesMap)[key]
       if (Array.isArray(items)) {
         languages.push(...items)
       }
@@ -409,10 +417,10 @@ const toolsProficiencies = computed(() => {
   const prof = props.character.allProficiencies
   if (!prof) return []
   
-  const tools: any[] = []
+  const tools: ProficiencyChoice[] = []
   Object.keys(prof).forEach(key => {
     if (key.includes('outils') || key.includes('tools')) {
-      const items = (prof as Record<string, any>)[key]
+      const items = (prof as CharacterProficienciesMap)[key]
       if (Array.isArray(items)) {
         tools.push(...items)
       }
@@ -459,7 +467,7 @@ const specialChoicesDisplay = computed(() => {
   const choices = props.character.specialChoices
   if (!choices) return {}
   
-  const result: Record<string, any> = {}
+  const result: Record<string, string[]> = {}
   
   Object.keys(choices).forEach(key => {
     const items = choices[key]
@@ -539,35 +547,39 @@ function getAbilitiesDisplay() {
   const abilityNames = ['Force', 'Dextérité', 'Constitution', 'Intelligence', 'Sagesse', 'Charisme']
   const abilityEnglishShortKeys = ['str', 'dex', 'con', 'int', 'wis', 'cha'] as const;
 
+  const getSubraceBonus = (name: string, abilityEnglishKey: string): number => {
+    const subrace = props.character.subrace
+    if (!subrace) return 0
+
+    if ('abilityBonuses' in subrace) {
+      return (subrace as Subrace).abilityBonuses?.[name] || 0
+    }
+
+    if ('ability_bonuses' in subrace && Array.isArray(subrace.ability_bonuses)) {
+      return subrace.ability_bonuses.find((bonus) => {
+        const key = bonus.ability_score.index || bonus.ability_score.name.toLowerCase().substring(0, 3)
+        return key === abilityEnglishKey
+      })?.bonus || 0
+    }
+
+    return 0
+  }
+
   return abilityNames.map((name, index) => {
     // Ensure the key exists with a fallback or type assertion if you are 100% sure the arrays align
     const abilityEnglishKey = abilityEnglishShortKeys[index] || 'str' 
     const baseValue: number = props.character.abilities[abilityEnglishKey] || 8
 
     // Racial Bonus logic
-    const racialBonus = props.character.race.ability_bonuses?.find((bonus: any) => {
+    const racialBonus = props.character.race.ability_bonuses?.find((bonus) => {
         // Handle various SRD structures (index vs name)
         const key = bonus.ability_score.index || bonus.ability_score.name.toLowerCase().substring(0, 3)
         return key === abilityEnglishKey
     })?.bonus || 0
 
-    // Subrace logic (assuming subrace.abilityBonuses might use localized keys or original keys)
-    // We try to match robustly
-    let subraceBonus = 0
-    if (props.character.subrace?.abilityBonuses) {
-        // Try French Name
-        subraceBonus = props.character.subrace.abilityBonuses[name] || 0
-        // Try English Key if 0
-        if (!subraceBonus) {
-             const upperKey = abilityEnglishKey.toUpperCase() // STR
-             // Mapping if needed, but let's assume standard keys
-        }
-    }
-    
-    // Simplification based on presumed existing data structure
-    const simpleSubraceBonus = props.character.subrace?.abilityBonuses ? (props.character.subrace.abilityBonuses[name] || 0) : 0
+    const subraceBonus = getSubraceBonus(name, abilityEnglishKey)
 
-    const finalValue = baseValue + racialBonus + simpleSubraceBonus
+    const finalValue = baseValue + racialBonus + subraceBonus
     
     return {
       name: name.substring(0, 3),
@@ -660,7 +672,7 @@ async function finalizeCharacter() {
   emit('finalize');
 }
 
-function getTraitDescription(trait: any): string {
+function getTraitDescription(trait: CharacterTrait): string {
   if (trait.desc && Array.isArray(trait.desc)) {
     return trait.desc.join(' ')
   }

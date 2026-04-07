@@ -211,7 +211,7 @@ import StepNavigation from '../StepNavigation.vue'
 import SubraceDetailsModal from './SubraceDetailsModal.vue'
 import TutorialGuide from '@/components/TutorialGuide.vue'
 import { useTutorial } from '@/composables/useTutorial'
-import type { SRDRace } from '@/types/srd'
+import type { SRDRace, SRDSubclass } from '@/types/srd'
 import { getSubracesByParentRace, getSubraceEmoji, getSubraceDescription } from '@/utils/subrace'
 import type { Character } from '@/types/character'
 
@@ -221,15 +221,15 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  next: [subrace: any]
+  next: [subrace: SRDSubclass | null]
   prev: []
 }>()
 
-const availableSubraces = ref<any[]>([])
-const selectedSubrace = ref<any | null>(null)
+const availableSubraces = ref<SRDSubclass[]>([])
+const selectedSubrace = ref<SRDSubclass | null>(null)
 const loading = ref(false)
 const showSubraceDetails = ref(false)
-const selectedDetailSubrace = ref<any | null>(null)
+const selectedDetailSubrace = ref<SRDSubclass | null>(null)
 
 /* --- Tutorial Logic --- */
 const tutorialSteps = [
@@ -256,7 +256,7 @@ const {
 function nextTutorialStep() {
     // Auto-select first available subrace at traits step to show them
     if (tutorialStep.value === 1 && !selectedSubrace.value && availableSubraces.value.length > 0) {
-        selectedSubrace.value = availableSubraces.value[0]
+    selectedSubrace.value = availableSubraces.value[0] ?? null
     }
     next()
 }

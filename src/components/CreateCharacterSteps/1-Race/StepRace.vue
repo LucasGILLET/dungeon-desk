@@ -268,10 +268,11 @@ import TutorialGuide from '@/components/TutorialGuide.vue'
 import { useTutorial, enableTutorials, disableTutorials } from '@/composables/useTutorial'
 import { loadRaces } from '@/utils/dataLoader'
 import type { SRDRace } from '@/types/srd'
+import type { Character } from '@/types/character'
 import { getRaceDescription, translateRaceName, getRaceStats, getRaceTraits } from '@/utils/race';
 
 const props = defineProps<{
-  character: any
+  character: Character
   selectedRace?: SRDRace | null
 }>()
 

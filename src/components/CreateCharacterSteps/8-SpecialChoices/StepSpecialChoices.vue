@@ -251,7 +251,7 @@ function isDisabled(choice: SpecialChoice, option: SpecialChoiceOption): boolean
     }
     const mappedId = skillMap[option.id] || option.id
 
-    const listOfProficienciesIndexes = character.allProficiencies?.skills.map((prof: any) => prof.id)
+    const listOfProficienciesIndexes = character.allProficiencies?.skills.map((prof) => prof.id)
     if (!listOfProficienciesIndexes) return true
     return !listOfProficienciesIndexes.includes(mappedId)
   }

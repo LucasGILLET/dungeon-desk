@@ -1,4 +1,8 @@
 import type { SRDBackground, SRDClass, SRDFeature, SRDRace, SRDSubclass } from './srd';
+import type { Subrace } from '@/utils/subrace';
+import type { Character as ApiCharacter } from '@/api/generated/model/character';
+import type { CharacterCreateInput } from '@/api/generated/model/characterCreateInput';
+import type { CharacterData } from '@/api/generated/model/characterData';
 
 // Base Ability Scores with English keys
 export interface AbilityScores {
@@ -21,9 +25,9 @@ export interface CharacterSheet {
     tools?: string[];
   };
   race: SRDRace;
-  subrace?: any; // To be refined with Subrace type
+  subrace?: SRDSubclass | Subrace | null;
   class: SRDClass;
-  subclass?: any; // To be refined
+  subclass?: SRDSubclass | null;
   background: SRDBackground;
   features: SRDFeature[];
   allProficiencies?: {
@@ -40,6 +44,8 @@ export interface CharacterSheet {
   specialChoices?: Record<string, string[]>;
 }
 
+export type ApiCharacterModel = ApiCharacter;
+
 // The full Character model used in the application state (UI)
 // This interface is FLATTENED for ease of use in Vue components
 export interface Character extends CharacterSheet {
@@ -50,3 +56,23 @@ export interface Character extends CharacterSheet {
   createdAt?: string | Date; // Date from DB
   updatedAt?: string | Date;
 }
+
+export const mapApiCharacterToCharacter = (apiCharacter: ApiCharacterModel): Character => {
+  const { name: _name, level: _level, ...rest } = (apiCharacter.data ?? {}) as Record<string, unknown>;
+
+  return {
+    ...(rest as Partial<Character>),
+    id: apiCharacter.id,
+    userId: apiCharacter.userId,
+    name: apiCharacter.name,
+    level: apiCharacter.level,
+    createdAt: apiCharacter.createdAt,
+    updatedAt: apiCharacter.updatedAt,
+  } as Character;
+};
+
+export const toCharacterCreateInput = (character: Character): CharacterCreateInput => ({
+  name: character.name,
+  level: character.level,
+  data: character as unknown as CharacterData,
+});

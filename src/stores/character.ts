@@ -1,39 +1,58 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import { useAuthStore } from './auth';
-import { authenticatedFetch, buildApiUrl } from '@/utils/api';
+import { useQueryClient } from '@tanstack/vue-query';
+import {
+    getCharacter,
+    getCharacters,
+    getGetCharactersQueryKey,
+    useCreateCharacter,
+    useUpdateCharacter,
+} from '@/api/generated/endpoints';
+import {
+    mapApiCharacterToCharacter,
+    toCharacterCreateInput,
+    type ApiCharacterModel,
+    type Character,
+} from '@/types/character';
 
 export const useCharacterStore = defineStore('character', () => {
-    const characters = ref<any[]>([]);
+    const queryClient = useQueryClient();
+    const characters = ref<Character[]>([]);
     const loading = ref(false);
     const error = ref<string | null>(null);
-    
-    const authStore = useAuthStore();
-    const API_URL = buildApiUrl('/characters');
+    const createCharacterMutation = useCreateCharacter();
+    const updateCharacterMutation = useUpdateCharacter();
+
+    const getErrorMessage = (err: unknown) => err instanceof Error ? err.message : 'Failed to load characters';
+
+    const upsertCharacter = (nextCharacter: Character) => {
+        const index = characters.value.findIndex((char) => char.id === nextCharacter.id);
+
+        if (index === -1) {
+            characters.value.unshift(nextCharacter);
+            return;
+        }
+
+        characters.value[index] = nextCharacter;
+    };
 
     const fetchCharacters = async () => {
         loading.value = true;
         error.value = null;
         try {
-            const response = await authenticatedFetch(API_URL);
+            const fetchedCharacters = await queryClient.fetchQuery<Character[]>({
+                queryKey: getGetCharactersQueryKey(),
+                queryFn: async () => {
+                    const response = await getCharacters();
+                    return response.data.map((character) => mapApiCharacterToCharacter(character as ApiCharacterModel));
+                },
+            });
 
-            if (!response.ok) throw new Error('Failed to fetch characters');
-
-            const rawCharacters = await response.json();
-            
-            // Map the nested DB structure { id, name, level, data: { ... } } back to UI flat structure
-            characters.value = rawCharacters.map((char: any) => ({
-                id: char.id,
-                name: char.name,
-                level: char.level,
-                createdAt: char.createdAt,
-                updatedAt: char.updatedAt,
-                userId: char.userId,
-                // Flatten the 'data' JSON content into the top level
-                ...char.data
-            }));
-        } catch (err: any) {
-            error.value = err.message;
+            characters.value = fetchedCharacters;
+            return fetchedCharacters;
+        } catch (err) {
+            error.value = getErrorMessage(err);
+            throw err;
         } finally {
             loading.value = false;
         }
@@ -43,71 +62,65 @@ export const useCharacterStore = defineStore('character', () => {
         loading.value = true;
         error.value = null;
         try {
-            const response = await authenticatedFetch(`${API_URL}/${id}`);
-
-            if (!response.ok) throw new Error('Failed to fetch character');
-            
-            const rawChar = await response.json();
-            
-            // Return flattened structure
-            return {
-                id: rawChar.id,
-                name: rawChar.name,
-                level: rawChar.level,
-                createdAt: rawChar.createdAt,
-                updatedAt: rawChar.updatedAt,
-                userId: rawChar.userId,
-                ...rawChar.data
-            };
-        } catch(err: any){
-            error.value = err.message;
-             throw err;
+            return await queryClient.fetchQuery<Character>({
+                queryKey: ['characters', String(id)],
+                queryFn: async () => {
+                    const response = await getCharacter(String(id));
+                    return mapApiCharacterToCharacter(response.data as ApiCharacterModel);
+                },
+            });
+        } catch (err) {
+            error.value = getErrorMessage(err);
+            throw err;
         } finally {
             loading.value = false;
         }
     }
 
-    const saveCharacter = async (charData: any) => {
+    const saveCharacter = async (charData: Character) => {
         loading.value = true;
         error.value = null;
         try {
-            // Prepare payload for backend: { name, level, data: FLATTENED_OBJECT }
-            // The backend expects the rich data inside 'data'
-            const payload = {
-                name: charData.name,
-                level: charData.level,
-                data: charData // We send the whole object as data, backend will validate
-            };
-
-            const response = await authenticatedFetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify(payload)
+            const response = await createCharacterMutation.mutateAsync({
+                data: toCharacterCreateInput(charData as Character),
             });
+            const newCharacter = mapApiCharacterToCharacter(response.data as ApiCharacterModel);
 
-            if (!response.ok) throw new Error('Failed to save character');
-            
-            const newRawChar = await response.json();
-            
-            // Flatten the response before adding to store
-            const newChar = {
-                id: newRawChar.id,
-                name: newRawChar.name,
-                level: newRawChar.level,
-                createdAt: newRawChar.createdAt,
-                updatedAt: newRawChar.updatedAt,
-                userId: newRawChar.userId,
-                ...newRawChar.data
-            };
+            upsertCharacter(newCharacter);
+            await queryClient.invalidateQueries({ queryKey: getGetCharactersQueryKey() });
 
-            characters.value.push(newChar);
-            return { success: true, char: newChar };
-        } catch (err: any) {
-            error.value = err.message;
-            return { success: false, error: err.message };
+            return { success: true, char: newCharacter };
+        } catch (err) {
+            const message = getErrorMessage(err);
+            error.value = message;
+            return { success: false, error: message };
         } finally {
             loading.value = false;
         }
     };
 
-    return { characters, loading, error, fetchCharacters, fetchCharacter, saveCharacter };
+    const updateCharacter = async (id: number | string, charData: Character) => {
+        loading.value = true;
+        error.value = null;
+        try {
+            const response = await updateCharacterMutation.mutateAsync({
+                id: String(id),
+                data: toCharacterCreateInput(charData as Character),
+            });
+            const updatedCharacter = mapApiCharacterToCharacter(response.data as ApiCharacterModel);
+
+            upsertCharacter(updatedCharacter);
+            await queryClient.invalidateQueries({ queryKey: getGetCharactersQueryKey() });
+
+            return { success: true, char: updatedCharacter };
+        } catch (err) {
+            const message = getErrorMessage(err);
+            error.value = message;
+            return { success: false, error: message };
+        } finally {
+            loading.value = false;
+        }
+    };
+
+    return { characters, loading, error, fetchCharacters, fetchCharacter, saveCharacter, updateCharacter };
 });

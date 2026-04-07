@@ -46,10 +46,10 @@
                         </div>
                     </div>
                      <!-- Subrace Card -->
-                    <div v-if="character.subrace.name" class="bg-zinc-800/30 border border-zinc-700/50 p-4 rounded-lg hover:border-amber-500/30 transition-colors">
+                    <div v-if="character.subrace?.name" class="bg-zinc-800/30 border border-zinc-700/50 p-4 rounded-lg hover:border-amber-500/30 transition-colors">
                         <div class="text-[10px] text-zinc-500 uppercase tracking-widest mb-1 font-bold">Sous-race</div>
-                        <div class="text-xl font-serif font-bold text-amber-500">{{ character.subrace.name }}</div>
-                        <div class="text-sm text-zinc-400 mt-1 line-clamp-2 italic">"{{ character.subrace.desc || '...' }}"</div>
+                      <div class="text-xl font-serif font-bold text-amber-500">{{ character.subrace?.name }}</div>
+                      <div class="text-sm text-zinc-400 mt-1 line-clamp-2 italic">"{{ character.subrace && 'desc' in character.subrace ? character.subrace.desc : '...' }}"</div>
                     </div>
                 </div>
             </div>

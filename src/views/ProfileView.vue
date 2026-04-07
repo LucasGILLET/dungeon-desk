@@ -147,7 +147,7 @@
                              <div class="flex justify-between items-start mb-2">
                                  <div>
                                     <h3 class="font-bold text-lg text-white group-hover:text-amber-400 transition-colors">{{ char.name }}</h3>
-                                    <div class="text-xs text-zinc-500">{{ new Date(char.createdAt).toLocaleDateString() }}</div>
+                                                <div class="text-xs text-zinc-500">{{ char.createdAt ? new Date(char.createdAt).toLocaleDateString() : '-' }}</div>
                                  </div>
                                   <span class="text-xs px-2 py-1 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
                                     Niv. {{ char.level }}

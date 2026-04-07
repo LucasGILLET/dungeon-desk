@@ -236,8 +236,19 @@ const props = defineProps<{
   selectedRace?: SRDRace | null
 }>()
 
+type ProficiencySelectionPayload = {
+  selectedProficiencies: Record<string, ProficiencyChoice[]>
+  allProficiencies: {
+    skills: ProficiencyChoice[]
+    languages: ProficiencyChoice[]
+    tools: ProficiencyChoice[]
+  }
+}
+
+type ChoiceGroup = ProficiencyData['choiceGroups'][number]
+
 const emit = defineEmits<{
-  next: [payload: any]
+  next: [payload: ProficiencySelectionPayload]
   prev: []
 }>()
 
@@ -298,7 +309,7 @@ function isSelected(groupId: string, choiceId: string): boolean {
   return selections.value[groupId]?.some(choice => choice.id === choiceId) || false
 }
 
-function isUnavailable(group: any, choiceId: string): boolean {
+function isUnavailable(group: ChoiceGroup, choiceId: string): boolean {
   return group.unavailableChoices?.includes(choiceId) || false
 }
 
@@ -344,7 +355,7 @@ function validateChoices() {
 onMounted(() => {
   proficiencyData.value = getAllCharacterProficiencies(
     props.character.race.index,
-    props.character.subrace?.index,
+    props.character.subrace?.index ?? '',
     props.character.class.index,
     props.character.background.index
   )

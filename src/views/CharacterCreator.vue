@@ -234,7 +234,6 @@ async function handleNext(payload: any) {
   if (step.value === 6 && payload) {
     character.proficiencies = payload.selectedProficiencies
     character.allProficiencies = payload.allProficiencies
-    character.proficiencies = payload.proficiencies
   }
 
   

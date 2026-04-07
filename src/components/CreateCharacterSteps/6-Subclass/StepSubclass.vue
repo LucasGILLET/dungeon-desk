@@ -178,7 +178,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  next: [payload: any]
+  next: [payload: SubclassData | null]
   prev: []
 }>()
 
