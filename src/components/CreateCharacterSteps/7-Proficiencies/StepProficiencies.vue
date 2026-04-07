@@ -238,7 +238,7 @@ const props = defineProps<{
 
 type ProficiencySelectionPayload = {
   selectedProficiencies: Record<string, ProficiencyChoice[]>
-  allProficiencies: {
+  proficiencies: {
     skills: ProficiencyChoice[]
     languages: ProficiencyChoice[]
     tools: ProficiencyChoice[]
@@ -333,7 +333,7 @@ function toggleSelection(groupId: string, choice: ProficiencyChoice, maxCount: n
 }
 
 function validateChoices() {
-  const allProficiencies = {
+  const proficiencies = {
     skills: [...automaticSkills.value],
     languages: [...automaticLanguages.value, ...automaticRacialLanguages.value],
     tools: [...automaticTools.value]
@@ -341,14 +341,14 @@ function validateChoices() {
 
   // Add selected choices
   Object.values(selections.value).flat().forEach(choice => {
-    if (choice.category === 'skill') allProficiencies.skills.push(choice)
-    else if (choice.category === 'language') allProficiencies.languages.push(choice)
-    else if (choice.category === 'tool') allProficiencies.tools.push(choice)
+    if (choice.category === 'skill') proficiencies.skills.push(choice)
+    else if (choice.category === 'language') proficiencies.languages.push(choice)
+    else if (choice.category === 'tool') proficiencies.tools.push(choice)
   })
 
   emit('next', {
     selectedProficiencies: selections.value,
-    allProficiencies
+    proficiencies
   })
 }
 

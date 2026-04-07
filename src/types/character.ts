@@ -4,6 +4,19 @@ import type { Character as ApiCharacter } from '@/api/generated/model/character'
 import type { CharacterCreateInput } from '@/api/generated/model/characterCreateInput';
 import type { CharacterData } from '@/api/generated/model/characterData';
 
+export interface CharacterProficiency {
+  name: string;
+  id: string;
+  description: string;
+  category: string;
+}
+
+export interface CharacterProficiencies {
+  skills: CharacterProficiency[];
+  languages: CharacterProficiency[];
+  tools: CharacterProficiency[];
+}
+
 // Base Ability Scores with English keys
 export interface AbilityScores {
   str: number;
@@ -19,22 +32,13 @@ export interface AbilityScores {
 export interface CharacterSheet {
   abilities: AbilityScores;
   vision?: string;
-  proficiencies: {
-    skills: string[];
-    languages: string[];
-    tools?: string[];
-  };
+  proficiencies: CharacterProficiencies;
   race: SRDRace;
   subrace?: SRDSubclass | Subrace | null;
   class: SRDClass;
   subclass?: SRDSubclass | null;
   background: SRDBackground;
   features: SRDFeature[];
-  allProficiencies?: {
-    skills: { name: string; id: string; description: string; category: string }[];
-    languages: { name: string; id: string; description: string; category: string }[];
-    tools: { name: string; id: string; description: string; category: string }[];
-  };
   allTraits?: {
     index: string;
     name: string;

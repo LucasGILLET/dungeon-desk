@@ -214,7 +214,7 @@
                             </div>
                         </div>
 
-                         <div v-if="categorizedProficiencies.savingThrows.length > 0 && categorizedProficiencies.weapons" class="space-y-2">
+                         <div v-if="categorizedProficiencies.weapons.length > 0" class="space-y-2">
                             <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block">Équipement Martial</span>
                              <div class="flex flex-wrap gap-1.5">
                                 <ProficiencyBadge 
@@ -225,7 +225,7 @@
                             </div>
                          </div>
 
-                          <div v-if="categorizedProficiencies.savingThrows.length > 0 && categorizedProficiencies.armor" class="space-y-2">
+                          <div v-if="categorizedProficiencies.armor.length > 0" class="space-y-2">
                             <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block">Armures</span>
                              <div class="flex flex-wrap gap-1.5">
                                 <ProficiencyBadge 
@@ -237,7 +237,7 @@
                          </div>
 
 
-                          <div v-if="categorizedProficiencies.savingThrows.length > 0 && categorizedProficiencies.savingThrows" class="space-y-2">
+                          <div v-if="categorizedProficiencies.savingThrows.length > 0" class="space-y-2">
                             <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block">Jets de sauvegarde</span>
                              <div class="flex flex-wrap gap-1.5">
                                 <ProficiencyBadge 
@@ -284,6 +284,7 @@
           step-name="Finalisation"
           @previous="$emit('prev')"
           @next="finalizeCharacter"
+          @pdf="exportPdf"
         />
       </div>
   </div>
@@ -308,6 +309,130 @@ import type { Character } from '@/types/character'
 import { getBackgroundName } from '@/utils/backgrounds'
 import type { ProficiencyChoice } from '@/utils/proficiencies'
 import type { Subrace } from '@/utils/subrace'
+import { usePdfExport } from '@/composables/usePdfExport'
+import type { PDFCharacterData } from '@/types/pdfExport'
+
+type SelectedProficiency = {
+  name: string
+  id: string
+  description: string
+  category: string
+}
+
+type AllSelectedProficiencies = {
+  skills: SelectedProficiency[]
+  languages: SelectedProficiency[]
+  tools: SelectedProficiency[]
+}
+
+function normalizeSelectedProficiencies(character: Character): AllSelectedProficiencies {
+  const source = character.proficiencies
+
+  return {
+    skills: source?.skills ?? [],
+    languages: source?.languages ?? [],
+    tools: source?.tools ?? []
+  }
+}
+
+function hasSkill(selected: SelectedProficiency[], name: string): boolean {
+  return selected.some(skill => skill.name === name)
+}
+
+function hasSavingThrow(character: Character, aliases: string[]): boolean {
+  const savingThrows = character.class?.saving_throws ?? []
+  return savingThrows.some(st => aliases.includes(st.index))
+}
+
+
+  function toPDFCharacterData(character: Character): PDFCharacterData {
+    const abilities = getAbilitiesDisplay()
+    const normalizedProficiencies = normalizeSelectedProficiencies(character)
+    const selectedSkills = normalizedProficiencies.skills
+
+    const abilityFromSummary = (label: string): number | undefined => abilities.find(a => a.name === label)?.final
+    const strength = abilityFromSummary('For') ?? character.abilities.str
+    const dexterity = abilityFromSummary('Dex') ?? character.abilities.dex
+    const constitution = abilityFromSummary('Con') ?? character.abilities.con
+    const intelligence = abilityFromSummary('Int') ?? character.abilities.int
+    const wisdom = abilityFromSummary('Sag') ?? character.abilities.wis
+    const charisma = abilityFromSummary('Cha') ?? character.abilities.cha
+
+    const initiative = Number.parseInt(getInitiative(), 10) || 0
+    const speed = convertSpeedToMeters(character.race?.speed) || 9
+    const otherMasteries = [
+      ...normalizedProficiencies.languages.map(lang => lang.name),
+      ...normalizedProficiencies.tools.map(tool => tool.name),
+    ].join(', ')
+
+    console.log('Mapping character to PDF data:', character, "Mapped abilities for PDF:", abilities)
+    return {
+      name: character.name,
+      characterClass: character.class?.name || '',
+      level: character.level || 1,
+      background: character.background?.name || '',
+      playerName: character.name || '', // mettre le nom du compte
+      race: character.race?.name || '',
+      alignment: '', // non défini
+      experience: 0, // non défini
+      strength,
+      dexterity,
+      constitution,
+      intelligence,
+      wisdom,
+      charisma,
+      // Saving throws (à adapter selon structure)
+      strengthCheck: hasSavingThrow(character, ['for', 'str']),
+      dexterityCheck: hasSavingThrow(character, ['dex']),
+      constitutionCheck: hasSavingThrow(character, ['con']),
+      intelligenceCheck: hasSavingThrow(character, ['int']),
+      wisdomCheck: hasSavingThrow(character, ['wis']),
+      charismaCheck: hasSavingThrow(character, ['cha']),
+      // Skills (à adapter selon structure)
+      acrobatics: hasSkill(selectedSkills, 'Acrobaties'),
+      animalHandling: hasSkill(selectedSkills, 'Dressage'),
+      arcana: hasSkill(selectedSkills, 'Arcanes'),
+      athletics: hasSkill(selectedSkills, 'Athlétisme'),
+      deception: hasSkill(selectedSkills, 'Tromperie'),
+      history: hasSkill(selectedSkills, 'Histoire'),
+      insight: hasSkill(selectedSkills, 'Intuition'),
+      intimidation: hasSkill(selectedSkills, 'Intimidation'),
+      investigation: hasSkill(selectedSkills, 'Investigation'),
+      medicine: hasSkill(selectedSkills, 'Médecine'),
+      nature: hasSkill(selectedSkills, 'Nature'),
+      perception: hasSkill(selectedSkills, 'Perception'),
+      performance: hasSkill(selectedSkills, 'Représentation'),
+      persuasion: hasSkill(selectedSkills, 'Persuasion'),
+      religion: hasSkill(selectedSkills, 'Religion'),
+      sleightOfHand: hasSkill(selectedSkills, 'Escamotage'),
+      stealth: hasSkill(selectedSkills, 'Discrétion'),
+      survival: hasSkill(selectedSkills, 'Survie'),
+      armorClass: getBaseAC(),
+      initiative,
+      speed,
+      hpMax: getEstimatedHP(),
+      hpCurrent: getEstimatedHP(),
+      hitDice: `1d${character.class?.hit_die}`,
+      featuresTraits: character.allTraits?.map(trait => (trait.name)).join(', '),
+      attacks: [],
+      appearance: '',
+      equipment: '',
+      pc: 0,
+      pa: 0,
+      pe: 0,
+      po: 0,
+      pp: 0,
+      otherMasteries,
+    }
+  }
+
+  const { generatePdf, downloadPdf } = usePdfExport()
+
+  async function exportPdf() {
+    const pdfCharacter = toPDFCharacterData(props.character)
+    const pdfBytes = await generatePdf(pdfCharacter)
+    downloadPdf(pdfBytes, `${pdfCharacter.name || 'personnage'}.pdf`)
+  }
 
 const props = defineProps<{
   character: Character
@@ -371,62 +496,18 @@ function formatSpecialChoiceKey(key: string): string {
     return map[key] || key
 }
 
-const hasAnyProficiencies = computed(() => {
-  const prof = props.character.allProficiencies
-  if (!prof) return false
   
-  return Object.keys(prof).some(key => {
-    const items = (prof as CharacterProficienciesMap)[key]
-    return Array.isArray(items) && items.length > 0
-  })
-})
 
 const skillsProficiencies = computed(() => {
-  const prof = props.character.allProficiencies
-  if (!prof) return []
-  
-  const skills: ProficiencyChoice[] = []
-  Object.keys(prof).forEach(key => {
-    if (key.includes('competences') || key.includes('skills')) {
-      const items = (prof as CharacterProficienciesMap)[key]
-      if (Array.isArray(items)) {
-        skills.push(...items)
-      }
-    }
-  })
-  return skills
+  return normalizeSelectedProficiencies(props.character).skills
 })
 
 const languagesProficiencies = computed(() => {
-  const prof = props.character.allProficiencies
-  if (!prof) return []
-  
-  const languages: ProficiencyChoice[] = []
-  Object.keys(prof).forEach(key => {
-    if (key.includes('langue') || key.includes('languages')) {
-      const items = (prof as CharacterProficienciesMap)[key]
-      if (Array.isArray(items)) {
-        languages.push(...items)
-      }
-    }
-  })
-  return languages
+  return normalizeSelectedProficiencies(props.character).languages
 })
 
 const toolsProficiencies = computed(() => {
-  const prof = props.character.allProficiencies
-  if (!prof) return []
-  
-  const tools: ProficiencyChoice[] = []
-  Object.keys(prof).forEach(key => {
-    if (key.includes('outils') || key.includes('tools')) {
-      const items = (prof as CharacterProficienciesMap)[key]
-      if (Array.isArray(items)) {
-        tools.push(...items)
-      }
-    }
-  })
-  return tools
+  return normalizeSelectedProficiencies(props.character).tools
 })
 
 const categorizedProficiencies = computed(() => {

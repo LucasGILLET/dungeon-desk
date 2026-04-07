@@ -115,32 +115,32 @@
                 </h3>
                 
                 <div class="grid grid-cols-1 gap-4">
-                    <div v-if="character.allProficiencies && character.allProficiencies.skills?.length" class="bg-zinc-800/20 p-4 rounded-lg">
+                    <div v-if="character.proficiencies && character.proficiencies.skills?.length" class="bg-zinc-800/20 p-4 rounded-lg">
                          <div class="text-[10px] text-zinc-500 uppercase tracking-widest mb-2 font-bold flex items-center gap-2">
                             <span class="w-1 h-1 rounded-full bg-amber-500"></span> Compétences
                          </div>
                          <div class="flex flex-wrap gap-2">
-                            <span v-for="skill in character.allProficiencies.skills" :key="skill.name" class="px-2.5 py-1 bg-zinc-800 border border-zinc-700 hover:border-zinc-500 rounded text-xs text-zinc-300 transition-colors cursor-default">
+                            <span v-for="skill in character.proficiencies.skills" :key="skill.name" class="px-2.5 py-1 bg-zinc-800 border border-zinc-700 hover:border-zinc-500 rounded text-xs text-zinc-300 transition-colors cursor-default">
                                 {{ skill.name }}
                             </span>
                          </div>
                     </div>
-                    <div v-if="character.allProficiencies && character.allProficiencies.tools?.length" class="bg-zinc-800/20 p-4 rounded-lg">
+                        <div v-if="character.proficiencies && character.proficiencies.tools?.length" class="bg-zinc-800/20 p-4 rounded-lg">
                          <div class="text-[10px] text-zinc-500 uppercase tracking-widest mb-2 font-bold flex items-center gap-2">
                             <span class="w-1 h-1 rounded-full bg-amber-500"></span> Outils
                          </div>
                          <div class="flex flex-wrap gap-2">
-                            <span v-for="tool in character.allProficiencies.tools" :key="tool.name" class="px-2.5 py-1 bg-zinc-800 border border-zinc-700 hover:border-zinc-500 rounded text-xs text-zinc-300 transition-colors cursor-default">
+                            <span v-for="tool in character.proficiencies.tools" :key="tool.name" class="px-2.5 py-1 bg-zinc-800 border border-zinc-700 hover:border-zinc-500 rounded text-xs text-zinc-300 transition-colors cursor-default">
                                 {{ tool.name }}
                             </span>
                          </div>
                     </div>
-                     <div v-if="character.allProficiencies && character.allProficiencies.languages?.length" class="bg-zinc-800/20 p-4 rounded-lg">
+                         <div v-if="character.proficiencies && character.proficiencies.languages?.length" class="bg-zinc-800/20 p-4 rounded-lg">
                          <div class="text-[10px] text-zinc-500 uppercase tracking-widest mb-2 font-bold flex items-center gap-2">
                             <span class="w-1 h-1 rounded-full bg-amber-500"></span> Langues
                          </div>
                          <div class="flex flex-wrap gap-2">
-                            <span v-for="lang in character.allProficiencies.languages" :key="lang.name" class="px-2.5 py-1 bg-zinc-800 border border-zinc-700 hover:border-zinc-500 rounded text-xs text-zinc-300 transition-colors cursor-default">
+                            <span v-for="lang in character.proficiencies.languages" :key="lang.name" class="px-2.5 py-1 bg-zinc-800 border border-zinc-700 hover:border-zinc-500 rounded text-xs text-zinc-300 transition-colors cursor-default">
                                 {{ lang.name }}
                             </span>
                          </div>
@@ -197,7 +197,7 @@ const hasAnyData = computed(() => {
 })
 
 const hasProficiencies = computed(() => {
-    const p = props.character.allProficiencies
+  const p = props.character.proficiencies
     if (!p) return false
     return (p.skills?.length ?? 0) > 0 || (p.tools?.length ?? 0) > 0 || (p.languages?.length ?? 0) > 0
 })

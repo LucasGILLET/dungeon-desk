@@ -111,11 +111,6 @@ const character = reactive<Character>({
     languages: [],
     tools: []
   },
-  allProficiencies: {} as {
-    skills: { name: string; id: string; description: string; category: string }[]
-    languages: { name: string; id: string; description: string; category: string }[]
-    tools: { name: string; id: string; description: string; category: string }[]
-  },
   allTraits: [] as {
     index: string
     name: string
@@ -137,6 +132,16 @@ onMounted(async () => {
       const fetched = await characterStore.fetchCharacter(Number(currentId.value))
       if (fetched) {
         Object.assign(character, fetched) // fetched is already flattened
+
+        const legacyProficiencies = (fetched as any).allProficiencies
+        if (legacyProficiencies && (!character.proficiencies?.skills?.length && !character.proficiencies?.languages?.length && !character.proficiencies?.tools?.length)) {
+          character.proficiencies = {
+            skills: legacyProficiencies.skills ?? [],
+            languages: legacyProficiencies.languages ?? [],
+            tools: legacyProficiencies.tools ?? []
+          }
+        }
+
         if (!character.name) character.name = fetched.name
         step.value = steps.length - 1
       }
@@ -154,6 +159,14 @@ onMounted(async () => {
                 try {
                     const parsed = JSON.parse(pending);
                     Object.assign(character, parsed);
+                    const legacyProficiencies = (parsed as any).allProficiencies
+                    if (legacyProficiencies && (!character.proficiencies?.skills?.length && !character.proficiencies?.languages?.length && !character.proficiencies?.tools?.length)) {
+                      character.proficiencies = {
+                        skills: legacyProficiencies.skills ?? [],
+                        languages: legacyProficiencies.languages ?? [],
+                        tools: legacyProficiencies.tools ?? []
+                      }
+                    }
                     // Jump to Summary
                     step.value = steps.length - 1;
                 } catch (e) {
@@ -232,8 +245,7 @@ async function handleNext(payload: any) {
   }
 
   if (step.value === 6 && payload) {
-    character.proficiencies = payload.selectedProficiencies
-    character.allProficiencies = payload.allProficiencies
+    character.proficiencies = payload.proficiencies
   }
 
   
