@@ -83,7 +83,7 @@
       </div>
       
       <div 
-        class="races-container w-full flex-1 flex justify-center gap-2 overflow-hidden py-4 min-h-[500px]"
+        class="races-container w-full flex-1 flex justify-start sm:justify-center gap-2 overflow-x-auto sm:overflow-hidden py-4 min-h-[360px] sm:min-h-[500px] px-1"
         :class="{'relative z-40': isTutorialStep(1) || isTutorialStep(2) || isTutorialStep(3) || isTutorialStep(4)}"
       >
         <div 
@@ -93,10 +93,11 @@
           :class="[
             `race-card cursor-pointer relative overflow-hidden rounded-2xl border transition-all duration-500 ease-out`,
             selectedRace?.index === race.index 
-              ? 'border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.15)] z-20 opacity-100 scale-100 flex-[2_!important]' 
+              ? 'border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.15)] z-20 opacity-100 scale-100 sm:flex-[2_!important]' 
               : 'border-zinc-800 grayscale hover:grayscale-0 opacity-40 hover:opacity-100 hover:border-zinc-600'
           ]"
-          style="flex: 1; min-width: 80px;"
+          style="flex: 1;"
+          class="min-w-[150px] sm:min-w-[80px]"
         >
           <!-- Background Image with Gradient Overlay -->
           <div class="absolute inset-0 bg-cover bg-center transition-transform duration-700"

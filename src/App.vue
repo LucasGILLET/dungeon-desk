@@ -6,7 +6,7 @@ import DiceRollerTrigger from '@/components/DiceRollerTrigger.vue'
 import { openDiceRoller } from '@/composables/useDiceRoller'
 
 const route = useRoute()
-// On cache le bouton sur la home, login et register pour ne pas gêner
+// On masque le bouton home sur les vues où il gêne les contrôles principaux.
 const showHomeButton = computed(() => {
   return !['/'].includes(route.path)
 })
@@ -48,7 +48,7 @@ onBeforeUnmount(() => {
   <router-link
     v-if="showHomeButton"
     to="/"
-    class="fixed top-6 left-6 z-50 p-3 bg-zinc-900/90 text-amber-500 rounded-full hover:bg-zinc-800 hover:scale-110 hover:text-amber-400 transition-all border border-amber-500/30 shadow-lg shadow-black/50 backdrop-blur-sm group flex items-center justify-center print:hidden"
+    class="fixed left-3 bottom-20 sm:bottom-auto sm:top-6 sm:left-6 z-50 p-3 bg-zinc-900/90 text-amber-500 rounded-full hover:bg-zinc-800 hover:scale-110 hover:text-amber-400 transition-all border border-amber-500/30 shadow-lg shadow-black/50 backdrop-blur-sm group flex items-center justify-center print:hidden"
     title="Retour à l'accueil"
   >
   

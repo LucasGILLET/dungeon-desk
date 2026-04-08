@@ -10,14 +10,14 @@
     <!-- Navigation -->
     <nav class="sticky top-0 z-50 border-b border-amber-900/30 bg-zinc-950/80 backdrop-blur-md">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-20">
-          <div class="flex items-center space-x-3 group cursor-pointer">
+        <div class="flex justify-between items-center h-20 gap-2">
+          <div class="flex items-center space-x-3 group cursor-pointer min-w-0">
             <img src="/favicon-v2.svg" alt="DungeonDesk Logo" class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg shadow-lg shadow-amber-500/10" />
-            <h1 class="text-base sm:text-2xl font-bold bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600 bg-clip-text text-transparent font-serif tracking-wide">
+            <h1 class="text-sm sm:text-2xl font-bold bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600 bg-clip-text text-transparent font-serif tracking-wide truncate max-w-[8.5rem] sm:max-w-none">
               DungeonDesk
             </h1>
           </div>
-          <div class="flex gap-2 sm:gap-6 items-center">
+          <div class="flex gap-1 sm:gap-6 items-center shrink-0">
             <template v-if="!isAuthenticated">
                 <button @click="store.login()" class="text-amber-100/70 hover:text-amber-400 font-serif tracking-wider transition-colors text-xs sm:text-sm uppercase">Connexion</button>
                 <button @click="store.login({ authorizationParams: { screen_hint: 'signup' } })" class="relative px-3 sm:px-6 py-2 group overflow-hidden rounded-lg">
