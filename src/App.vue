@@ -1,22 +1,49 @@
 <script setup lang="ts">
 import { RouterView, useRoute } from 'vue-router'
-import { onMounted, computed } from 'vue';
+import { computed, onBeforeUnmount, onMounted } from 'vue'
+import DiceRollerPanel from '@/components/DiceRollerPanel.vue'
+import DiceRollerTrigger from '@/components/DiceRollerTrigger.vue'
+import { openDiceRoller } from '@/composables/useDiceRoller'
 
-const route = useRoute();
+const route = useRoute()
 // On cache le bouton sur la home, login et register pour ne pas gêner
 const showHomeButton = computed(() => {
-  return !['/'].includes(route.path);
-});
+  return !['/'].includes(route.path)
+})
+
+function handleGlobalKeydown(event: KeyboardEvent) {
+  const target = event.target as HTMLElement | null
+  const isTypingField = Boolean(target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) || target?.isContentEditable
+
+  if (event.key === 'Escape') {
+    return
+  }
+
+  if (isTypingField) {
+    return
+  }
+
+  if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'r') {
+    event.preventDefault()
+    openDiceRoller()
+  }
+}
 
 onMounted(() => {
     // Nettoyage des anciennes données d'authentification
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-});
+    localStorage.removeItem('user')
+    localStorage.removeItem('token')
+    window.addEventListener('keydown', handleGlobalKeydown)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleGlobalKeydown)
+})
 </script>
 
 <template>
   <RouterView />
+  <DiceRollerPanel />
   
   <router-link
     v-if="showHomeButton"
@@ -30,6 +57,8 @@ onMounted(() => {
       <polyline points="9 22 9 12 15 12 15 22"></polyline>
     </svg>
   </router-link>
+
+  <DiceRollerTrigger />
 </template>
 
 <style scoped>
