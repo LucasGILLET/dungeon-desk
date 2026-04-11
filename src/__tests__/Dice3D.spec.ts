@@ -3,7 +3,7 @@ import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import Dice3D, { type DiceRollVisual } from '@/components/Dice3D.vue'
 
-const rollMock = vi.fn(async () => [])
+const rollMock = vi.fn<(notation: string) => Promise<unknown[]>>(async () => [])
 const initializeMock = vi.fn(async () => undefined)
 
 vi.mock('@3d-dice/dice-box-threejs', () => {
