@@ -84,22 +84,50 @@ const mountStyles = computed(() => {
 
 const isFullSize = computed(() => props.size === 'full')
 
+function normalizeForNotation(die: DiceRollVisual): Array<{ sides: number; value: number }> {
+  if (die.sides !== 100) {
+    return [{ sides: die.sides, value: die.value }]
+  }
+
+  // Keep a percentile visual roll: one d100 (00/10/.../90) plus one d10 for units.
+  const safeValue = Math.min(Math.max(Math.trunc(die.value), 1), 100)
+  const tensBucket = safeValue === 100 ? 0 : Math.floor(safeValue / 10) * 10
+  const d100Face = tensBucket === 0 ? 100 : tensBucket
+  const onesDigit = safeValue === 100 ? 0 : safeValue % 10
+  const d10Face = onesDigit === 0 ? 10 : onesDigit
+
+  return [
+    { sides: 100, value: d100Face },
+    { sides: 10, value: d10Face },
+  ]
+}
+
 const diceNotation = computed(() => {
   if (!props.dice.length) {
     return 'd20@20'
   }
 
-  const groups = new Map<number, number[]>()
+  const groupedDice = new Map<number, number[]>()
 
   for (const die of props.dice) {
-    const values = groups.get(die.sides) ?? []
-    values.push(die.value)
-    groups.set(die.sides, values)
+    const normalizedDice = normalizeForNotation(die)
+
+    for (const normalizedDie of normalizedDice) {
+      const values = groupedDice.get(normalizedDie.sides) ?? []
+      values.push(normalizedDie.value)
+      groupedDice.set(normalizedDie.sides, values)
+    }
   }
 
-  return Array.from(groups.entries())
-    .map(([sides, values]) => `${values.length}d${sides}@${values.join(',')}`)
+  const groupedEntries = Array.from(groupedDice.entries())
+  const setNotation = groupedEntries
+    .map(([sides, values]) => `${values.length === 1 ? '' : values.length}d${sides}`)
     .join('+')
+  const predeterminedResults = groupedEntries
+    .flatMap(([, values]) => values)
+    .join(',')
+
+  return `${setNotation}@${predeterminedResults}`
 })
 
 async function triggerRoll() {

@@ -63,6 +63,27 @@ describe('useDiceRoller', () => {
     expect(result.total).toBe(1)
   })
 
+  it('rolls 2d100 deterministically', () => {
+    const randomValues = [0.71, 0.04]
+    const result = module.rollDiceExpression('2d100', () => randomValues.shift() ?? 0)
+
+    expect(result.parts).toHaveLength(1)
+    expect(result.parts[0]?.sides).toBe(100)
+    expect(result.parts[0]?.rolls).toEqual([72, 5])
+    expect(result.totalModifier).toBe(0)
+    expect(result.total).toBe(77)
+  })
+
+  it('rolls 2d100+3 deterministically', () => {
+    const randomValues = [0.71, 0.04]
+    const result = module.rollDiceExpression('2d100+3', () => randomValues.shift() ?? 0)
+
+    expect(result.parts).toHaveLength(1)
+    expect(result.parts[0]?.rolls).toEqual([72, 5])
+    expect(result.totalModifier).toBe(3)
+    expect(result.total).toBe(80)
+  })
+
   it('tracks preset rolls in history and keeps latest result', () => {
     const api = module.useDiceRoller()
 
