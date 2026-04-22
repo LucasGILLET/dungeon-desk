@@ -56,7 +56,7 @@
       @prev="prevTutorialStep"
     />
 
-    <div class="mb-24 flex-1 flex flex-col relative pt-8 pb-2">
+    <div class="flex-1 flex flex-col relative pt-8 pb-2">
     
     <div class="flex flex-col justify-center px-4 my-auto h-full">
       <div class="text-center mb-8 relative z-40">

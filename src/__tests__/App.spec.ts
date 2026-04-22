@@ -1,7 +1,19 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { mount } from '@vue/test-utils'
+import { createPinia } from 'pinia'
+import { ref } from 'vue'
 import App from '../App.vue'
+
+vi.mock('@auth0/auth0-vue', () => ({
+  useAuth0: () => ({
+    loginWithRedirect: vi.fn(),
+    logout: vi.fn(),
+    user: ref(null),
+    isAuthenticated: ref(false),
+    getAccessTokenSilently: vi.fn(),
+  }),
+}))
 
 describe('App', () => {
   it('renders the global dice launcher trigger', async () => {
@@ -22,7 +34,7 @@ describe('App', () => {
 
     const wrapper = mount(App, {
       global: {
-        plugins: [router],
+        plugins: [router, createPinia()],
         stubs: {
           RouterView: true,
         },
@@ -32,7 +44,7 @@ describe('App', () => {
     expect(wrapper.find('button[title="Ouvrir le lanceur de dés"]').exists()).toBe(true)
   })
 
-  it('shows the home floating button only outside the home route', async () => {
+  it('renders a global menu button on every route', async () => {
     const router = createRouter({
       history: createMemoryHistory(),
       routes: [
@@ -56,18 +68,18 @@ describe('App', () => {
 
     const wrapper = mount(App, {
       global: {
-        plugins: [router],
+        plugins: [router, createPinia()],
         stubs: {
           RouterView: true,
         },
       },
     })
 
-    expect(wrapper.find('a[title="Retour à l\'accueil"]').exists()).toBe(false)
+    expect(wrapper.find('button[title="Ouvrir le menu"]').exists()).toBe(true)
 
     await router.push('/gm-dashboard')
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.find('a[title="Retour à l\'accueil"]').exists()).toBe(true)
+    expect(wrapper.find('button[title="Ouvrir le menu"]').exists()).toBe(true)
   })
 })

@@ -15,7 +15,7 @@ const buttonClasses = computed(() => {
     return 'inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-zinc-900/90 px-3 py-2 text-xs font-semibold text-amber-200 shadow-lg shadow-black/30 backdrop-blur-sm transition-all duration-200 hover:border-amber-400/50 hover:bg-zinc-800 hover:text-amber-100'
   }
 
-  return 'fixed bottom-4 right-3 sm:bottom-6 sm:right-6 z-[90] inline-flex items-center gap-2 sm:gap-3 rounded-full border border-amber-500/30 bg-zinc-900/95 px-3 sm:px-4 py-2.5 sm:py-3 text-sm font-semibold text-amber-200 shadow-2xl shadow-black/40 backdrop-blur-md transition-all duration-200 hover:-translate-y-1 hover:border-amber-400/60 hover:bg-zinc-800 hover:text-amber-100'
+  return 'hidden md:inline-flex fixed bottom-4 right-3 sm:bottom-6 sm:right-6 z-[90] items-center gap-2 sm:gap-3 rounded-full border border-amber-500/30 bg-zinc-900/95 px-3 sm:px-4 py-2.5 sm:py-3 text-sm font-semibold text-amber-200 shadow-2xl shadow-black/40 backdrop-blur-md transition-all duration-200 hover:-translate-y-1 hover:border-amber-400/60 hover:bg-zinc-800 hover:text-amber-100'
 })
 
 function handleClick() {

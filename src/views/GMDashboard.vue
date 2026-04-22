@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-zinc-950 text-zinc-200 font-sans selection:bg-amber-500/30 flex flex-col relative overflow-hidden">
+  <div class="min-h-[calc(100vh-5rem)] bg-zinc-950 text-zinc-200 font-sans selection:bg-amber-500/30 flex flex-col relative overflow-hidden">
     <!-- Background Effects -->
     <div class="fixed inset-0 pointer-events-none">
       <div class="absolute top-0 left-1/4 w-96 h-96 bg-red-900/20 rounded-full blur-[128px]"></div>

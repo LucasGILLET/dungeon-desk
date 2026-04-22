@@ -1,9 +1,9 @@
 <template>
-  <div class="min-h-screen bg-zinc-950 text-zinc-200 font-sans pt-20 pb-10">
+  <div class="min-h-[calc(100vh-5rem)] bg-zinc-950 text-zinc-200 font-sans pt-20 pb-10">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <!-- Header -->
       <div class="text-center mb-12">
-        <h1 class="text-4xl font-bold bg-gradient-to-r from-emerald-200 via-teal-400 to-emerald-200 bg-clip-text text-transparent font-serif mb-4">
+        <h1 class="text-4xl font-bold bg-linear-to-r from-emerald-200 via-teal-400 to-emerald-200 bg-clip-text text-transparent font-serif mb-4">
           Générateur de PNJ Ultra-Complet
         </h1>
         <p class="text-zinc-400 text-lg">
@@ -52,7 +52,7 @@
           <div class="flex items-end">
             <button 
               @click="generateNPC" 
-              class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:shadow-emerald-900/20 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+              class="w-full bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:shadow-emerald-900/20 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
             >
               Générer
             </button>
@@ -62,7 +62,7 @@
 
       <!-- Result Card -->
       <div v-if="npc" class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-2xl relative">
-        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500"></div>
+        <div class="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-emerald-500 via-teal-500 to-emerald-500"></div>
         
         <div class="p-8">
           <!-- Header info: Name, Title, Basic ID -->

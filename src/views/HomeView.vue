@@ -1,65 +1,27 @@
 <template>
-  <div class="relative min-h-screen text-zinc-200 font-sans selection:bg-amber-500/30">
+  <div class="relative min-h-screen pt-20 text-zinc-200 font-sans selection:bg-amber-500/30">
       <!-- Particles Engine (Golden Threads) -->
       <vue-particles
         id="tsparticles"
         :options="particlesOptions"
         @particles-loaded="particlesLoaded"
       />
-      
-    <!-- Navigation -->
-    <nav class="sticky top-0 z-50 border-b border-amber-900/30 bg-zinc-950/80 backdrop-blur-md">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-20 gap-2">
-          <div class="flex items-center space-x-3 group cursor-pointer min-w-0">
-            <img src="/favicon-v2.svg" alt="DungeonDesk Logo" class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg shadow-lg shadow-amber-500/10" />
-            <h1 class="text-sm sm:text-2xl font-bold bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600 bg-clip-text text-transparent font-serif tracking-wide truncate max-w-[8.5rem] sm:max-w-none">
-              DungeonDesk
-            </h1>
-          </div>
-          <div class="flex gap-1 sm:gap-6 items-center shrink-0">
-            <template v-if="!isAuthenticated">
-                <button @click="store.login()" class="text-amber-100/70 hover:text-amber-400 font-serif tracking-wider transition-colors text-xs sm:text-sm uppercase">Connexion</button>
-                <button @click="store.login({ authorizationParams: { screen_hint: 'signup' } })" class="relative px-3 sm:px-6 py-2 group overflow-hidden rounded-lg">
-                  <span class="absolute inset-0 w-full h-full bg-gradient-to-r from-amber-700 to-amber-600 opacity-80 group-hover:opacity-100 transition-opacity"></span>
-                  <span class="absolute bottom-0 left-0 w-full h-1/4 bg-gradient-to-t from-black/20 to-transparent"></span>
-                  <span class="relative text-amber-50 font-serif font-bold tracking-wide text-xs sm:text-sm flex items-center gap-2">
-                    <span class="hidden sm:inline">Rejoignez l'Aventure</span>
-                    <span class="sm:hidden">Inscription</span>
-                  </span>
-                </button>
-            </template>
-            <template v-else>
-               <router-link to="/profile" class="flex items-center gap-3 bg-zinc-900/50 border border-amber-900/30 px-4 py-2 rounded-full hover:bg-zinc-800 transition-colors">
-                  <div class="w-8 h-8 rounded-full overflow-hidden border border-amber-500/30">
-                     <img v-if="user?.picture" :src="user.picture" alt="Avatar" class="w-full h-full object-cover">
-                     <div v-else class="w-full h-full bg-amber-900/50 flex items-center justify-center text-amber-500 font-bold">
-                        {{ user?.name?.charAt(0) }}
-                     </div>
-                  </div>
-                  <span class="text-amber-100 font-serif hidden sm:inline">{{ user?.name }}</span>
-               </router-link>
-            </template>
-          </div>
-        </div>
-      </div>
-    </nav>
 
     <!-- Hero Section -->
     <div class="relative flex flex-col items-center justify-center min-h-[calc(100vh-5rem)] overflow-hidden">
       <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10 w-full flex flex-col h-full justify-center grow">
         <!-- Decoration Line -->
         <div class="flex items-center justify-center gap-4 mb-8 opacity-60">
-          <div class="h-px w-16 bg-gradient-to-r from-transparent to-amber-500"></div>
+          <div class="h-px w-16 bg-linear-to-r from-transparent to-amber-500"></div>
           <div class="w-2 h-2 rotate-45 bg-amber-500"></div>
-          <div class="h-px w-16 bg-gradient-to-l from-transparent to-amber-500"></div>
+          <div class="h-px w-16 bg-linear-to-l from-transparent to-amber-500"></div>
         </div>
 
         <h1 class="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-8 tracking-tight font-serif drop-shadow-2xl">
           Écrivez votre <br/>
           <span class="relative inline-block mt-2">
-            <span class="absolute -inset-1 rounded-lg bg-gradient-to-r from-amber-600/20 to-red-600/20 blur-xl"></span>
-            <span class="relative bg-gradient-to-r from-amber-200 via-orange-400 to-amber-200 bg-clip-text text-transparent bg-[200%_auto] animate-shine">
+            <span class="absolute -inset-1 rounded-lg bg-linear-to-r from-amber-600/20 to-red-600/20 blur-xl"></span>
+            <span class="relative bg-linear-to-r from-amber-200 via-orange-400 to-amber-200 bg-clip-text text-transparent bg-size-[200%_auto] animate-shine">
               Légende
             </span>
           </span>
@@ -76,7 +38,7 @@
         <div class="flex flex-col sm:flex-row justify-center gap-6 px-4">
           
           <a href="#players-section" class="relative group p-6 bg-zinc-900 border border-blue-900/50 hover:border-blue-500 rounded-xl overflow-hidden transition-all duration-300 w-full sm:w-48 text-center flex flex-col items-center gap-4 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-900/20">
-             <div class="absolute inset-0 bg-gradient-to-b from-blue-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+             <div class="absolute inset-0 bg-linear-to-b from-blue-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
              <div class="relative p-4 rounded-full bg-blue-950/30 border border-blue-900/30 group-hover:scale-110 transition-transform duration-300">
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-400 group-hover:text-white transition-colors">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
@@ -86,7 +48,7 @@
           </a>
 
           <a href="#gm-section" class="relative group p-6 bg-zinc-900 border border-red-900/50 hover:border-red-500 rounded-xl overflow-hidden transition-all duration-300 w-full sm:w-48 text-center flex flex-col items-center gap-4 hover:-translate-y-1 hover:shadow-lg hover:shadow-red-900/20">
-             <div class="absolute inset-0 bg-gradient-to-b from-red-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+             <div class="absolute inset-0 bg-linear-to-b from-red-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
              <div class="relative p-4 rounded-full bg-red-950/30 border border-red-900/30 group-hover:scale-110 transition-transform duration-300">
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-400 group-hover:text-white transition-colors">
                   <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/>
@@ -101,8 +63,8 @@
 
 
     <!-- Players Section -->
-    <div id="players-section" class="relative min-h-[45rem] flex items-center border-t border-white/5 bg-zinc-950/20 scroll-mt-20 z-10">
-      <div class="absolute inset-0 bg-gradient-to-br from-blue-950/80 via-zinc-950/95 to-blue-950/0 pointer-events-none opacity-50"></div>
+    <div id="players-section" class="relative min-h-180 flex items-center border-t border-white/5 bg-zinc-950/20 scroll-mt-20 z-10">
+      <div class="absolute inset-0 bg-linear-to-br from-blue-950/80 via-zinc-950/95 to-blue-950/0 pointer-events-none opacity-50"></div>
       <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(30,58,138,0.15),transparent_0%)] pointer-events-none"></div>
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full py-24">
         <div class="text-center mb-16">
@@ -116,7 +78,7 @@
             to="/character-creator"
             class="group relative w-full overflow-hidden rounded-xl bg-zinc-900 border border-blue-900/50 hover:border-blue-500/50 transition-all duration-300"
           >
-            <div class="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-black opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div class="absolute inset-0 bg-linear-to-br from-blue-900/20 to-black opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             <div class="relative px-6 py-8 flex flex-col items-center gap-6 text-center">
               <div class="shrink-0 w-20 h-20 rounded-full bg-blue-900/30 border border-blue-500/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-[0_0_15px_rgba(30,58,138,0.3)]">
                 <IconSparkles class="w-10 h-10 text-zinc-400 group-hover:text-amber-400 transition-colors" />
@@ -133,7 +95,7 @@
             to="/combat-cheat-sheet"
             class="group relative w-full overflow-hidden rounded-xl bg-zinc-900 border border-yellow-900/50 hover:border-yellow-500/50 transition-all duration-300"
           >
-            <div class="absolute inset-0 bg-gradient-to-br from-yellow-900/20 to-black opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div class="absolute inset-0 bg-linear-to-br from-yellow-900/20 to-black opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             <div class="relative px-6 py-8 flex flex-col items-center gap-6 text-center">
               <div class="shrink-0 w-20 h-20 rounded-full bg-yellow-900/30 border border-yellow-500/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-[0_0_15px_rgba(234,179,8,0.3)]">
                 <!-- Icon: Axe -->
@@ -155,9 +117,9 @@
     </div>
 
     <!-- GM Section -->
-    <div id="gm-section" class="relative min-h-[45rem] flex items-center bg-zinc-950/20 scroll-mt-47 z-10">
-      <div class="absolute inset-0 bg-gradient-to-tl from-red-950/80 via-zinc-950/95 to-red-950/0 pointer-events-none opacity-50"></div>
-      <div class="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(127,29,29,0.15),transparent_0%)] pointer-events-none"></div>
+    <div id="gm-section" class="relative min-h-180 flex items-center bg-zinc-950/20 scroll-mt-47 z-10">
+      <div class="absolute inset-0 bg-linear-to-tl from-red-950/80 via-zinc-950/95 to-red-950/0 pointer-events-none opacity-50"></div>
+      <div class="absolute inset-0 bg-linear-to-r from-red-950/80 via-zinc-950/95 to-red-950/0 pointer-events-none"></div>
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full pb-24 pt-0">
         <div class="text-center mb-16">
            <h2 class="text-3xl md:text-5xl font-bold text-red-50 mb-6 font-serif tracking-tight">Pour les Maîtres du Jeu</h2>
@@ -170,7 +132,7 @@
             to="/gm-dashboard" 
             class="group relative w-full overflow-hidden rounded-xl bg-zinc-900 border border-red-900/50 hover:border-red-500/50 transition-all duration-300"
           >
-            <div class="absolute inset-0 bg-gradient-to-br from-red-900/20 to-black opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div class="absolute inset-0 bg-linear-to-br from-red-900/20 to-black opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             <div class="relative px-6 py-8 flex flex-col items-center gap-6 text-center">
               <div class="shrink-0 w-20 h-20 rounded-full bg-red-900/30 border border-red-500/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-[0_0_15px_rgba(153,27,27,0.3)]">
                 <!-- Icon: Scroll -->
@@ -190,7 +152,7 @@
             to="/npc-generator"
             class="group relative w-full overflow-hidden rounded-xl bg-zinc-900 border border-emerald-900/50 hover:border-emerald-500/50 transition-all duration-300"
           >
-            <div class="absolute inset-0 bg-gradient-to-br from-emerald-900/20 to-black opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div class="absolute inset-0 bg-linear-to-br from-emerald-900/20 to-black opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             <div class="relative px-6 py-8 flex flex-col items-center gap-6 text-center">
               <div class="shrink-0 w-20 h-20 rounded-full bg-emerald-900/30 border border-emerald-500/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
                 <!-- Icon: User/NPC -->
@@ -216,7 +178,7 @@
           <h2 class="text-4xl font-bold text-amber-50 mb-4 font-serif">
             L'Arsenal du Rôliste
           </h2>
-          <div class="w-24 h-1 bg-gradient-to-r from-transparent via-amber-600 to-transparent mx-auto rounded-full mb-6"></div>
+          <div class="w-24 h-1 bg-linear-to-r from-transparent via-amber-600 to-transparent mx-auto rounded-full mb-6"></div>
           <p class="text-xl text-zinc-400 max-w-2xl mx-auto">
             Une suite d'outils arcaniques conçus pour vous aider avant et pendant vos parties.
           </p>
@@ -248,7 +210,7 @@
         <div class="flex flex-col md:flex-row justify-between items-center gap-6">
           <div class="flex items-center gap-2">
            <!-- Icon: D20/Dice -->
-            <img src="/favicon-v2.svg" alt="DungeonDesk Logo" class="w-6 h-6 opacity-80" />
+            <img src="/favicon.svg" alt="DungeonDesk Logo" class="w-6 h-6 opacity-80" />
             <span class="font-serif font-bold text-amber-500/80">DungeonDesk</span>
           </div>
           <div class="text-zinc-600 text-sm">
@@ -261,14 +223,7 @@
 </template>
 
 <script setup lang="ts">
-import { useAuthStore } from '@/stores/auth'
-import { storeToRefs } from 'pinia'
-import { useRouter } from 'vue-router'
 import { h } from 'vue'
-
-const store = useAuthStore()
-const { isAuthenticated, user } = storeToRefs(store)
-const router = useRouter()
 
 // Particles Configuration (Golden Threads)
 const particlesLoaded = async (container: any) => {

@@ -14,7 +14,7 @@
       @prev="prevTutorialStep"
     />
 
-    <div class="mb-4 flex-1 flex flex-col relative pt-4 pb-2 overflow-hidden">
+    <div class="mb-24 flex-1 flex flex-col relative pt-4 pb-2 overflow-hidden">
       
       <div class="flex flex-col px-4 h-full max-w-[1400px] mx-auto w-full">
         <!-- En-tête -->

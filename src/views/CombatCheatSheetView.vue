@@ -24,7 +24,7 @@ const openSubCategory = (sub: 'attack') => {
 </script>
 
 <template>
-  <div class="h-[100dvh] bg-zinc-950 text-zinc-200 font-sans selection:bg-yellow-500/30 overflow-hidden flex flex-col">
+  <div class="min-h-[calc(100dvh-5rem)] bg-zinc-950 text-zinc-200 font-sans selection:bg-yellow-500/30 overflow-hidden flex flex-col">
     
     <!-- En-tête Global -->
     <header class="shrink-0 p-4 text-center pt-6 md:py-10">

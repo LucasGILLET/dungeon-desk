@@ -1,19 +1,11 @@
 <template>
-  <div class="min-h-screen bg-zinc-950 text-zinc-200 font-sans selection:bg-amber-500/30 overflow-hidden relative">
-    <!-- Background Effects (Global) -->
-    <div class="fixed inset-0 pointer-events-none">
-      <div class="absolute top-0 left-1/4 w-96 h-96 bg-indigo-900/20 rounded-full blur-[128px]"></div>
-      <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-red-900/10 rounded-full blur-[128px]"></div>
-      <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#09090b_100%)]"></div>
-      <div class="absolute inset-0 opacity-[0.03]" style="background-image: url(&quot;data:image/svg+xml,%3Csvg)" width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg' fill='none' fill-rule='evenodd' fill-opacity='0.4' path d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'></div>
-    </div>
-
+  <div class="min-h-[calc(100vh-5rem)] bg-zinc-950 text-zinc-200 font-sans selection:bg-amber-500/30 overflow-hidden relative">
     <!-- Grimoire Button (Global) -->
     <!-- Shown only if not in the final step (Summary) where it might be redundant or part of the UI -->
     <button
       v-if="step < steps.length - 1"
       @click="showSummary = true"
-      class="fixed top-4 right-4 sm:top-6 sm:right-8 z-50 bg-zinc-900/80 backdrop-blur-md border border-zinc-700 text-zinc-300 hover:text-amber-500 hover:border-amber-500 rounded-full p-3 transition-all duration-300 shadow-xl group"
+      class="fixed top-22 right-4 sm:top-26 sm:right-8 z-40 bg-zinc-900/80 backdrop-blur-md border border-zinc-700 text-zinc-300 hover:text-amber-500 hover:border-amber-500 rounded-full p-3 transition-all duration-300 shadow-xl group"
       title="Voir le Grimoire"
     >
       <svg class="w-6 h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
