@@ -231,7 +231,7 @@ const particlesLoaded = async (container: any) => {
 };
 
 const particlesOptions = {
-  fullScreen: { enable: true, zIndex: -1 },
+  fullScreen: { enable: true, zIndex: 0 },
   fpsLimit: 60,
   particles: {
     number: {
