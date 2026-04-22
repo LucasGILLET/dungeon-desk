@@ -26,7 +26,11 @@ export async function loadRaces(): Promise<SRDRace[]> {
 }
 
 export async function loadClasses(): Promise<SRDClass[]> {
-  return loadJSON<SRDClass[]>('5e-SRD-Classes.json')
+  try {
+    return await loadJSON<SRDClass[]>('fr/5e-SRD-Classes.json')
+  } catch {
+    return loadJSON<SRDClass[]>('5e-SRD-Classes.json')
+  }
 }
 
 export async function loadBackgrounds(): Promise<SRDBackground[]> {
@@ -81,5 +85,9 @@ export async function loadTraits(): Promise<SRDTrait[]> {
 }
 
 export async function loadFeatures(): Promise<SRDFeature[]> {
-  return loadJSON<SRDFeature[]>('5e-SRD-Features.json')
+    try {
+    return await loadJSON<SRDFeature[]>('fr/5e-SRD-Features.json')
+  } catch {
+    return loadJSON<SRDFeature[]>('5e-SRD-Features.json')
+  }
 }
