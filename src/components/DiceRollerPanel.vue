@@ -18,7 +18,7 @@ const styleOptions = [
   { value: 'tavern-wood', label: 'Bois' },
 ] as const
 
-const diceStyle = ref<(typeof styleOptions)[number]['value']>('arcane-glass')
+const diceStyle = ref<(typeof styleOptions)[number]['value']>('ivory-classic')
 
 const roller = useDiceRoller()
 const {
