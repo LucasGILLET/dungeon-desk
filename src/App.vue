@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { RouterView, useRoute } from 'vue-router'
-import { computed, onBeforeUnmount, onMounted, watch } from 'vue'
+import { RouterView } from 'vue-router'
+import { onBeforeUnmount, onMounted, watch } from 'vue'
 import AppNavigation from '@/components/AppNavigation.vue'
 import DiceRollerPanel from '@/components/DiceRollerPanel.vue'
 import { openDiceRoller } from '@/composables/useDiceRoller'
@@ -11,8 +11,6 @@ import { closeGlobalMenuDrawer, toggleGlobalMenuDrawer, useGlobalMenuDrawer } fr
 const authStore = useAuthStore()
 const { isAuthenticated, user } = storeToRefs(authStore)
 const { isOpen: isMobileMenuOpen } = useGlobalMenuDrawer()
-const route = useRoute()
-const isHomeRoute = computed(() => route.path === '/')
 
 function closeMobileMenu() {
   closeGlobalMenuDrawer()
@@ -150,7 +148,6 @@ onBeforeUnmount(() => {
   </Teleport>
 
   <button
-    v-if="isHomeRoute"
     type="button"
     :class="[
       'fixed right-3 top-4 z-110 p-3 bg-zinc-900/90 text-amber-500 rounded-full hover:bg-zinc-800 hover:scale-110 hover:text-amber-400 transition-all border border-amber-500/30 shadow-lg shadow-black/50 backdrop-blur-sm group flex items-center justify-center print:hidden',
