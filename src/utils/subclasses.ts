@@ -231,8 +231,8 @@ export const subclasses: SubclassData[] = [
   },
 ]
 
-export function getSubclassesByClassName(className: any): SubclassData[] {
-  return subclasses.filter(sc => sc.className === className.name.toLowerCase())
+export function getSubclassesByClassIndex(classIndex: any): SubclassData[] {
+  return subclasses.filter(sc => sc.className === classIndex.toLowerCase())
 }
 
 export function getSubclassEmoji(subclassId: string): string {

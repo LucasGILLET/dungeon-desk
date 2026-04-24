@@ -163,7 +163,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { getLevel1SubclassClassIds } from '@/utils/classes'
-import { getSubclassesByClassName, getSubclassEmoji, type SubclassData } from '@/utils/subclasses'
+import { getSubclassesByClassIndex, getSubclassEmoji, type SubclassData } from '@/utils/subclasses'
 import { getSpellDescription } from '@/utils/spells'
 import { getFeatureDescription } from '@/utils/features'
 import StepNavigation from '../StepNavigation.vue'
@@ -217,7 +217,8 @@ const needsSubclass = computed(() => {
 
 const availableSubclasses = computed(() => {
   if (!needsSubclass.value) return []
-  return getSubclassesByClassName(props.character.class)
+  console.log(props.character.class)
+  return getSubclassesByClassIndex(props.character.class.index)
 })
 
 function getGridColumns(): string {
