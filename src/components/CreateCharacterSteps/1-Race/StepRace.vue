@@ -56,49 +56,75 @@
       @prev="prevTutorialStep"
     />
 
-    <div class="flex-1 flex flex-col relative pt-8 pb-2">
+    <div class="flex-1 flex flex-col relative pt-4 sm:pt-8 pb-2">
     
-    <div class="flex flex-col justify-center px-4 my-auto h-full">
-      <div class="text-center mb-8 relative z-40">
-        <div class="flex items-center justify-center gap-3 mb-3 relative">
-          <h2 class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-amber-200 to-amber-600 font-serif drop-shadow-sm">Choisissez votre Race</h2>
-          
+    <div class="flex flex-col justify-center px-3 sm:px-4 my-auto h-full">
+      <div class="text-center mb-5 sm:mb-8 relative z-40">
+        <div class="flex items-start sm:items-center justify-center gap-2 sm:gap-3 mb-3 relative">
+          <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-amber-200 to-amber-600 font-serif drop-shadow-sm leading-tight text-center">Choisissez votre Race</h2>
+
           <!-- Help Button -->
-          <div class="relative transition-all duration-300">
-            <button 
-                @click="startTutorial"
-                class="p-2 text-sky-400 hover:text-sky-200 bg-sky-900/10 hover:bg-sky-900/30 rounded-full transition-colors border border-sky-500/20 hover:border-sky-500/50 block"
-                title="Aide, comment choisir ?"
-            >
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            </button>
-          </div>
+           <div class="relative transition-all duration-300">
+          <button 
+              @click="startTutorial"
+              class="hidden sm:block relative mt-2 mx-auto sm:mt-0 sm:mx-0 sm:absolute sm:left-0 sm:top-1/2 sm:-translate-y-1/2 p-2 text-sky-400 hover:text-sky-200 bg-sky-900/10 hover:bg-sky-900/30 rounded-full transition-colors border border-sky-500/20 hover:border-sky-500/50"
+              title="Aide, comment choisir ?"
+          >
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          </button>
+        </div>
         </div>
 
         <div class="h-0.5 w-24 bg-gradient-to-r from-transparent via-amber-800 to-transparent mx-auto mb-4"></div>
-        <p class="text-xl text-zinc-400 font-light italic">Votre origine détermine vos capacités naturelles</p>
+        <p class="text-base sm:text-xl text-zinc-400 font-light italic">Votre origine détermine vos capacités naturelles</p>
         
         <div v-if="loading" class="text-amber-500/80 animate-pulse mt-4">Invocation des races...</div>
         <div v-if="error" class="text-red-400 mt-4 bg-red-900/20 px-4 py-2 rounded border border-red-900/50">{{ error }}</div>
       </div>
       
-      <div 
-        class="races-container w-full flex-1 flex justify-start sm:justify-center gap-2 overflow-x-auto sm:overflow-hidden py-4 min-h-[360px] sm:min-h-[500px] px-1"
-        :class="{'relative z-40': isTutorialStep(1) || isTutorialStep(2) || isTutorialStep(3) || isTutorialStep(4)}"
-      >
-        <div 
-          v-for="race in races" 
-          :key="race.index" 
-          @click="selectedRace = race"
-          :class="[
-            `race-card cursor-pointer relative overflow-hidden rounded-2xl border transition-all duration-500 ease-out`,
-            selectedRace?.index === race.index 
-              ? 'border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.15)] z-20 opacity-100 scale-100 sm:flex-[2_!important]' 
-              : 'border-zinc-800 grayscale hover:grayscale-0 opacity-40 hover:opacity-100 hover:border-zinc-600'
-          ]"
-          style="flex: 1;"
-          class="min-w-[150px] sm:min-w-[80px]"
+      <div class="relative">
+        <button
+          type="button"
+          class="xl:hidden absolute left-0 top-1/2 -translate-y-1/2 z-30 w-9 h-9 rounded-r-lg bg-zinc-950/70 border border-zinc-700/70 text-amber-300 flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+          :disabled="!canScrollLeft"
+          aria-label="Faire défiler les races vers la gauche"
+          @click="scrollRaces('left')"
         >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+        </button>
+
+        <button
+          type="button"
+          class="xl:hidden absolute right-0 top-1/2 -translate-y-1/2 z-30 w-9 h-9 rounded-l-lg bg-zinc-950/70 border border-zinc-700/70 text-amber-300 flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+          :disabled="!canScrollRight"
+          aria-label="Faire défiler les races vers la droite"
+          @click="scrollRaces('right')"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </button>
+
+        <div 
+          ref="racesContainerRef"
+          class="races-container w-full flex-1 flex justify-start xl:justify-center gap-3 xl:gap-2 overflow-x-auto xl:overflow-hidden py-3 xl:py-4 min-h-[330px] xl:min-h-[500px] px-1 xl:px-0 snap-x snap-mandatory"
+          :class="{'relative z-40': isTutorialStep(1) || isTutorialStep(2) || isTutorialStep(3) || isTutorialStep(4)}"
+        >
+          <div 
+            v-for="race in races" 
+            :key="race.index" 
+            @click="selectedRace = race"
+            :class="[
+              `race-card group cursor-pointer relative overflow-hidden rounded-2xl border transition-all duration-500 ease-out snap-center`,
+              selectedRace?.index === race.index 
+                ? 'border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.15)] z-20 opacity-100 scale-100 xl:flex-[2_!important]' 
+                : 'border-zinc-800 grayscale hover:grayscale-0 opacity-40 hover:opacity-100 hover:border-zinc-600'
+            ]"
+            style="flex: 1;"
+            class="w-[78vw] min-w-[260px] max-w-[340px] xl:min-w-[80px] xl:max-w-none xl:w-auto shrink-0"
+          >
           <!-- Background Image with Gradient Overlay -->
           <div class="absolute inset-0 bg-cover bg-center transition-transform duration-700"
                :style="{ backgroundImage: `url(${getImageUrl(race.index + '.jpg')})` }"
@@ -109,7 +135,7 @@
           </div>
 
           <!-- Contenu de la carte -->
-          <div class="relative h-full flex flex-col items-center justify-end text-center p-6 pb-12">
+          <div class="relative h-full flex flex-col items-center justify-end text-center p-4 sm:p-6 pb-8 sm:pb-12">
             <!-- Badge sélectionné -->
              <div 
                 v-if="selectedRace?.index === race.index"
@@ -123,7 +149,7 @@
             <!-- Bouton détails (Old style removed/hidden or replaced) -->
              <button 
                 @click.stop="openRaceDetails(race)"
-                class="absolute top-4 left-4 w-8 h-8 bg-black/40 hover:bg-amber-600 text-zinc-300 hover:text-white rounded-lg flex items-center justify-center border border-white/10 hover:border-amber-400 transition-all opacity-0 group-hover:opacity-100"
+               class="absolute top-4 left-4 w-8 h-8 bg-black/40 hover:bg-amber-600 text-zinc-300 hover:text-white rounded-lg flex items-center justify-center border border-white/10 hover:border-amber-400 transition-all opacity-100 xl:opacity-0 xl:group-hover:opacity-100"
                 :class="[
                   selectedRace?.index === race.index ? 'opacity-100' : '',
                   (selectedRace?.index === race.index && isTutorialStep(4)) ? 'ring-4 ring-amber-400 bg-amber-600 scale-125 shadow-[0_0_20px_rgba(245,158,11,0.8)] z-50 animate-pulse' : ''
@@ -142,7 +168,7 @@
                 </div>
 
               <!-- Nom de la race -->
-              <h3 class="text-2xl font-bold text-amber-50 mb-2 font-serif tracking-wide drop-shadow-lg transition-all duration-300 transform"
+              <h3 class="text-xl sm:text-2xl font-bold text-amber-50 mb-2 font-serif tracking-wide drop-shadow-lg transition-all duration-300 transform"
                   :class="selectedRace?.index === race.index ? '-translate-y-2' : ''">
                 {{ translateRaceName(race.name) }}
               </h3>
@@ -153,10 +179,11 @@
                 
                 <div class="w-full h-px bg-gradient-to-r from-transparent via-amber-500/50 to-transparent mb-4"></div>
 
-                <p class="text-sm text-zinc-300 mb-4 leading-relaxed line-clamp-4 px-2 font-light">
+                <p class="text-xs sm:text-sm text-zinc-300 mb-4 leading-relaxed line-clamp-4 px-2 font-light">
                   {{ getRaceDescription(race) }}
                 </p>
               </div>
+            </div>
             </div>
 
               <!-- Wrapper pour Bonus & Traits -->
@@ -231,19 +258,21 @@
 
 <style scoped>
 /* Accordion Effect */
-.races-container:hover .race-card {
-  opacity: 0.3;
-  transform: scale(0.98);
-  filter: grayscale(100%);
-}
+@media (hover: hover) and (pointer: fine) and (min-width: 1280px) {
+  .races-container:hover .race-card {
+    opacity: 0.3;
+    transform: scale(0.98);
+    filter: grayscale(100%);
+  }
 
-.races-container:hover .race-card:hover {
-  opacity: 1;
-  transform: scale(1.02);
-  z-index: 30;
-  filter: grayscale(0%);
-  border-color: #f59e0b; /* amber-500 */
-  box-shadow: 0 0 40px rgba(245, 158, 11, 0.3);
+  .races-container:hover .race-card:hover {
+    opacity: 1;
+    transform: scale(1.02);
+    z-index: 30;
+    filter: grayscale(0%);
+    border-color: #f59e0b; /* amber-500 */
+    box-shadow: 0 0 40px rgba(245, 158, 11, 0.3);
+  }
 }
 
 /* Transition douce */
@@ -262,7 +291,7 @@
 </style>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import StepNavigation from '../StepNavigation.vue'
 import RaceDetailsModal from './RaceDetailsModal.vue'
 import TutorialGuide from '@/components/TutorialGuide.vue'
@@ -289,6 +318,9 @@ const error = ref<string | null>(null)
 const showRaceDetails = ref(false)
 const selectedDetailRace = ref<SRDRace | null>(null)
 const showWelcomeModal = ref(false)
+const racesContainerRef = ref<HTMLElement | null>(null)
+const canScrollLeft = ref(false)
+const canScrollRight = ref(false)
 
 /* --- Tutorial Logic --- */
 const raceTutorialSteps = [
@@ -353,12 +385,61 @@ function nextTutorialStep() {
 onMounted(async () => {
   try {
     races.value = await loadRaces()
+    await nextTick()
+    updateScrollArrows()
   } catch (err) {
     error.value = 'Erreur lors du chargement des races'
     console.error(err)
   } finally {
     loading.value = false
   }
+})
+
+function updateScrollArrows() {
+  const el = racesContainerRef.value
+  if (!el) {
+    canScrollLeft.value = false
+    canScrollRight.value = false
+    return
+  }
+
+  canScrollLeft.value = el.scrollLeft > 8
+  canScrollRight.value = el.scrollLeft + el.clientWidth < el.scrollWidth - 8
+}
+
+function scrollRaces(direction: 'left' | 'right') {
+  const el = racesContainerRef.value
+  if (!el) return
+
+  const scrollAmount = Math.max(el.clientWidth * 0.8, 220)
+  const left = direction === 'left' ? -scrollAmount : scrollAmount
+
+  el.scrollBy({ left, behavior: 'smooth' })
+  requestAnimationFrame(() => {
+    setTimeout(updateScrollArrows, 200)
+  })
+}
+
+const onRacesContainerScroll = () => {
+  updateScrollArrows()
+}
+
+const onViewportResize = () => {
+  updateScrollArrows()
+}
+
+onMounted(() => {
+  nextTick(() => {
+    updateScrollArrows()
+    racesContainerRef.value?.addEventListener('scroll', onRacesContainerScroll, { passive: true })
+  })
+
+  window.addEventListener('resize', onViewportResize)
+})
+
+onBeforeUnmount(() => {
+  racesContainerRef.value?.removeEventListener('scroll', onRacesContainerScroll)
+  window.removeEventListener('resize', onViewportResize)
 })
 
 const getImageUrl = (file: any) => {

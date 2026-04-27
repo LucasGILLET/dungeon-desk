@@ -5,10 +5,10 @@
     <button
       v-if="step < steps.length - 1"
       @click="showSummary = true"
-      class="fixed top-22 right-4 sm:top-26 sm:right-8 z-40 bg-zinc-900/80 backdrop-blur-md border border-zinc-700 text-zinc-300 hover:text-amber-500 hover:border-amber-500 rounded-full p-3 transition-all duration-300 shadow-xl group"
+      class="hidden sm:block fixed top-20 right-3 sm:top-24 sm:right-6 xl:top-26 xl:right-8 z-40 bg-zinc-900/80 backdrop-blur-md border border-zinc-700 text-zinc-300 hover:text-amber-500 hover:border-amber-500 rounded-full p-2.5 sm:p-3 xl:p-3.5 transition-all duration-300 shadow-xl group"
       title="Voir le Grimoire"
     >
-      <svg class="w-6 h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="w-5 h-5 sm:w-6 sm:h-6 xl:w-7 xl:h-7 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
       </svg>
     </button>
