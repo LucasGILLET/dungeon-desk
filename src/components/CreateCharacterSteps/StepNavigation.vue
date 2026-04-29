@@ -7,7 +7,8 @@
         class="group relative px-3 sm:px-6 py-2 rounded-lg font-bold uppercase tracking-wider text-xs sm:text-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
         <span class="absolute inset-0 border border-zinc-700 group-hover:border-amber-500/50 rounded-lg transition-colors"></span>
         <span class="relative text-zinc-400 group-hover:text-amber-100 flex items-center gap-2">
-          <span>←</span> Précédent
+          <span>←</span>
+          <span class="hidden sm:inline">Précédent</span>
         </span>
       </button>
       
@@ -23,7 +24,8 @@
           :disabled="disableNext"
           class="group relative px-4 sm:px-8 py-2.5 sm:py-3 bg-amber-600 hover:bg-amber-500 disabled:bg-zinc-800 text-zinc-950 disabled:text-zinc-500 font-bold uppercase text-xs sm:text-sm warning-wider rounded-lg transition-all duration-300 shadow-[0_0_10px_rgba(217,119,6,0.3)] hover:shadow-[0_0_20px_rgba(217,119,6,0.5)] disabled:shadow-none font-sans tracking-wide">
           <span class="flex items-center gap-2">
-            Suivant <span>→</span>
+            <span class="hidden sm:inline">Suivant</span>
+            <span>→</span>
           </span>
         </button>
 

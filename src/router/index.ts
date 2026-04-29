@@ -5,6 +5,7 @@ import GMDashboard from '@/views/GMDashboard.vue'
 import CharacterCreator from '@/views/CharacterCreator.vue'
 import NPCGenerator from '@/views/NPCGenerator.vue'
 import CombatCheatSheetView from '@/views/CombatCheatSheetView.vue'
+import DocumentationView from '@/views/DocumentationView.vue'
 import LoginView from '@/views/LoginView.vue'
 import RegisterView from '@/views/RegisterView.vue'
 import ProfileView from '@/views/ProfileView.vue'
@@ -20,8 +21,12 @@ const router = createRouter({
     {
       path: '/profile',
       name: 'profile',
-      component: ProfileView,
-      beforeEnter: authGuard,
+      component: ProfileView
+    },
+    {
+      path: '/documentation',
+      name: 'documentation',
+      component: DocumentationView
     },
     {
       path: '/login',

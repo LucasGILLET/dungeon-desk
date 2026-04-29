@@ -14,19 +14,19 @@
       @prev="prevTutorialStep"
     />
 
-    <div class="mb-24 flex-1 flex flex-col relative pt-4 pb-2 overflow-hidden">
+    <div class="mb-24 flex-1 flex flex-col relative pt-3 sm:pt-4 pb-2 overflow-hidden">
       
-      <div class="flex flex-col px-4 h-full max-w-[1400px] mx-auto w-full">
+      <div class="flex flex-col px-3 sm:px-4 h-full max-w-[1400px] mx-auto w-full">
         <!-- En-tête -->
         <div class="text-center mb-4 shrink-0 z-10 relative transition-all duration-300" :class="{'z-40': isTutorialStep(0)}">
           <div class="flex items-center justify-center gap-3 mb-2 relative">
-            <h2 class="text-2xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-amber-200 to-amber-600 font-serif drop-shadow-sm">
+            <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-amber-200 to-amber-600 font-serif drop-shadow-sm text-center leading-tight">
               Choisissez votre Voie
             </h2>
             <!-- Help Button -->
             <button 
               @click="startTutorial"
-              class="p-1.5 text-sky-400 hover:text-sky-200 bg-sky-900/10 hover:bg-sky-900/30 rounded-full transition-colors border border-sky-500/20 hover:border-sky-500/50"
+              class="hidden sm:block sm:absolute sm:left-0 sm:top-1/2 sm:-translate-y-1/2 p-1.5 text-sky-400 hover:text-sky-200 bg-sky-900/10 hover:bg-sky-900/30 rounded-full transition-colors border border-sky-500/20 hover:border-sky-500/50"
               title="Aide, comment choisir ?"
             >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -43,9 +43,10 @@
 
         <!-- Scrollable Grid Container -->
         <div 
-          class="flex-1 overflow-y-auto min-h-0 custom-scrollbar py-2 pr-2 transition-all duration-300 rounded-lg"
+          class="flex-1 overflow-y-auto min-h-0 custom-scrollbar py-2 pr-2 transition-all duration-300 rounded-lg scroll-smooth snap-y snap-mandatory"
           :class="{'relative z-40': isTutorialStep(0)}"
         >
+          <section class="snap-start snap-always min-h-[58vh] sm:min-h-0">
            
            <div 
              class="mb-2 flex items-center gap-3 transition-opacity duration-300 p-2 rounded-lg"
@@ -58,14 +59,14 @@
               <div class="h-px bg-amber-500/20 flex-1"></div>
            </div>
            
-           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-3 auto-rows-fr mb-4 transition-all duration-300 rounded-lg p-1" :class="{'relative z-40 bg-red-900/10': isTutorialStep(1)}">
+           <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 sm:gap-3 auto-rows-fr mb-4 transition-all duration-300 rounded-lg p-1" :class="{'relative z-40 bg-red-900/10': isTutorialStep(1)}">
             <!-- Martials -->
             <div 
               v-for="classe in sortedClasses.filter(c => isMartialClass(c.index))" 
               :key="classe.index" 
               @click="selectedClass = classe"
               :class="[
-                'class-card group relative h-[319px] rounded-xl overflow-hidden cursor-pointer border transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1)',
+                'class-card group relative h-[230px] sm:h-[270px] lg:h-[319px] rounded-xl overflow-hidden cursor-pointer border transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1)',
                 selectedClass?.index === classe.index 
                   ? 'border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.25)] scale-[1.01] grayscale-0' 
                   : 'border-zinc-800 opacity-70 grayscale hover:grayscale-0 hover:opacity-100 hover:border-zinc-500 hover:scale-[1.01] hover:z-10 hover:shadow-lg',
@@ -89,11 +90,11 @@
               ></div>
 
               <!-- Content Container -->
-              <div class="absolute inset-0 p-4 flex flex-col justify-end">
+              <div class="absolute inset-0 p-3 sm:p-4 flex flex-col justify-end">
                 
                 <!-- Top Right Icons/Badges (Absolute) -->
-                <div class="absolute top-3 right-3 flex flex-col items-end gap-2 transform translate-y-[-10px] opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 delay-100"
-                     :class="selectedClass?.index === classe.index ? 'translate-y-0 opacity-100' : ''">
+                 <div class="absolute top-3 right-3 flex flex-col items-end gap-2 transform transition-all duration-300 delay-100 opacity-100 sm:translate-y-[-10px] sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100"
+                   :class="selectedClass?.index === classe.index ? 'translate-y-0 opacity-100' : ''">
                   <!-- Button Details -->
                   <div class="relative">
                     <div v-if="selectedClass?.index === classe.index && isTutorialStep(4)" class="absolute -top-8 left-1/2 -translate-x-1/2 bg-amber-500 text-black text-[10px] font-bold px-2 py-0.5 rounded shadow animate-bounce z-50 whitespace-nowrap">
@@ -130,7 +131,7 @@
                 <!-- Text Content -->
                 <div class="relative z-10 transform transition-transform duration-300 group-hover:-translate-y-1">
                   <!-- Name -->
-                  <h3 class="text-xl font-bold text-zinc-100 mb-0.5 font-serif tracking-wide group-hover:text-amber-100 transition-colors drop-shadow-md">
+                  <h3 class="text-lg sm:text-xl font-bold text-zinc-100 mb-0.5 font-serif tracking-wide group-hover:text-amber-100 transition-colors drop-shadow-md">
                     {{ getTranslatedClassName(classe.name) }}
                   </h3>
 
@@ -166,7 +167,12 @@
                 </div>
               </div>
             </div>
+
            </div>
+
+            </section>
+
+            <section class="snap-start snap-always min-h-[58vh] sm:min-h-0">
 
            <div 
              class="mb-2 mt-4 flex items-center gap-3 transition-opacity duration-300 p-2 rounded-lg"
@@ -179,14 +185,14 @@
               <div class="h-px bg-purple-500/20 flex-1"></div>
            </div>
 
-           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-3 auto-rows-fr transition-all duration-300 rounded-lg p-1" :class="{'relative z-40 bg-purple-900/10': isTutorialStep(1)}">
+           <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 sm:gap-3 auto-rows-fr transition-all duration-300 rounded-lg p-1" :class="{'relative z-40 bg-purple-900/10': isTutorialStep(1)}">
             <!-- Casters -->
             <div 
               v-for="classe in sortedClasses.filter(c => !isMartialClass(c.index))" 
               :key="classe.index" 
               @click="selectedClass = classe"
               :class="[
-                'class-card group relative h-[319px] rounded-xl overflow-hidden cursor-pointer border transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1)',
+                'class-card group relative h-[230px] sm:h-[270px] lg:h-[319px] rounded-xl overflow-hidden cursor-pointer border transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1)',
                 selectedClass?.index === classe.index 
                   ? 'border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.25)] scale-[1.01] grayscale-0' 
                   : 'border-zinc-800 opacity-70 grayscale hover:grayscale-0 hover:opacity-100 hover:border-zinc-500 hover:scale-[1.01] hover:z-10 hover:shadow-xl',
@@ -210,11 +216,11 @@
               ></div>
 
               <!-- Content Container -->
-              <div class="absolute inset-0 p-4 flex flex-col justify-end">
+              <div class="absolute inset-0 p-3 sm:p-4 flex flex-col justify-end">
                 
                 <!-- Top Right Icons/Badges (Absolute) -->
-                <div class="absolute top-3 right-3 flex flex-col items-end gap-2 transform translate-y-[-10px] opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 delay-100"
-                     :class="selectedClass?.index === classe.index ? 'translate-y-0 opacity-100' : ''">
+                 <div class="absolute top-3 right-3 flex flex-col items-end gap-2 transform transition-all duration-300 delay-100 opacity-100 sm:translate-y-[-10px] sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100"
+                   :class="selectedClass?.index === classe.index ? 'translate-y-0 opacity-100' : ''">
                   <!-- Button Details -->
                   <div class="relative">
                     <div v-if="selectedClass?.index === classe.index && isTutorialStep(4)" class="absolute -top-8 left-1/2 -translate-x-1/2 bg-amber-500 text-black text-[10px] font-bold px-2 py-0.5 rounded shadow animate-bounce z-50 whitespace-nowrap">
@@ -253,7 +259,7 @@
                 <div class="relative z-10 transform transition-transform duration-300 group-hover:-translate-y-1">
 
                   <!-- Name -->
-                  <h3 class="text-xl font-bold text-zinc-100 mb-0.5 font-serif tracking-wide group-hover:text-purple-100 transition-colors drop-shadow-md">
+                  <h3 class="text-lg sm:text-xl font-bold text-zinc-100 mb-0.5 font-serif tracking-wide group-hover:text-purple-100 transition-colors drop-shadow-md">
                     {{ getTranslatedClassName(classe.name) }}
                   </h3>
 
@@ -290,6 +296,8 @@
               </div>
             </div>
            </div>
+
+          </section>
 
         </div>
       </div>

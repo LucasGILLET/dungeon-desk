@@ -7,6 +7,7 @@ import { openDiceRoller } from '@/composables/useDiceRoller'
 import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
 import { closeGlobalMenuDrawer, toggleGlobalMenuDrawer, useGlobalMenuDrawer } from '@/composables/useGlobalMenuDrawer'
+import { mobileNavigationLinks } from '@/config/navigation'
 
 const authStore = useAuthStore()
 const { isAuthenticated, user } = storeToRefs(authStore)
@@ -106,22 +107,17 @@ onBeforeUnmount(() => {
               <span>Accueil</span>
               <span class="text-amber-300/70">Home</span>
             </router-link>
-            <router-link to="/character-creator" class="flex items-center justify-between rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-sm font-medium text-zinc-100 transition-colors hover:border-blue-500/30 hover:bg-blue-500/10" @click="closeMobileMenu">
-              <span>Création Personnage</span>
-              <span class="text-blue-300/70">PJ</span>
+
+            <router-link
+              v-for="item in mobileNavigationLinks"
+              :key="item.label"
+              :to="item.to"
+              class="flex items-center justify-between rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-sm font-medium text-zinc-100 transition-colors hover:border-white/10 hover:bg-white/10 hover:text-white"
+              @click="closeMobileMenu"
+            >
+              <span>{{ item.label }}</span>
             </router-link>
-            <router-link to="/npc-generator" class="flex items-center justify-between rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-sm font-medium text-zinc-100 transition-colors hover:border-emerald-500/30 hover:bg-emerald-500/10" @click="closeMobileMenu">
-              <span>Générateur PNJ</span>
-              <span class="text-emerald-300/70">PNJ</span>
-            </router-link>
-            <router-link to="/gm-dashboard" class="flex items-center justify-between rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-sm font-medium text-zinc-100 transition-colors hover:border-red-500/30 hover:bg-red-500/10" @click="closeMobileMenu">
-              <span>Tableau MJ</span>
-              <span class="text-red-300/70">GM</span>
-            </router-link>
-            <router-link to="/combat-cheat-sheet" class="flex items-center justify-between rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-sm font-medium text-zinc-100 transition-colors hover:border-yellow-500/30 hover:bg-yellow-500/10" @click="closeMobileMenu">
-              <span>Aide de Combat</span>
-              <span class="text-yellow-300/70">Combat</span>
-            </router-link>
+
             <button @click="handleOpenDiceRoller" class="flex items-center justify-between rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-sm font-medium text-zinc-100 transition-colors hover:border-amber-500/30 hover:bg-amber-500/10">
               <span>Lancer les dés</span>
               <span class="text-amber-300/70">Dés</span>

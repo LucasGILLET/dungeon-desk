@@ -1,10 +1,30 @@
 <script setup lang="ts">
+import { ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '@/stores/auth'
 import DiceRollerTrigger from '@/components/DiceRollerTrigger.vue'
+import { desktopNavigationGroups } from '@/config/navigation'
 
 const authStore = useAuthStore()
 const { isAuthenticated, user } = storeToRefs(authStore)
+const route = useRoute()
+const activeDesktopGroup = ref<string | null>(null)
+
+function toggleDesktopGroup(groupLabel: string) {
+  activeDesktopGroup.value = activeDesktopGroup.value === groupLabel ? null : groupLabel
+}
+
+function closeDesktopGroup() {
+  activeDesktopGroup.value = null
+}
+
+watch(
+  () => route.fullPath,
+  () => {
+    closeDesktopGroup()
+  }
+)
 </script>
 
 <template>
@@ -16,11 +36,53 @@ const { isAuthenticated, user } = storeToRefs(authStore)
             <img src="/logo.svg" alt="DungeonDesk Logo" class="xl:block w-22 h-10 sm:w-40 sm:h-15 rounded-lg" />
           </router-link>
 
-          <div class="font-serif hidden xl:flex items-center gap-1 rounded-2xl px-2 py-2">
-            <router-link to="/character-creator" active-class="border-amber-500/30 bg-amber-500/10 text-amber-50 shadow-[0_0_20px_rgba(245,158,11,0.12)]" class="rounded-xl border border-transparent px-3 py-2 text-sm font-semibold text-zinc-200/80 transition-all hover:-translate-y-0.5 hover:border-amber-500/30 hover:bg-amber-500/10 hover:text-amber-50">Création PJ</router-link>
-            <router-link to="/npc-generator" active-class="border-amber-500/30 bg-amber-500/10 text-amber-50 shadow-[0_0_20px_rgba(245,158,11,0.12)]" class="rounded-xl border border-transparent px-3 py-2 text-sm font-semibold text-zinc-200/80 transition-all hover:-translate-y-0.5 hover:border-amber-500/30 hover:bg-amber-500/10 hover:text-amber-50">Générateur PNJ</router-link>
-            <router-link to="/gm-dashboard" active-class="border-amber-500/30 bg-amber-500/10 text-amber-50 shadow-[0_0_20px_rgba(245,158,11,0.12)]" class="rounded-xl border border-transparent px-3 py-2 text-sm font-semibold text-zinc-200/80 transition-all hover:-translate-y-0.5 hover:border-amber-500/30 hover:bg-amber-500/10 hover:text-amber-50">Tableau MJ</router-link>
-            <router-link to="/combat-cheat-sheet" active-class="border-amber-500/30 bg-amber-500/10 text-amber-50 shadow-[0_0_20px_rgba(245,158,11,0.12)]" class="rounded-xl border border-transparent px-3 py-2 text-sm font-semibold text-zinc-200/80 transition-all hover:-translate-y-0.5 hover:border-amber-500/30 hover:bg-amber-500/10 hover:text-amber-50">Aide Combat</router-link>
+          <div class="font-serif hidden xl:flex items-center gap-2 rounded-2xl px-2 py-2">
+            <div
+              v-for="group in desktopNavigationGroups"
+              :key="group.label"
+              class="relative pb-3"
+              @mouseenter="activeDesktopGroup = group.label"
+              @mouseleave="closeDesktopGroup"
+            >
+              <button
+                type="button"
+                class="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-zinc-200 transition-all duration-200 hover:border-white/15 hover:bg-white/10 hover:text-white"
+                :aria-label="`Ouvrir la navigation ${group.label}`"
+                :aria-expanded="activeDesktopGroup === group.label"
+                @click="toggleDesktopGroup(group.label)"
+              >
+                <span>{{ group.label }}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4 opacity-70">
+                  <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.942l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0l-4.24-4.24a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
+                </svg>
+              </button>
+
+              <div
+                :class="[
+                  'absolute left-0 top-full z-50 w-72 rounded-2xl border border-white/10 bg-zinc-950/98 p-3 transition-all duration-200',
+                  activeDesktopGroup === group.label
+                    ? 'visible translate-y-0 opacity-100'
+                    : 'pointer-events-none invisible translate-y-2 opacity-0'
+                ]"
+              >
+                <p class="mb-2 px-2 text-[10px] uppercase tracking-[0.28em] text-zinc-500">
+                  {{ group.label }}
+                </p>
+
+                <div class="grid gap-2">
+                  <router-link
+                    v-for="item in group.links"
+                    :key="`${group.label}-${item.label}`"
+                    :to="item.to"
+                    active-class="border-white/15 bg-white/10 text-white"
+                    class="flex items-center justify-between gap-3 rounded-xl border border-white/5 bg-white/5 px-3 py-2 text-sm font-medium text-zinc-100 transition-colors hover:border-white/10 hover:bg-white/10 hover:text-white"
+                    @click="closeDesktopGroup"
+                  >
+                    <span class="min-w-0 truncate">{{ item.label }}</span>
+                  </router-link>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
