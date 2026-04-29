@@ -184,6 +184,9 @@ async function hasSubraces(raceIndex: string): Promise<boolean> {
 }
 
 async function handleNext(payload: any) {
+  // Scroll to top when changing step
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+  
   if (step.value === 0 && payload) {
     character.race = payload
     payload.traits.forEach((trait: any) => {
@@ -247,6 +250,9 @@ async function handleNext(payload: any) {
 }
 
 function handlePrev() {
+  // Scroll to top when changing step
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+  
   if (step.value > 0) {
     step.value--
   }
