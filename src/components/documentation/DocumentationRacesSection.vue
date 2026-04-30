@@ -129,7 +129,7 @@ const cards: DocCard[] = [
     summary: 'Solide et resistant, tres fiable pour les roles de premiere ligne.',
     physicalTraits: ['Petite taille (environ 1m20 a 1m50)', 'Corpulence dense et musculaire', 'Longue longevite (plus de 300 ans)'],
     racialTalents: ['Vision dans le noir', 'Resistance au poison nain', 'Maitrise d\'outils et d\'armes traditionnels'],
-    statBonuses: ['+2 Constitution', 'Sous-races: +2 Force (montagne) ou +1 Sagesse (colline)'],
+    statBonuses: ['+2 Constitution', 'Sous-races: +1 Force (montagne) ou +1 Sagesse (colline)'],
     accent: 'from-amber-500/20 via-orange-500/10 to-transparent border-amber-500/20'
   },
   {
@@ -156,7 +156,7 @@ const cards: DocCard[] = [
     summary: 'Ideal pour les personnages malins, techniques ou orientes magie.',
     physicalTraits: ['Tres petite taille (90 cm a 1m10)', 'Corps leger et vif', 'Longue vie (350 a 500 ans)'],
     racialTalents: ['Ruse gnome (avantage jets mentaux contre magie)', 'Vision dans le noir', 'Specialisation selon sous-race (inventivite ou magie)'],
-    statBonuses: ['+2 Intelligence', 'Sous-races: +1 Dextérité (foret) ou +1 Constitution (roches)'],
+    statBonuses: ['+2 Intelligence', 'Sous-races: +1 Dextérité (forêt) ou +1 Constitution (roches)'],
     accent: 'from-sky-400/20 via-cyan-500/10 to-transparent border-sky-500/20'
   },
   {
@@ -165,7 +165,7 @@ const cards: DocCard[] = [
     summary: 'Excellent profil polyvalent, fort en interactions et adaptable.',
     physicalTraits: ['Taille moyenne', 'Traits melanges humains/elfiques', 'Longévité superieure a l\'humain'],
     racialTalents: ['Vision dans le noir', 'Ascendance feerique', 'Polyvalence de competences'],
-    statBonuses: ['+2 Charisme', '+1 a deux autres caracteristiques au choix'],
+    statBonuses: ['+2 Charisme'],
     accent: 'from-fuchsia-400/20 via-violet-500/10 to-transparent border-fuchsia-500/20'
   },
   {
