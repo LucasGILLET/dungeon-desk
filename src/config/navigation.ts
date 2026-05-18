@@ -32,6 +32,10 @@ export const desktopNavigationGroups: NavigationGroup[] = [
         to: '/character-creator'
       },
       {
+        label: 'Liste des sorts',
+        to: '/sorts'
+      },
+      {
         label: 'Aide combat',
         to: '/combat-cheat-sheet'
       }
@@ -56,6 +60,10 @@ export const mobileNavigationLinks: NavigationLink[] = [
   {
     label: 'Création de PJ',
     to: '/character-creator'
+  },
+  {
+    label: 'Liste des sorts',
+    to: '/sorts'
   },
   {
     label: 'Aide combat',

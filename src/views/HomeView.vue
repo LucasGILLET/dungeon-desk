@@ -112,6 +112,27 @@
               </div>
             </div>
           </router-link>
+
+          <router-link
+            to="/documentation"
+            class="group relative w-full overflow-hidden rounded-xl bg-zinc-900 border border-amber-900/50 hover:border-amber-500/50 transition-all duration-300"
+          >
+            <div class="absolute inset-0 bg-linear-to-br from-amber-900/20 to-black opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div class="relative px-6 py-8 flex flex-col items-center gap-6 text-center">
+              <div class="shrink-0 w-20 h-20 rounded-full bg-amber-900/30 border border-amber-500/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-[0_0_15px_rgba(180,83,9,0.3)]">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-200">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/>
+                  <path d="M8 6h8"/>
+                  <path d="M8 10h6"/>
+                </svg>
+              </div>
+              <div class="min-w-0">
+                <div class="text-amber-200 font-serif font-bold text-2xl group-hover:text-amber-100 transition-colors mb-2">Documentation</div>
+                <div class="text-amber-400/60 text-sm font-medium uppercase tracking-wider">Guides et conseils</div>
+              </div>
+            </div>
+          </router-link>
         </div>
       </div>
     </div>

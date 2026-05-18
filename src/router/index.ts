@@ -9,6 +9,8 @@ import DocumentationView from '@/views/DocumentationView.vue'
 import LoginView from '@/views/LoginView.vue'
 import RegisterView from '@/views/RegisterView.vue'
 import ProfileView from '@/views/ProfileView.vue'
+import SortView from '@/views/SortView.vue'
+import SortsListView from '@/views/SortsListView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -22,6 +24,16 @@ const router = createRouter({
       path: '/profile',
       name: 'profile',
       component: ProfileView
+    },
+    {
+      path: '/sorts',
+      name: 'sorts-list',
+      component: SortsListView
+    },
+    {
+      path: '/sort/:index',
+      name: 'sort-view',
+      component: SortView
     },
     {
       path: '/documentation',
@@ -61,7 +73,8 @@ const router = createRouter({
       path: '/combat-cheat-sheet',
       name: 'combat-cheat-sheet',
       component: CombatCheatSheetView
-    },  ],
+    },  
+  ],
 })
 
 export default router
