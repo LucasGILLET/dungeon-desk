@@ -22,7 +22,11 @@ async function loadJSON<T>(filename: string): Promise<T> {
 }
 
 export async function loadRaces(): Promise<SRDRace[]> {
-  return loadJSON<SRDRace[]>('5e-SRD-Races.json')
+    try {
+    return await loadJSON<SRDRace[]>('fr/5e-SRD-Races.json')
+  } catch {
+    return loadJSON<SRDRace[]>('5e-SRD-Races.json')
+  }
 }
 
 export async function loadClasses(): Promise<SRDClass[]> {
@@ -35,7 +39,7 @@ export async function loadClasses(): Promise<SRDClass[]> {
 
 export async function loadBackgrounds(): Promise<SRDBackground[]> {
   const [srdBackgrounds, customBackgrounds] = await Promise.all([
-    loadJSON<SRDBackground[]>('5e-SRD-Backgrounds.json'),
+    loadJSON<SRDBackground[]>('fr/5e-SRD-Backgrounds.json'),
     loadJSON<SRDBackground[]>('custom/custom-backgrounds.json').catch(() => [])
   ])
   
@@ -44,7 +48,7 @@ export async function loadBackgrounds(): Promise<SRDBackground[]> {
 
 export async function loadSubraces(): Promise<SRDSubclass[]> {
   const [srdSubraces, customSubraces] = await Promise.all([
-    loadJSON<SRDSubclass[]>('5e-SRD-Subraces.json'),
+    loadJSON<SRDSubclass[]>('fr/5e-SRD-Subraces.json'),
     loadJSON<SRDSubclass[]>('custom/custom-subraces.json').catch(() => [])
   ])
   
@@ -69,7 +73,7 @@ export async function loadTraits(): Promise<SRDTrait[]> {
   // Charger les traits custom et SRD en parallèle
   const [customTraits, srdTraits] = await Promise.all([
     loadJSON<SRDTrait[]>('custom/custom-traits.json').catch(() => []),
-    loadJSON<SRDTrait[]>('5e-SRD-Traits.json')
+    loadJSON<SRDTrait[]>('fr/5e-SRD-Traits.json')
   ])
   
   // Fusionner avec priorité aux traits custom
