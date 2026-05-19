@@ -491,9 +491,34 @@ function formatSpecialChoiceKey(key: string): string {
         'draconicAncestry': 'Ascendance Draconique',
         'favoredEnemies': 'Ennemis Jurés',
         'naturalExplorer': 'Explorateur-né',
-        'expertise': 'Expertise'
+        'expertise': 'Expertise',
+        'halfElfAbilities': 'Bonus demi-elfe'
     }
     return map[key] || key
+}
+
+function translateAbilityKey(key: string): string {
+  const map: Record<string, string> = {
+    str: 'Force',
+    dex: 'Dextérité',
+    con: 'Constitution',
+    int: 'Intelligence',
+    wis: 'Sagesse',
+    cha: 'Charisme'
+  }
+
+  return map[key] || key
+}
+
+function isHalfElfRace(): boolean {
+  return props.character.race?.index === 'half-elf' || props.character.race?.name === 'Half-Elf'
+}
+
+function getHalfElfAbilityChoices(): string[] {
+  const choices = props.character.specialChoices?.halfElfAbilities
+  if (!Array.isArray(choices)) return []
+
+  return choices.filter(choice => choice && choice !== 'cha')
 }
 
   
@@ -564,6 +589,8 @@ const specialChoicesDisplay = computed(() => {
         result.naturalExplorer = items
       } else if (key.includes('expertise')) {
         result.expertise = items
+      } else if (key.includes('halfElfAbilities')) {
+        result.halfElfAbilities = items.map(item => translateAbilityKey(item))
       } else {
         // Fallback pour d'autres types de choix
         result[key] = items
@@ -659,13 +686,15 @@ function getAbilitiesDisplay() {
     })?.bonus || 0
 
     const subraceBonus = getSubraceBonus(name, abilityEnglishKey)
+    const halfElfBonus = isHalfElfRace() && getHalfElfAbilityChoices().includes(abilityEnglishKey) ? 1 : 0
 
-    const finalValue = baseValue + racialBonus + subraceBonus
+    const finalValue = baseValue + racialBonus + subraceBonus + halfElfBonus
     
     return {
       name: name.substring(0, 3),
       base: baseValue,
       racial: racialBonus,
+      halfElf: halfElfBonus,
       final: finalValue,
       modifier: getModifier(finalValue)
     }

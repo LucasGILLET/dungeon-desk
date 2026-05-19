@@ -184,7 +184,6 @@
                 </p>
               </div>
             </div>
-            </div>
 
               <!-- Wrapper pour Bonus & Traits -->
               <div 
@@ -224,6 +223,7 @@
                   </div>
                 </div>
               </div>
+            </div>
             </div>
           </div>
         </div>

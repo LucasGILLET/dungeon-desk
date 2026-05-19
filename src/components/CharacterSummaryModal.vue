@@ -95,15 +95,16 @@
                 </div>
             </div>
 
-             <!-- Abilities -->
-            <div v-if="Object.keys(character.abilities).length > 0" class="space-y-4">
+            <!-- Abilities -->
+            <div v-if="displayedAbilities.length > 0" class="space-y-4">
                 <h3 class="text-lg font-serif font-bold text-zinc-200 border-b border-zinc-800 pb-2 flex items-center gap-2">
                     <span class="text-amber-500">💪</span> Caractéristiques
                 </h3>
                  <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                    <div v-for="(value, ability) in character.abilities" :key="ability" class="bg-zinc-900 border border-zinc-700 rounded-lg p-2 text-center flex flex-col items-center justify-center aspect-square shadow-inner">
-                        <div class="text-2xl font-bold text-amber-500 font-serif">{{ value }}</div>
-                        <div class="text-[10px] uppercase tracking-wide text-zinc-500 font-bold max-w-full truncate px-1">{{ ability.substring(0,3) }}</div>
+                <div v-for="ability in displayedAbilities" :key="ability.key" class="bg-zinc-900 border border-zinc-700 rounded-lg p-2 text-center flex flex-col items-center justify-center aspect-square shadow-inner">
+                  <div class="text-2xl font-bold text-amber-500 font-serif">{{ ability.final }}</div>
+                  <div class="text-[10px] uppercase tracking-wide text-zinc-500 font-bold max-w-full truncate px-1">{{ ability.label }}</div>
+                  <div v-if="ability.bonus > 0" class="text-[10px] text-amber-400 font-bold mt-1">+{{ ability.bonus }}</div>
                     </div>
                  </div>
             </div>
@@ -154,13 +155,13 @@
                     <span class="text-amber-500">✨</span> Talents & Choix
                 </h3>
                 <div class="grid grid-cols-1 gap-3">
-                    <div v-for="(choices, key) in character.specialChoices" :key="key" class="bg-zinc-800/30 border border-zinc-700/50 p-4 rounded-lg">
-                        <div class="text-xs text-amber-500/80 uppercase tracking-widest mb-2 font-bold border-b border-zinc-800 pb-1">{{ key.toString().replace(/([A-Z])/g, ' $1').trim() }}</div>
-                        <div class="flex flex-wrap gap-2">
-                            <span v-for="choice in choices" :key="choice" class="text-zinc-300 text-sm font-medium flex items-center gap-2">
-                                <span class="text-amber-500">•</span> {{ choice }}
-                            </span>
-                        </div>
+                    <div v-for="(choices, key) in displayedSpecialChoices" :key="key" class="bg-zinc-800/30 border border-zinc-700/50 p-4 rounded-lg">
+                      <div class="text-xs text-amber-500/80 uppercase tracking-widest mb-2 font-bold border-b border-zinc-800 pb-1">{{ formatSpecialChoiceKey(key) }}</div>
+                      <div class="flex flex-wrap gap-2">
+                        <span v-for="choice in choices" :key="choice" class="text-zinc-300 text-sm font-medium flex items-center gap-2">
+                          <span class="text-amber-500">•</span> {{ choice }}
+                        </span>
+                      </div>
                     </div>
                 </div>
              </div>
@@ -201,6 +202,97 @@ const hasProficiencies = computed(() => {
     if (!p) return false
     return (p.skills?.length ?? 0) > 0 || (p.tools?.length ?? 0) > 0 || (p.languages?.length ?? 0) > 0
 })
+
+type DisplayedAbility = {
+  key: string
+  label: string
+  final: number
+  bonus: number
+}
+
+const displayedAbilities = computed<DisplayedAbility[]>(() => {
+  const abilityLabels = [
+    { key: 'str', label: 'FOR' },
+    { key: 'dex', label: 'DEX' },
+    { key: 'con', label: 'CON' },
+    { key: 'int', label: 'INT' },
+    { key: 'wis', label: 'SAG' },
+    { key: 'cha', label: 'CHA' }
+  ]
+
+  const abilityBonusMap = new Map<string, number>()
+
+  const addBonuses = (bonuses?: Array<{ ability_score: { index: string; name: string }; bonus: number }>) => {
+    if (!Array.isArray(bonuses)) return
+    bonuses.forEach(bonus => {
+      const key = bonus.ability_score?.index || bonus.ability_score?.name?.toLowerCase().substring(0, 3)
+      if (!key) return
+      abilityBonusMap.set(key, (abilityBonusMap.get(key) || 0) + bonus.bonus)
+    })
+  }
+
+  addBonuses(props.character.race?.ability_bonuses)
+  addBonuses((props.character.subrace as any)?.ability_bonuses)
+
+  const halfElfChoices = props.character.specialChoices?.halfElfAbilities
+  const isHalfElf = props.character.race?.index === 'half-elf' || props.character.race?.name === 'Half-Elf'
+
+  if (isHalfElf && Array.isArray(halfElfChoices)) {
+    halfElfChoices.forEach(choice => {
+      if (choice && choice !== 'cha') {
+        abilityBonusMap.set(choice, (abilityBonusMap.get(choice) || 0) + 1)
+      }
+    })
+  }
+
+  return abilityLabels.map(({ key, label }) => {
+    const base = props.character.abilities?.[key as keyof Character['abilities']] ?? 0
+    const bonus = abilityBonusMap.get(key) || 0
+    return {
+      key,
+      label,
+      final: base + bonus,
+      bonus
+    }
+  })
+})
+
+const displayedSpecialChoices = computed(() => {
+  const choices = props.character.specialChoices || {}
+  const result: Record<string, string[]> = {}
+
+  Object.entries(choices).forEach(([key, values]) => {
+    if (!Array.isArray(values) || values.length === 0) return
+
+    if (key === 'halfElfAbilities') {
+      const abilityNames: Record<string, string> = {
+        str: 'Force',
+        dex: 'Dextérité',
+        con: 'Constitution',
+        int: 'Intelligence',
+        wis: 'Sagesse',
+        cha: 'Charisme'
+      }
+
+      result[key] = values
+        .filter(value => value !== 'cha')
+        .map(value => abilityNames[value] || value)
+      return
+    }
+
+    result[key] = values
+  })
+
+  return result
+})
+
+function formatSpecialChoiceKey(key: string): string {
+  const map: Record<string, string> = {
+    halfElfAbilities: 'Bonus demi-elfe'
+  }
+
+  return map[key] || key.replace(/([A-Z])/g, ' $1').trim()
+}
 </script>
 
 <style scoped>

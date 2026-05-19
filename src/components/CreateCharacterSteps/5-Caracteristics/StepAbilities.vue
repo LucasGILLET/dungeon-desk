@@ -74,9 +74,32 @@
        </div>
     </div>
 
+    <!-- Demi-elfe: sélection des +1 flexibles -->
+    <div v-if="isHalfElf" class="max-w-4xl w-full mx-auto mb-4 p-4 rounded-xl bg-zinc-900/50 border border-zinc-800/60">
+       <h4 class="text-sm font-bold text-amber-400 mb-1">Bonus Demi-elfe</h4>
+       <p class="text-xs text-zinc-400 mb-2">En tant que demi-elfe, vous pouvez choisir deux caractéristiques auxquelles vous attribuez +1.</p>
+       <div class="flex flex-wrap gap-2">
+         <button
+           v-for="ability in abilities.filter(a => a.name !== 'Charisme')"
+           :key="ability.name"
+           @click="toggleHalfElfAbility(ability)"
+           :class="[
+             'px-3 py-1 rounded-lg border text-sm font-medium',
+             isHalfElfBonusSelected(ability.name) ? 'bg-amber-600 text-black border-amber-500' : 'bg-zinc-800 text-zinc-300 border-zinc-700'
+           ]"
+           title="Cliquez pour sélectionner/désélectionner"
+         >
+           {{ ability.name }}
+           <span v-if="isHalfElfBonusSelected(ability.name)" class="ml-2 text-xs text-black font-bold">+1</span>
+         </button>
+       </div>
+       <div class="text-xs text-zinc-500 mt-2">Sélectionnez 2 caractéristiques. <span v-if="selectedHalfElf.length !== 2" class="text-amber-400">({{ selectedHalfElf.length }}/2 sélectionnées)</span></div>
+    </div>
+
     <!-- Main Content: Compact Grid -->
     <div class="flex-1 px-4 py-2 sm:p-6 flex items-start justify-center overflow-y-auto custom-scrollbar">
-       <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-5 w-full max-w-5xl pb-24">
+
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-5 w-full max-w-5xl pb-24">
           <div 
             v-for="(ability, index) in abilities" 
             :key="ability.name" 
@@ -209,7 +232,7 @@
 </style>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import StepNavigation from '../StepNavigation.vue'
 import TutorialGuide from '@/components/TutorialGuide.vue'
 import { useTutorial } from '@/composables/useTutorial'
@@ -228,6 +251,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   next: [payload: Record<string, number>]
   prev: []
+  'update:character': [payload: Partial<Character>]
 }>()
 
 const TOTAL_POINTS = 27
@@ -250,6 +274,49 @@ const abilityNameMap: Record<string, string> = {
   'Sagesse': 'wis',
   'Charisme': 'cha'
 }
+
+const abilityIndexMap = abilityNameMap
+
+// Demi-elfe : choix de deux +1 (stockés sous character.specialChoices.halfElfAbilities)
+const selectedHalfElf = ref<string[]>((props.character?.specialChoices?.halfElfAbilities as string[]) || [])
+
+const isHalfElf = computed(() => {
+  return !!(props.character?.race && (props.character.race.index === 'half-elf' || props.character.race.name === 'Half-Elf'))
+})
+
+function toggleHalfElfAbility(ability: Ability) {
+  const idx = getAbilityIndex(ability.name)
+  if (!idx || idx === 'cha') return
+
+  const pos = selectedHalfElf.value.indexOf(idx)
+  if (pos >= 0) {
+    selectedHalfElf.value.splice(pos, 1)
+  } else {
+    if (selectedHalfElf.value.length >= 2) return
+    selectedHalfElf.value.push(idx)
+  }
+
+  // Propager la sélection au parent via update:character
+  const newChoices = Object.assign({}, props.character.specialChoices || {})
+  newChoices.halfElfAbilities = [...selectedHalfElf.value]
+  emit('update:character', { specialChoices: newChoices })
+}
+
+function getAbilityIndex(abilityName: string): string {
+  return abilityIndexMap[abilityName] ?? ''
+}
+
+function isHalfElfBonusSelected(abilityName: string): boolean {
+  const idx = getAbilityIndex(abilityName)
+  return idx !== '' && idx !== 'cha' && selectedHalfElf.value.includes(idx)
+}
+
+watch(() => props.character.race, (newRace) => {
+  // Reset selection when race changes away from half-elf
+  if (!isHalfElf.value) {
+    selectedHalfElf.value = []
+  }
+})
 
 /* --- Tutorial Logic --- */
 const tutorialSteps = [
@@ -308,34 +375,54 @@ const remainingPoints = computed(() => {
 function getRacialBonus(abilityName: string): number {
   let totalBonus = 0
 
-  const abilityNameMap: Record<string, string> = {
-    'Force': 'STR',
-    'Dextérité': 'DEX',
-    'Constitution': 'CON',
-    'Intelligence': 'INT',
-    'Sagesse': 'WIS',
-    'Charisme': 'CHA'
+  const abilityIndexMap: Record<string, string> = {
+    'Force': 'str',
+    'Dextérité': 'dex',
+    'Constitution': 'con',
+    'Intelligence': 'int',
+    'Sagesse': 'wis',
+    'Charisme': 'cha'
   }
 
-  const englishAbilityName = abilityNameMap[abilityName] || abilityName
+  const targetIndex = getAbilityIndex(abilityName)
+  if (!targetIndex) return 0
 
-  // Bonus de la race principale
-  if (props.character.race?.ability_bonuses) {
+  // Bonus de la race principale (compare via ability_score.index pour fiabilité)
+  if (Array.isArray(props.character.race?.ability_bonuses)) {
     const raceBonus = props.character.race.ability_bonuses.find(
-      (bonus: any) => bonus.ability_score.name === englishAbilityName
+      (bonus: any) => bonus.ability_score.index === targetIndex
     )
-    if (raceBonus) {
-      totalBonus += raceBonus.bonus
-    }
+    if (raceBonus) totalBonus += raceBonus.bonus
   }
 
   // Bonus de la sous-race
-  if (props.character.subrace?.ability_bonuses && Array.isArray(props.character.subrace.ability_bonuses)) {
-    const subraceBonus = props.character.subrace.ability_bonuses.find(
-      (bonus: any) => bonus.ability_score.name === englishAbilityName
+  const subraceBonuses = Array.isArray((props.character.subrace as any)?.ability_bonuses)
+    ? (props.character.subrace as any).ability_bonuses
+    : []
+
+  if (subraceBonuses.length > 0) {
+    const subraceBonus = subraceBonuses.find(
+      (bonus: any) => bonus.ability_score.index === targetIndex
     )
-    if (subraceBonus) {
-      totalBonus += subraceBonus.bonus
+    if (subraceBonus) totalBonus += subraceBonus.bonus
+  }
+
+  // Cas particulier: Demi-elfe (+2 CHA +1 dans deux autres caractéristiques choisies)
+  if (props.character.race && (props.character.race.index === 'half-elf' || props.character.race.name === 'Half-Elf')) {
+    const chosen: string[] = (selectedHalfElf.value.length ? selectedHalfElf.value : (props.character.specialChoices?.halfElfAbilities || [])) as string[]
+
+    // S'assurer de ne pas double-compter un bonus déjà présent
+    const raceHasIndex = (idx: string) => !!props.character.race?.ability_bonuses?.some((b: any) => b.ability_score?.index === idx)
+    const subHasIndex = (idx: string) => !!subraceBonuses.some((b: any) => b.ability_score?.index === idx)
+
+    // +2 Charisme si non présent
+    if (targetIndex === 'cha' && !raceHasIndex('cha')) {
+      totalBonus += 2
+    }
+
+    // +1 sur les choix (si non déjà présent)
+    if (chosen.includes(targetIndex) && !raceHasIndex(targetIndex) && !subHasIndex(targetIndex)) {
+      totalBonus += 1
     }
   }
 

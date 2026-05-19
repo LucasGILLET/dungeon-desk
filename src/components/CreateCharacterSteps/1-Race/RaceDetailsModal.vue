@@ -49,11 +49,11 @@
           </h4>
           <div class="flex flex-wrap gap-2">
             <span
-              v-for="bonus in race.ability_bonuses"
-              :key="bonus.ability_score.name"
+              v-for="stat in getRaceStats(race)"
+              :key="stat"
               class="bg-zinc-800 text-zinc-200 px-3 py-1.5 rounded border border-zinc-700 text-sm font-medium flex items-center gap-2 shadow-sm"
             >
-              <span class="text-green-400 font-bold bg-green-900/20 px-1.5 rounded">+{{ bonus.bonus }}</span> {{ translateAbilityScore(bonus.ability_score.name) }}
+              <span class="text-green-400 font-bold bg-green-900/20 px-1.5 rounded">{{ stat }}</span>
             </span>
           </div>
         </div>
@@ -122,7 +122,7 @@
 import { ref, onMounted } from 'vue'
 import { loadTraits } from '@/utils/dataLoader'
 import type { SRDRace, SRDTrait } from '@/types/srd'
-import { translateRaceName, getRaceDescription } from '@/utils/race'
+import { translateRaceName, getRaceDescription, getRaceStats } from '@/utils/race'
 import { translateAbilityScore } from '@/utils/abilities'
 
 interface Props {
