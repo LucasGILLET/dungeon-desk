@@ -75,7 +75,7 @@
           <div class="flex items-start justify-between gap-4">
             <div class="min-w-0">
               <h3 class="truncate text-xl font-semibold text-amber-200 transition-colors group-hover:text-amber-100">{{ s.name }}</h3>
-              <p class="mt-1 text-sm text-zinc-400">École {{ s.school?.name || 'Inconnue' }}</p>
+              <p class="mt-1 text-sm text-zinc-400">{{ s.school?.name || 'Inconnue' }}</p>
             </div>
 
             <div :class="['shrink-0 rounded-2xl border px-3 py-2 text-center', levelBadgeClass(s.level)]">
