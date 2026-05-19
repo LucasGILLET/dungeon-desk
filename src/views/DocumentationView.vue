@@ -64,7 +64,12 @@ const currentSection = computed(() => {
 })
 
 watch(currentSectionKey, () => {
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  const el = document.getElementById('documentation-content')
+  if (el && typeof el.scrollTo === 'function') {
+    el.scrollTo({ top: 0, behavior: 'smooth' })
+  } else {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 })
 
 function selectSection(key: DocSectionKey) {

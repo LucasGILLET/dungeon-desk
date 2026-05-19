@@ -34,6 +34,16 @@ export function translateRaceName(englishName: string): string {
 }
 
 export function getRaceStats(race: SRDRace): string[] {
+  if (!race) return []
+
+  // Cas particulier pour le demi-elfe : +2 Charisme +1 dans deux autres caractéristiques au choix
+  if (race.index === 'half-elf' || race.name === 'Half-Elf') {
+    return [
+      '+2 Charisme',
+      '+1 dans deux autres caractéristiques (au choix)'
+    ]
+  }
+
   return race.ability_bonuses.map(bonus => `+${bonus.bonus} ${translateAbilityScore(bonus.ability_score.name)}`)
 }
 

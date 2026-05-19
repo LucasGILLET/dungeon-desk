@@ -123,6 +123,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 const q = ref('')
 const levelFilter = ref(-1)
@@ -133,6 +134,9 @@ const spells = ref<any[]>([])
 
 const pageSize = ref(24)
 const currentPage = ref(1)
+
+const route = useRoute()
+const router = useRouter()
 
 function levelBadgeClass(level: number | string) {
   const normalized = Number(level)
@@ -238,11 +242,62 @@ watch([q, levelFilter, schoolFilter, classFilter], () => {
   currentPage.value = 1
 })
 
+function buildQuery() {
+  const query: Record<string, any> = {}
+  if (q.value && q.value.trim()) query.q = q.value.trim()
+  if (levelFilter.value !== -1) query.level = String(levelFilter.value)
+  if (schoolFilter.value) query.school = schoolFilter.value
+  if (classFilter.value) query.class = classFilter.value
+  if (currentPage.value && currentPage.value > 1) query.page = String(currentPage.value)
+  return query
+}
+
+function syncQueryToRoute() {
+  const newQuery = buildQuery()
+  // avoid unnecessary replace when identical
+  const same = Object.keys(newQuery).length === Object.keys(route.query).length && Object.keys(newQuery).every(k => route.query[k] === newQuery[k])
+  if (!same) {
+    router.replace({ name: 'sorts-list', query: newQuery }).catch(() => {})
+  }
+}
+
+// update route when filters or page change
+watch([q, levelFilter, schoolFilter, classFilter, currentPage], () => {
+  syncQueryToRoute()
+})
+
+// if route query changes (e.g. browser navigation), restore state
+watch(() => route.query, (qry) => {
+  if (qry.q !== undefined) q.value = String(qry.q)
+  else q.value = ''
+
+  if (qry.level !== undefined) levelFilter.value = Number(qry.level)
+  else levelFilter.value = -1
+
+  if (qry.school !== undefined) schoolFilter.value = String(qry.school)
+  else schoolFilter.value = ''
+
+  if (qry.class !== undefined) classFilter.value = String(qry.class)
+  else classFilter.value = ''
+
+  if (qry.page !== undefined) currentPage.value = Math.max(1, Number(qry.page) || 1)
+  else currentPage.value = 1
+})
+
 onMounted(async () => {
   try {
     const res = await fetch('/data/fr/5e-SRD-Spells.json')
     const list = await res.json()
     spells.value = list
+    // restore from query when first loading
+    if (route && route.query) {
+      const qry = route.query as Record<string, any>
+      if (qry.q !== undefined) q.value = String(qry.q)
+      if (qry.level !== undefined) levelFilter.value = Number(qry.level)
+      if (qry.school !== undefined) schoolFilter.value = String(qry.school)
+      if (qry.class !== undefined) classFilter.value = String(qry.class)
+      if (qry.page !== undefined) currentPage.value = Math.max(1, Number(qry.page) || 1)
+    }
   } catch (e) {
     console.error('Failed to load spells', e)
   }
