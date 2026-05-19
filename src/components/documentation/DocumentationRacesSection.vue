@@ -108,7 +108,7 @@ const cards: DocCard[] = [
   {
     title: 'Humain',
     eyebrow: 'Polyvalence maximale',
-    summary: 'Flexible et facile a integrer dans n\'importe quel concept de personnage.',
+    summary: 'Flexible et facile à integrer dans n\'importe quel concept de personnage.',
     physicalTraits: ['Taille moyenne (1m50 a 1m90)', 'Poids tres variable selon l\'origine', 'Maturite et longévité comparables au monde reel'],
     racialTalents: ['Polyvalence (competences et styles varies)', 'Version variante: don de niveau 1 possible', 'Adaptation facile a toutes les classes'],
     statBonuses: ['+1 dans toutes les caracteristiques'],
