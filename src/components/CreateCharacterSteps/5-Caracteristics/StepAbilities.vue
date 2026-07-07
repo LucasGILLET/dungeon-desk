@@ -157,9 +157,10 @@
 
                <!-- Buttons Row -->
                <div class="flex items-center justify-between gap-2">
-                   <button 
+                   <button
                       @click="decreaseAbility(ability)"
                       :disabled="ability.value <= 8"
+                      :aria-label="`Diminuer ${ability.name}`"
                       class="w-8 h-8 flex items-center justify-center rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-red-400 disabled:opacity-30 disabled:hover:bg-zinc-800 transition-colors border border-zinc-700"
                     >
                       <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M20 12H4"></path></svg>
@@ -167,9 +168,10 @@
 
                    <div class="text-xs font-medium text-zinc-300">{{ ability.value }} <span class="text-[9px] text-zinc-600">pts</span></div>
 
-                   <button 
+                   <button
                       @click="increaseAbility(ability)"
                       :disabled="ability.value >= 15 || remainingPoints <= 0"
+                      :aria-label="`Augmenter ${ability.name}`"
                       class="w-8 h-8 flex items-center justify-center rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-green-400 disabled:opacity-30 disabled:hover:bg-zinc-800 transition-colors border border-zinc-700"
                     >
                       <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path></svg>
