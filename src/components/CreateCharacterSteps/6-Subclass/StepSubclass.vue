@@ -54,11 +54,17 @@
 
         <!-- Grille des sous-classes -->
         <div v-else :class="['grid gap-6 pb-20 transition-all duration-300', getGridColumns(), {'relative z-40': isTutorialStep(1)}]">
-          <div 
-            v-for="(subclass, index) in availableSubclasses" 
+          <div
+            v-for="(subclass, index) in availableSubclasses"
             :key="subclass.id"
+            role="button"
+            tabindex="0"
+            :aria-pressed="selectedSubclass?.id === subclass.id"
+            :aria-label="`Choisir la sous-classe ${subclass.name}`"
             @click="selectedSubclass = subclass"
-            class="group relative"
+            @keydown.enter="selectedSubclass = subclass"
+            @keydown.space.prevent="selectedSubclass = subclass"
+            class="group relative focus-visible:outline-2 focus-visible:outline-amber-500 focus-visible:outline-offset-2 rounded-xl"
           >
              <div :class="[
                'h-full flex flex-col rounded-xl overflow-hidden border transition-all duration-300 cursor-pointer bg-zinc-900',

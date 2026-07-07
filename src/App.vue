@@ -68,9 +68,9 @@ onBeforeUnmount(() => {
 <template>
   <AppNavigation />
 
-  <div class="bg-zinc-950 pt-20">
+  <main class="bg-zinc-950 pt-20">
     <RouterView />
-  </div>
+  </main>
   <DiceRollerPanel />
 
   <Teleport to="body">

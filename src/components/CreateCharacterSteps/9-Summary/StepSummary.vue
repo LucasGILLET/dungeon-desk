@@ -32,9 +32,10 @@
 
           <div class="max-w-md mx-auto relative group transition-all duration-300"
                :class="{'z-50 ring-4 ring-amber-500 ring-offset-4 ring-offset-zinc-950 rounded bg-zinc-900 px-4 py-2 shadow-[0_0_50px_rgba(0,0,0,0.8)]': isTutorialStep(0)}">
-             <input type="text" v-model="character.name" 
-                     placeholder="Nommez votre Héros..." 
-                     class="w-full bg-transparent text-center text-3xl font-serif font-bold text-amber-500 placeholder-zinc-700 border-b-2 border-zinc-800 focus:border-amber-500 focus:outline-none py-2 transition-colors duration-300" />
+             <label for="character-name" class="sr-only">Nom du personnage</label>
+             <input id="character-name" type="text" v-model="character.name"
+                     placeholder="Nommez votre Héros..."
+                     class="w-full bg-transparent text-center text-3xl font-serif font-bold text-amber-500 placeholder-zinc-700 border-b-2 border-zinc-800 focus:border-amber-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/40 rounded py-2 transition-colors duration-300" />
              <div class="absolute right-0 top-1/2 -translate-y-1/2 text-zinc-600 pointer-events-none transition-opacity duration-300" :class="character.name ? 'opacity-0' : 'opacity-100'">
                 <svg class="w-6 h-6 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
              </div>

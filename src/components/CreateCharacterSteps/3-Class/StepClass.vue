@@ -61,14 +61,20 @@
            
            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 sm:gap-3 auto-rows-fr mb-4 transition-all duration-300 rounded-lg p-1" :class="{'relative z-40 bg-red-900/10': isTutorialStep(1)}">
             <!-- Martials -->
-            <div 
-              v-for="classe in sortedClasses.filter(c => isMartialClass(c.index))" 
-              :key="classe.index" 
+            <div
+              v-for="classe in sortedClasses.filter(c => isMartialClass(c.index))"
+              :key="classe.index"
+              role="button"
+              tabindex="0"
+              :aria-pressed="selectedClass?.index === classe.index"
+              :aria-label="`Choisir la classe ${getTranslatedClassName(classe.name)}`"
               @click="selectedClass = classe"
+              @keydown.enter="selectedClass = classe"
+              @keydown.space.prevent="selectedClass = classe"
               :class="[
-                'class-card group relative h-[230px] sm:h-[270px] lg:h-[319px] rounded-xl overflow-hidden cursor-pointer border transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1)',
-                selectedClass?.index === classe.index 
-                  ? 'border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.25)] scale-[1.01] grayscale-0' 
+                'class-card group relative h-[230px] sm:h-[270px] lg:h-[319px] rounded-xl overflow-hidden cursor-pointer border transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) focus-visible:outline-2 focus-visible:outline-amber-500 focus-visible:outline-offset-2',
+                selectedClass?.index === classe.index
+                  ? 'border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.25)] scale-[1.01] grayscale-0'
                   : 'border-zinc-800 opacity-70 grayscale hover:grayscale-0 hover:opacity-100 hover:border-zinc-500 hover:scale-[1.01] hover:z-10 hover:shadow-lg',
                 (selectedClass?.index === classe.index && (isTutorialStep(2) || isTutorialStep(3) || isTutorialStep(4))) ? 'z-50' : (selectedClass?.index === classe.index ? 'z-20' : '')
               ]"
@@ -187,14 +193,20 @@
 
            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 sm:gap-3 auto-rows-fr transition-all duration-300 rounded-lg p-1" :class="{'relative z-40 bg-purple-900/10': isTutorialStep(1)}">
             <!-- Casters -->
-            <div 
-              v-for="classe in sortedClasses.filter(c => !isMartialClass(c.index))" 
-              :key="classe.index" 
+            <div
+              v-for="classe in sortedClasses.filter(c => !isMartialClass(c.index))"
+              :key="classe.index"
+              role="button"
+              tabindex="0"
+              :aria-pressed="selectedClass?.index === classe.index"
+              :aria-label="`Choisir la classe ${getTranslatedClassName(classe.name)}`"
               @click="selectedClass = classe"
+              @keydown.enter="selectedClass = classe"
+              @keydown.space.prevent="selectedClass = classe"
               :class="[
-                'class-card group relative h-[230px] sm:h-[270px] lg:h-[319px] rounded-xl overflow-hidden cursor-pointer border transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1)',
-                selectedClass?.index === classe.index 
-                  ? 'border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.25)] scale-[1.01] grayscale-0' 
+                'class-card group relative h-[230px] sm:h-[270px] lg:h-[319px] rounded-xl overflow-hidden cursor-pointer border transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) focus-visible:outline-2 focus-visible:outline-purple-500 focus-visible:outline-offset-2',
+                selectedClass?.index === classe.index
+                  ? 'border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.25)] scale-[1.01] grayscale-0'
                   : 'border-zinc-800 opacity-70 grayscale hover:grayscale-0 hover:opacity-100 hover:border-zinc-500 hover:scale-[1.01] hover:z-10 hover:shadow-xl',
                 (selectedClass?.index === classe.index && (isTutorialStep(2) || isTutorialStep(3) || isTutorialStep(4))) ? 'z-50' : (selectedClass?.index === classe.index ? 'z-20' : '')
               ]"

@@ -76,11 +76,18 @@
             <!-- Grid -->
             <div class="grid gap-4 transition-all duration-300" 
                  :class="[getGridClass(choice), {'opacity-100 scale-100': !(isTutorialStep(1) && index === 0), 'ring-4 ring-amber-500 ring-offset-4 ring-offset-zinc-900 rounded-xl p-2': isTutorialStep(1) && index === 0}]">
-              <div 
+              <div
                 v-for="option in choice.options"
                 :key="option.id"
+                role="button"
+                :tabindex="isDisabled(choice, option) ? -1 : 0"
+                :aria-pressed="isSelected(choice.id, option.id)"
+                :aria-disabled="isDisabled(choice, option)"
+                :aria-label="`Choisir ${option.name}`"
                 @click="selectOption(choice, option)"
-                class="group relative"
+                @keydown.enter="selectOption(choice, option)"
+                @keydown.space.prevent="selectOption(choice, option)"
+                class="group relative focus-visible:outline-2 focus-visible:outline-amber-500 focus-visible:outline-offset-2 rounded-lg"
               >
                 <!-- Card Inner -->
                  <div :class="[

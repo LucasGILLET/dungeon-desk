@@ -65,12 +65,18 @@
               {'relative z-40': isTutorialStep(1) || isTutorialStep(2) || isTutorialStep(3)}
             ]"
           >
-            <div 
-              v-for="subrace in availableSubraces" 
-              :key="subrace.index" 
+            <div
+              v-for="subrace in availableSubraces"
+              :key="subrace.index"
+              role="button"
+              tabindex="0"
+              :aria-pressed="selectedSubrace?.index === subrace.index"
+              :aria-label="`Choisir la sous-race ${subrace.name}`"
               @click="selectedSubrace = subrace"
+              @keydown.enter="selectedSubrace = subrace"
+              @keydown.space.prevent="selectedSubrace = subrace"
               :class="[
-                'subrace-card cursor-pointer group relative bg-zinc-900/40 backdrop-blur-sm rounded-2xl border transition-all duration-300 ease-out flex flex-col overflow-hidden',
+                'subrace-card cursor-pointer group relative bg-zinc-900/40 backdrop-blur-sm rounded-2xl border transition-all duration-300 ease-out flex flex-col overflow-hidden focus-visible:outline-2 focus-visible:outline-amber-500 focus-visible:outline-offset-2',
                 selectedSubrace?.index === subrace.index 
                   ? 'border-amber-500 bg-zinc-800/60 shadow-[0_0_20px_rgba(245,158,11,0.15)] transform scale-[1.02] z-10' 
                   : 'border-zinc-800 hover:border-amber-500/30 hover:bg-zinc-800/40',

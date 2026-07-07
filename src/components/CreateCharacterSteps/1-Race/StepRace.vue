@@ -112,14 +112,20 @@
           class="races-container w-full flex-1 flex justify-start xl:justify-center gap-3 xl:gap-2 overflow-x-auto xl:overflow-hidden py-3 xl:py-4 min-h-[330px] xl:min-h-[500px] px-1 xl:px-0 snap-x snap-mandatory"
           :class="{'relative z-40': isTutorialStep(1) || isTutorialStep(2) || isTutorialStep(3) || isTutorialStep(4)}"
         >
-          <div 
-            v-for="race in races" 
-            :key="race.index" 
+          <div
+            v-for="race in races"
+            :key="race.index"
+            role="button"
+            tabindex="0"
+            :aria-pressed="selectedRace?.index === race.index"
+            :aria-label="`Choisir la race ${translateRaceName(race.name)}`"
             @click="selectedRace = race"
+            @keydown.enter="selectedRace = race"
+            @keydown.space.prevent="selectedRace = race"
             :class="[
-              `race-card group cursor-pointer relative overflow-hidden rounded-2xl border transition-all duration-500 ease-out snap-center`,
-              selectedRace?.index === race.index 
-                ? 'border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.15)] z-20 opacity-100 scale-100 xl:flex-[2_!important]' 
+              `race-card group cursor-pointer relative overflow-hidden rounded-2xl border transition-all duration-500 ease-out snap-center focus-visible:outline-2 focus-visible:outline-amber-500 focus-visible:outline-offset-2`,
+              selectedRace?.index === race.index
+                ? 'border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.15)] z-20 opacity-100 scale-100 xl:flex-[2_!important]'
                 : 'border-zinc-800 grayscale hover:grayscale-0 opacity-40 hover:opacity-100 hover:border-zinc-600'
             ]"
             style="flex: 1;"

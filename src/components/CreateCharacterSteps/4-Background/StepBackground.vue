@@ -55,11 +55,17 @@
              class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-4 gap-4 px-6 overflow-auto transition-all duration-300"
              :class="{'relative z-40': isTutorialStep(1) || isTutorialStep(2)}"
         >
-          <div 
-            v-for="(background, index) in backgrounds" 
-            :key="background.index" 
+          <div
+            v-for="(background, index) in backgrounds"
+            :key="background.index"
+            role="button"
+            tabindex="0"
+            :aria-pressed="selectedBackground?.index === background.index"
+            :aria-label="`Choisir l'historique ${getBackgroundName(background.index)}`"
             @click="selectedBackground = background"
-            class="group relative h-full flex flex-col transition-all duration-300"
+            @keydown.enter="selectedBackground = background"
+            @keydown.space.prevent="selectedBackground = background"
+            class="group relative h-full flex flex-col transition-all duration-300 focus-visible:outline-2 focus-visible:outline-amber-500 focus-visible:outline-offset-2 rounded-xl"
             :class="{'ring-4 ring-amber-500 ring-offset-4 ring-offset-black rounded-xl z-50 scale-105': index === 0 && isTutorialStep(1)}"
           >
              <!-- Card Container -->

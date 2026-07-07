@@ -138,11 +138,18 @@
 
             <!-- Grid choices -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-              <div 
-                v-for="choice in group.choices" 
+              <div
+                v-for="choice in group.choices"
                 :key="choice.id"
+                role="button"
+                :tabindex="isUnavailable(group, choice.id) ? -1 : 0"
+                :aria-pressed="isSelected(group.id, choice.id)"
+                :aria-disabled="isUnavailable(group, choice.id)"
+                :aria-label="`Choisir ${choice.name}`"
                 @click="!isUnavailable(group, choice.id) ? toggleSelection(group.id, choice, group.count) : null"
-                class="group relative"
+                @keydown.enter="!isUnavailable(group, choice.id) ? toggleSelection(group.id, choice, group.count) : null"
+                @keydown.space.prevent="!isUnavailable(group, choice.id) ? toggleSelection(group.id, choice, group.count) : null"
+                class="group relative focus-visible:outline-2 focus-visible:outline-amber-500 focus-visible:outline-offset-2 rounded-lg"
               >
                  <div :class="[
                   'h-full p-4 rounded-lg border-2 transition-all duration-200 flex flex-col',
