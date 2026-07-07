@@ -170,7 +170,7 @@
 
                    <button
                       @click="increaseAbility(ability)"
-                      :disabled="ability.value >= 15 || remainingPoints <= 0"
+                      :disabled="ability.value >= 15 || (getAbilityPointCost(ability.value + 1) - getAbilityPointCost(ability.value)) > remainingPoints"
                       :aria-label="`Augmenter ${ability.name}`"
                       class="w-8 h-8 flex items-center justify-center rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-green-400 disabled:opacity-30 disabled:hover:bg-zinc-800 transition-colors border border-zinc-700"
                     >
@@ -447,12 +447,11 @@ function getModifier(value: number): number {
 
 
 function increaseAbility(ability: Ability) {
-  if (ability.value < 15 && remainingPoints.value > 0) {
-    const newValue = ability.value + 1
-    // Vérification du coût (un point supplémentaire pour passer de 13 à 14 ou 14 à 15)
-    // Le calcul se fait via le computed remainingPoints qui recalcule le coût total
-    ability.value = newValue
-  }
+  if (ability.value >= 15) return
+  // Le coût marginal n'est pas toujours 1 (passer de 13 à 14 ou de 14 à 15 coûte 2 points).
+  const marginalCost = getAbilityPointCost(ability.value + 1) - getAbilityPointCost(ability.value)
+  if (marginalCost > remainingPoints.value) return
+  ability.value++
 }
 
 function decreaseAbility(ability: Ability) {

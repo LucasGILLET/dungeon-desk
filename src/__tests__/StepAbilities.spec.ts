@@ -48,6 +48,32 @@ describe('StepAbilities', () => {
     expect(wrapper.text()).toContain('26')
   })
 
+  it('never lets the total spent points exceed the 27-point budget (13 -> 14 costs 2, not 1)', async () => {
+    const wrapper = mountStep()
+    const incForce = () => wrapper.find('[aria-label="Augmenter Force"]').trigger('click')
+
+    // Spend down to exactly 1 point remaining: raise 5 abilities from 8 to 13 (cost 5 each = 25),
+    // then Charisme from 8 to 9 (cost 1) -> 26 spent, 1 remaining.
+    for (const name of ['Force', 'Dextérité', 'Constitution', 'Intelligence', 'Sagesse']) {
+      for (let i = 0; i < 5; i++) {
+        await wrapper.find(`[aria-label="Augmenter ${name}"]`).trigger('click')
+      }
+    }
+    await wrapper.find('[aria-label="Augmenter Charisme"]').trigger('click')
+
+    const pointsBadge = wrapper.find('.rounded-full.bg-zinc-950.text-amber-500')
+    expect(pointsBadge.text()).toBe('1')
+
+    // Force is now at 13 (cost 5). The next step (13 -> 14) costs 2 marginal points,
+    // but only 1 remains: the button must be disabled, and the count must never go negative.
+    const increaseForce = wrapper.find('[aria-label="Augmenter Force"]')
+    expect(increaseForce.attributes('disabled')).toBeDefined()
+
+    await incForce()
+    expect(pointsBadge.text()).not.toBe('-1')
+    expect(pointsBadge.text()).toBe('1')
+  })
+
   it('never lets an ability rise above 15', async () => {
     const wrapper = mountStep()
     const increaseButton = wrapper.find('[aria-label="Augmenter Force"]')
