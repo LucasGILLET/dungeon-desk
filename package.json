@@ -26,7 +26,7 @@
     "@tsparticles/vue3": "^3.0.1",
     "express-oauth2-jwt-bearer": "^1.9.2",
     "pdf-lib": "^1.17.1",
-    "pinia": "^3.0.3",
+    "pinia": "^4.0.3",
     "tailwindcss": "^4.1.14",
     "three": "^0.185.1",
     "vue": "^3.5.41",
