@@ -23,7 +23,7 @@
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/vue-query": "^5.101.4",
     "@tsparticles/slim": "^3.9.1",
-    "@tsparticles/vue3": "^3.0.1",
+    "@tsparticles/vue3": "^4.3.2",
     "express-oauth2-jwt-bearer": "^1.9.2",
     "pdf-lib": "^1.17.1",
     "pinia": "^3.0.3",
