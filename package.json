@@ -19,27 +19,27 @@
   },
   "dependencies": {
     "@3d-dice/dice-box-threejs": "^0.0.12",
-    "@auth0/auth0-vue": "^2.9.0",
+    "@auth0/auth0-vue": "^2.10.0",
     "@tailwindcss/vite": "^4.3.3",
-    "@tanstack/vue-query": "^5.101.4",
+    "@tanstack/vue-query": "^5.103.1",
     "@tsparticles/slim": "^3.9.1",
     "@tsparticles/vue3": "^3.0.1",
-    "express-oauth2-jwt-bearer": "^1.9.2",
+    "express-oauth2-jwt-bearer": "^1.10.0",
     "pdf-lib": "^1.17.1",
     "pinia": "^3.0.3",
     "tailwindcss": "^4.1.14",
-    "three": "^0.185.1",
-    "vue": "^3.5.41",
-    "vue-router": "^5.2.0"
+    "three": "^0.186.0",
+    "vue": "^3.5.43",
+    "vue-router": "^5.3.1"
   },
   "devDependencies": {
-    "@playwright/test": "^1.62.1",
+    "@playwright/test": "^1.63.0",
     "@tsconfig/node22": "^22.0.6",
     "@types/jsdom": "^21.1.7",
     "@types/node": "^22.18.6",
-    "@types/three": "^0.185.4",
-    "@vitejs/plugin-vue": "^6.0.8",
-    "@vue/test-utils": "^2.4.11",
+    "@types/three": "^0.186.0",
+    "@vitejs/plugin-vue": "^6.0.9",
+    "@vue/test-utils": "^2.5.1",
     "@vue/tsconfig": "^0.9.1",
     "jsdom": "^27.0.0",
     "npm-run-all2": "^8.0.4",
@@ -48,6 +48,6 @@
     "vite": "^7.1.7",
     "vite-plugin-vue-devtools": "^8.2.1",
     "vitest": "^3.2.4",
-    "vue-tsc": "^3.3.10"
+    "vue-tsc": "^3.3.11"
   }
 }
