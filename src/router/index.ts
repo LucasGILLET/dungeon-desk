@@ -79,29 +79,6 @@ const router = createRouter({
       name: 'combat-cheat-sheet',
       component: CombatCheatSheetView
     },  
-    // Back-office des données de jeu (rôle vérifié par l'API)
-    {
-      path: '/admin',
-      redirect: '/admin/classes'
-    },
-    {
-      path: '/admin/classes',
-      name: 'admin-classes',
-      component: () => import('@/views/admin/AdminClassesView.vue'),
-      beforeEnter: authGuard
-    },
-    {
-      path: '/admin/classes/:index',
-      name: 'admin-class-edit',
-      component: () => import('@/views/admin/AdminClassEditView.vue'),
-      beforeEnter: authGuard
-    },
-    {
-      path: '/admin/traductions',
-      name: 'admin-translations',
-      component: () => import('@/views/admin/AdminTranslationsView.vue'),
-      beforeEnter: authGuard
-    },
   ],
 })
 
