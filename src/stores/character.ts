@@ -8,6 +8,7 @@ import {
     useCreateCharacter,
     useUpdateCharacter,
 } from '@/api/generated/endpoints';
+import type { CharacterCreateInput } from '@/api/generated/model/characterCreateInput';
 import {
     toCharacterCreateInput,
     type Character,
@@ -120,5 +121,15 @@ export const useCharacterStore = defineStore('character', () => {
         }
     };
 
-    return { characters, loading, error, fetchCharacters, fetchCharacter, saveCharacter, updateCharacter };
+    // Enregistre un personnage déjà au format d'échange (fiche : état, inventaire, niveaux)
+    const saveInput = async (id: number, input: CharacterCreateInput): Promise<SavedCharacter> => {
+        const response = await updateCharacterMutation.mutateAsync({ id: String(id), data: input });
+        const saved = response.data as unknown as SavedCharacter;
+        upsertCharacter(toSummary(saved));
+        queryClient.setQueryData(['characters', String(id)], saved);
+        await queryClient.invalidateQueries({ queryKey: getGetCharactersQueryKey() });
+        return saved;
+    };
+
+    return { characters, loading, error, fetchCharacters, fetchCharacter, saveCharacter, updateCharacter, saveInput };
 });

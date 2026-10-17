@@ -34,8 +34,15 @@ import type {
   CharacterCreateInput,
   CharacterPreview,
   CharacterSummary,
+  GetSrdBackgroundsParams,
+  GetSrdConditionsParams,
   GetSrdEditionClassesIndexParams,
   GetSrdEditionClassesParams,
+  GetSrdEquipmentParams,
+  GetSrdFeatsParams,
+  GetSrdRacesParams,
+  GetSrdSkillsParams,
+  GetSrdSpellsParams,
   MessageResponse,
   PostAuthLoginBody,
   PostAuthRegisterBody,
@@ -1260,6 +1267,713 @@ export function useGetSrdEditionClassesIndex<TData = Awaited<ReturnType<typeof g
  ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetSrdEditionClassesIndexQueryOptions(edition,index,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Races of an edition, with their subraces and traits (translated)
+ */
+export type getSrdRacesResponse200 = {
+  data: void
+  status: 200
+}
+    
+export type getSrdRacesResponseSuccess = (getSrdRacesResponse200) & {
+  headers: Headers;
+};
+;
+
+export type getSrdRacesResponse = (getSrdRacesResponseSuccess)
+
+export const getGetSrdRacesUrl = (edition: string,
+    params?: GetSrdRacesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/srd/${edition}/races?${stringifiedParams}` : `/srd/${edition}/races`
+}
+
+export const getSrdRaces = async (edition: string,
+    params?: GetSrdRacesParams, options?: RequestInit): Promise<getSrdRacesResponse> => {
+  
+  return customFetch<getSrdRacesResponse>(getGetSrdRacesUrl(edition,params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getGetSrdRacesQueryKey = (edition?: MaybeRef<string>,
+    params?: MaybeRef<GetSrdRacesParams>,) => {
+    return [
+    'srd',edition,'races', ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetSrdRacesQueryOptions = <TData = Awaited<ReturnType<typeof getSrdRaces>>, TError = unknown>(edition: MaybeRef<string>,
+    params?: MaybeRef<GetSrdRacesParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdRaces>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  getGetSrdRacesQueryKey(edition,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSrdRaces>>> = ({ signal }) => getSrdRaces(unref(edition),unref(params), { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: computed(() => !!(unref(edition))), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSrdRaces>>, TError, TData> 
+}
+
+export type GetSrdRacesQueryResult = NonNullable<Awaited<ReturnType<typeof getSrdRaces>>>
+export type GetSrdRacesQueryError = unknown
+
+
+/**
+ * @summary Races of an edition, with their subraces and traits (translated)
+ */
+
+export function useGetSrdRaces<TData = Awaited<ReturnType<typeof getSrdRaces>>, TError = unknown>(
+ edition: MaybeRef<string>,
+    params?: MaybeRef<GetSrdRacesParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdRaces>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSrdRacesQueryOptions(edition,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Backgrounds of an edition, with their personality tables (translated)
+ */
+export type getSrdBackgroundsResponse200 = {
+  data: void
+  status: 200
+}
+    
+export type getSrdBackgroundsResponseSuccess = (getSrdBackgroundsResponse200) & {
+  headers: Headers;
+};
+;
+
+export type getSrdBackgroundsResponse = (getSrdBackgroundsResponseSuccess)
+
+export const getGetSrdBackgroundsUrl = (edition: string,
+    params?: GetSrdBackgroundsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/srd/${edition}/backgrounds?${stringifiedParams}` : `/srd/${edition}/backgrounds`
+}
+
+export const getSrdBackgrounds = async (edition: string,
+    params?: GetSrdBackgroundsParams, options?: RequestInit): Promise<getSrdBackgroundsResponse> => {
+  
+  return customFetch<getSrdBackgroundsResponse>(getGetSrdBackgroundsUrl(edition,params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getGetSrdBackgroundsQueryKey = (edition?: MaybeRef<string>,
+    params?: MaybeRef<GetSrdBackgroundsParams>,) => {
+    return [
+    'srd',edition,'backgrounds', ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetSrdBackgroundsQueryOptions = <TData = Awaited<ReturnType<typeof getSrdBackgrounds>>, TError = unknown>(edition: MaybeRef<string>,
+    params?: MaybeRef<GetSrdBackgroundsParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdBackgrounds>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  getGetSrdBackgroundsQueryKey(edition,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSrdBackgrounds>>> = ({ signal }) => getSrdBackgrounds(unref(edition),unref(params), { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: computed(() => !!(unref(edition))), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSrdBackgrounds>>, TError, TData> 
+}
+
+export type GetSrdBackgroundsQueryResult = NonNullable<Awaited<ReturnType<typeof getSrdBackgrounds>>>
+export type GetSrdBackgroundsQueryError = unknown
+
+
+/**
+ * @summary Backgrounds of an edition, with their personality tables (translated)
+ */
+
+export function useGetSrdBackgrounds<TData = Awaited<ReturnType<typeof getSrdBackgrounds>>, TError = unknown>(
+ edition: MaybeRef<string>,
+    params?: MaybeRef<GetSrdBackgroundsParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdBackgrounds>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSrdBackgroundsQueryOptions(edition,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Spells of an edition (structured fields, distances in feet)
+ */
+export type getSrdSpellsResponse200 = {
+  data: void
+  status: 200
+}
+    
+export type getSrdSpellsResponseSuccess = (getSrdSpellsResponse200) & {
+  headers: Headers;
+};
+;
+
+export type getSrdSpellsResponse = (getSrdSpellsResponseSuccess)
+
+export const getGetSrdSpellsUrl = (edition: string,
+    params?: GetSrdSpellsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/srd/${edition}/spells?${stringifiedParams}` : `/srd/${edition}/spells`
+}
+
+export const getSrdSpells = async (edition: string,
+    params?: GetSrdSpellsParams, options?: RequestInit): Promise<getSrdSpellsResponse> => {
+  
+  return customFetch<getSrdSpellsResponse>(getGetSrdSpellsUrl(edition,params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getGetSrdSpellsQueryKey = (edition?: MaybeRef<string>,
+    params?: MaybeRef<GetSrdSpellsParams>,) => {
+    return [
+    'srd',edition,'spells', ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetSrdSpellsQueryOptions = <TData = Awaited<ReturnType<typeof getSrdSpells>>, TError = unknown>(edition: MaybeRef<string>,
+    params?: MaybeRef<GetSrdSpellsParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdSpells>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  getGetSrdSpellsQueryKey(edition,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSrdSpells>>> = ({ signal }) => getSrdSpells(unref(edition),unref(params), { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: computed(() => !!(unref(edition))), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSrdSpells>>, TError, TData> 
+}
+
+export type GetSrdSpellsQueryResult = NonNullable<Awaited<ReturnType<typeof getSrdSpells>>>
+export type GetSrdSpellsQueryError = unknown
+
+
+/**
+ * @summary Spells of an edition (structured fields, distances in feet)
+ */
+
+export function useGetSrdSpells<TData = Awaited<ReturnType<typeof getSrdSpells>>, TError = unknown>(
+ edition: MaybeRef<string>,
+    params?: MaybeRef<GetSrdSpellsParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdSpells>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSrdSpellsQueryOptions(edition,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Conditions (translated)
+ */
+export type getSrdConditionsResponse200 = {
+  data: void
+  status: 200
+}
+    
+export type getSrdConditionsResponseSuccess = (getSrdConditionsResponse200) & {
+  headers: Headers;
+};
+;
+
+export type getSrdConditionsResponse = (getSrdConditionsResponseSuccess)
+
+export const getGetSrdConditionsUrl = (edition: string,
+    params?: GetSrdConditionsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/srd/${edition}/conditions?${stringifiedParams}` : `/srd/${edition}/conditions`
+}
+
+export const getSrdConditions = async (edition: string,
+    params?: GetSrdConditionsParams, options?: RequestInit): Promise<getSrdConditionsResponse> => {
+  
+  return customFetch<getSrdConditionsResponse>(getGetSrdConditionsUrl(edition,params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getGetSrdConditionsQueryKey = (edition?: MaybeRef<string>,
+    params?: MaybeRef<GetSrdConditionsParams>,) => {
+    return [
+    'srd',edition,'conditions', ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetSrdConditionsQueryOptions = <TData = Awaited<ReturnType<typeof getSrdConditions>>, TError = unknown>(edition: MaybeRef<string>,
+    params?: MaybeRef<GetSrdConditionsParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdConditions>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  getGetSrdConditionsQueryKey(edition,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSrdConditions>>> = ({ signal }) => getSrdConditions(unref(edition),unref(params), { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: computed(() => !!(unref(edition))), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSrdConditions>>, TError, TData> 
+}
+
+export type GetSrdConditionsQueryResult = NonNullable<Awaited<ReturnType<typeof getSrdConditions>>>
+export type GetSrdConditionsQueryError = unknown
+
+
+/**
+ * @summary Conditions (translated)
+ */
+
+export function useGetSrdConditions<TData = Awaited<ReturnType<typeof getSrdConditions>>, TError = unknown>(
+ edition: MaybeRef<string>,
+    params?: MaybeRef<GetSrdConditionsParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdConditions>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSrdConditionsQueryOptions(edition,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Equipment catalogue, without detailed stats (translated)
+ */
+export type getSrdEquipmentResponse200 = {
+  data: void
+  status: 200
+}
+    
+export type getSrdEquipmentResponseSuccess = (getSrdEquipmentResponse200) & {
+  headers: Headers;
+};
+;
+
+export type getSrdEquipmentResponse = (getSrdEquipmentResponseSuccess)
+
+export const getGetSrdEquipmentUrl = (edition: string,
+    params?: GetSrdEquipmentParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/srd/${edition}/equipment?${stringifiedParams}` : `/srd/${edition}/equipment`
+}
+
+export const getSrdEquipment = async (edition: string,
+    params?: GetSrdEquipmentParams, options?: RequestInit): Promise<getSrdEquipmentResponse> => {
+  
+  return customFetch<getSrdEquipmentResponse>(getGetSrdEquipmentUrl(edition,params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getGetSrdEquipmentQueryKey = (edition?: MaybeRef<string>,
+    params?: MaybeRef<GetSrdEquipmentParams>,) => {
+    return [
+    'srd',edition,'equipment', ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetSrdEquipmentQueryOptions = <TData = Awaited<ReturnType<typeof getSrdEquipment>>, TError = unknown>(edition: MaybeRef<string>,
+    params?: MaybeRef<GetSrdEquipmentParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdEquipment>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  getGetSrdEquipmentQueryKey(edition,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSrdEquipment>>> = ({ signal }) => getSrdEquipment(unref(edition),unref(params), { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: computed(() => !!(unref(edition))), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSrdEquipment>>, TError, TData> 
+}
+
+export type GetSrdEquipmentQueryResult = NonNullable<Awaited<ReturnType<typeof getSrdEquipment>>>
+export type GetSrdEquipmentQueryError = unknown
+
+
+/**
+ * @summary Equipment catalogue, without detailed stats (translated)
+ */
+
+export function useGetSrdEquipment<TData = Awaited<ReturnType<typeof getSrdEquipment>>, TError = unknown>(
+ edition: MaybeRef<string>,
+    params?: MaybeRef<GetSrdEquipmentParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdEquipment>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSrdEquipmentQueryOptions(edition,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Feats with their ability prerequisites (translated)
+ */
+export type getSrdFeatsResponse200 = {
+  data: void
+  status: 200
+}
+    
+export type getSrdFeatsResponseSuccess = (getSrdFeatsResponse200) & {
+  headers: Headers;
+};
+;
+
+export type getSrdFeatsResponse = (getSrdFeatsResponseSuccess)
+
+export const getGetSrdFeatsUrl = (edition: string,
+    params?: GetSrdFeatsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/srd/${edition}/feats?${stringifiedParams}` : `/srd/${edition}/feats`
+}
+
+export const getSrdFeats = async (edition: string,
+    params?: GetSrdFeatsParams, options?: RequestInit): Promise<getSrdFeatsResponse> => {
+  
+  return customFetch<getSrdFeatsResponse>(getGetSrdFeatsUrl(edition,params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getGetSrdFeatsQueryKey = (edition?: MaybeRef<string>,
+    params?: MaybeRef<GetSrdFeatsParams>,) => {
+    return [
+    'srd',edition,'feats', ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetSrdFeatsQueryOptions = <TData = Awaited<ReturnType<typeof getSrdFeats>>, TError = unknown>(edition: MaybeRef<string>,
+    params?: MaybeRef<GetSrdFeatsParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdFeats>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  getGetSrdFeatsQueryKey(edition,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSrdFeats>>> = ({ signal }) => getSrdFeats(unref(edition),unref(params), { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: computed(() => !!(unref(edition))), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSrdFeats>>, TError, TData> 
+}
+
+export type GetSrdFeatsQueryResult = NonNullable<Awaited<ReturnType<typeof getSrdFeats>>>
+export type GetSrdFeatsQueryError = unknown
+
+
+/**
+ * @summary Feats with their ability prerequisites (translated)
+ */
+
+export function useGetSrdFeats<TData = Awaited<ReturnType<typeof getSrdFeats>>, TError = unknown>(
+ edition: MaybeRef<string>,
+    params?: MaybeRef<GetSrdFeatsParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdFeats>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSrdFeatsQueryOptions(edition,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Skills with their ability score (translated)
+ */
+export type getSrdSkillsResponse200 = {
+  data: void
+  status: 200
+}
+    
+export type getSrdSkillsResponseSuccess = (getSrdSkillsResponse200) & {
+  headers: Headers;
+};
+;
+
+export type getSrdSkillsResponse = (getSrdSkillsResponseSuccess)
+
+export const getGetSrdSkillsUrl = (edition: string,
+    params?: GetSrdSkillsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/srd/${edition}/skills?${stringifiedParams}` : `/srd/${edition}/skills`
+}
+
+export const getSrdSkills = async (edition: string,
+    params?: GetSrdSkillsParams, options?: RequestInit): Promise<getSrdSkillsResponse> => {
+  
+  return customFetch<getSrdSkillsResponse>(getGetSrdSkillsUrl(edition,params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getGetSrdSkillsQueryKey = (edition?: MaybeRef<string>,
+    params?: MaybeRef<GetSrdSkillsParams>,) => {
+    return [
+    'srd',edition,'skills', ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetSrdSkillsQueryOptions = <TData = Awaited<ReturnType<typeof getSrdSkills>>, TError = unknown>(edition: MaybeRef<string>,
+    params?: MaybeRef<GetSrdSkillsParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdSkills>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  getGetSrdSkillsQueryKey(edition,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSrdSkills>>> = ({ signal }) => getSrdSkills(unref(edition),unref(params), { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: computed(() => !!(unref(edition))), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSrdSkills>>, TError, TData> 
+}
+
+export type GetSrdSkillsQueryResult = NonNullable<Awaited<ReturnType<typeof getSrdSkills>>>
+export type GetSrdSkillsQueryError = unknown
+
+
+/**
+ * @summary Skills with their ability score (translated)
+ */
+
+export function useGetSrdSkills<TData = Awaited<ReturnType<typeof getSrdSkills>>, TError = unknown>(
+ edition: MaybeRef<string>,
+    params?: MaybeRef<GetSrdSkillsParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdSkills>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSrdSkillsQueryOptions(edition,params,options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

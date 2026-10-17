@@ -67,7 +67,12 @@ const router = createRouter({
     },
     {
       path: '/character/:id',
-      name: 'character-viewer',
+      name: 'character-sheet',
+      component: () => import('@/views/CharacterSheetView.vue')
+    },
+    {
+      path: '/character/:id/edit',
+      name: 'character-edit',
       component: CharacterCreator
     },
     {

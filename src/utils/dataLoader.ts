@@ -44,6 +44,10 @@ export interface ApiClass extends Ref {
   spellcasting: { ability: Ref; startLevel: number; sections: { title: string; description: string }[] } | null
   subclasses: ApiSubclass[]
   features: { index: string; level: number; subclass: string | null; parent: string | null; name: string; description: string }[]
+  table: {
+    columns: { key: string; label: string; type: string }[]
+    levels: { level: number; abilityScoreImprovements: number; cantripsKnown: number | null; spellsKnown: number | null; spellSlots: number[]; values: Record<string, unknown> }[]
+  }
 }
 export interface ApiSpell extends Ref {
   level: number
@@ -214,3 +218,24 @@ export async function loadBackgrounds(): Promise<SRDBackground[]> {
 export async function loadApiSpells(): Promise<ApiSpell[]> {
   return get<ApiSpell[]>('spells')
 }
+
+// --- Référentiels de la fiche de personnage ------------------------------------------------
+
+export interface ApiSkill extends Ref { ability: Ref }
+export interface ApiCondition extends Ref { description: string }
+export interface ApiEquipment extends Ref {
+  kind: string
+  cost: { amount: number; currency: string } | null
+  weightLb: number | null
+  damage: string | null
+  armorClass: number | null
+}
+export interface ApiFeat extends Ref {
+  description: string
+  prerequisites: { ability: Ref; minimumScore: number; alternativeGroup: number }[]
+}
+
+export const loadSkills = () => get<ApiSkill[]>('skills')
+export const loadConditions = () => get<ApiCondition[]>('conditions')
+export const loadEquipmentCatalog = () => get<ApiEquipment[]>('equipment')
+export const loadFeats = () => get<ApiFeat[]>('feats')

@@ -69,6 +69,11 @@ export interface CharacterSheetValues {
   proficiencies: { index: string; name: string; type: string }[];
   expertise: { index: string; name: string }[];
   languages: { index: string; name: string }[];
+  // Ressources (fiche et aperçu)
+  hitDice?: { class: string; die: number; total: number; used: number }[];
+  spellSlots?: number[]; // index 0 = sorts de niveau 1
+  pactSlots?: { level: number; count: number } | null;
+  spellcasting?: { class: string; ability: string; saveDC: number; attackBonus: number }[];
 }
 
 export interface StartingEquipment {
@@ -193,7 +198,7 @@ export const toCharacterCreateInput = (character: Character): CharacterCreateInp
 };
 
 // Champs de lecture seule renvoyés par l'API, à ne pas renvoyer
-function stripSaved(saved: SavedCharacter): CharacterCreateInput {
+export function stripSaved(saved: SavedCharacter): CharacterCreateInput {
   const { id: _id, names: _names, sheet: _sheet, warnings: _warnings, createdAt: _c, updatedAt: _u, ...input } = saved;
   return input;
 }
