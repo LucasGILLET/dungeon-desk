@@ -12,6 +12,9 @@ async function loadJSON<T>(filename: string): Promise<T> {
     if (!response.ok) {
       throw new Error(`Erreur lors du chargement de ${filename}: ${response.status}`)
     }
+    if (!response.headers.get('content-type')?.includes('json')) {
+      throw new Error(`Fichier introuvable : ${filename}`)
+    }
     const data = await response.json()
     dataCache.set(filename, data)
     return data as T
@@ -47,8 +50,10 @@ export async function loadBackgrounds(): Promise<SRDBackground[]> {
 }
 
 export async function loadSubraces(): Promise<SRDSubclass[]> {
+  // Pas de traduction française des sous-races SRD : repli sur l'anglais, les
+  // sous-races custom (en français) prennent le dessus ci-dessous
   const [srdSubraces, customSubraces] = await Promise.all([
-    loadJSON<SRDSubclass[]>('fr/5e-SRD-Subraces.json'),
+    loadJSON<SRDSubclass[]>('fr/5e-SRD-Subraces.json').catch(() => loadJSON<SRDSubclass[]>('5e-SRD-Subraces.json')),
     loadJSON<SRDSubclass[]>('custom/custom-subraces.json').catch(() => [])
   ])
   
