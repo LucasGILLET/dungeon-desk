@@ -77,6 +77,7 @@
                         <div>
                              <div class="text-3xl font-bold text-red-500 font-serif">{{ getEstimatedHP() }}</div>
                              <div class="text-[10px] uppercase text-zinc-500 tracking-wider mt-1 font-bold">PV Max</div>
+                             <div class="text-[10px] text-zinc-600 mt-0.5" title="Dé de vie + modificateur de Constitution">{{ getHitPointDetail() }}</div>
                         </div>
                         <div class="h-10 w-px bg-zinc-800"></div>
                         <div>
@@ -722,26 +723,22 @@ function getSizeDisplay(size: string): string {
     return map[size] || size
 }
 
+// PV max au niveau 1 : maximum du dé de vie + modificateur de Constitution
+function getHitPointParts(): { hitDie: number; con: number } {
+  const hitDie = props.character.class?.hit_die || 8
+  const con = getModifier(getAbilitiesDisplay().find(a => a.name === 'Con')?.final || 10)
+  return { hitDie, con }
+}
+
 function getEstimatedHP(): number {
-  const classBaseHP: Record<string, number> = {
-    'Barbare': 12,
-    'Guerrier': 10,
-    'Paladin': 10,
-    'Rôdeur': 10,
-    'Barde': 8,
-    'Clerc': 8,
-    'Druide': 8,
-    'Moine': 8,
-    'Roublard': 8,
-    'Ensorceleur': 6,
-    'Magicien': 6,
-    'Occultiste': 6
-  }
-  
-  const baseHP = classBaseHP[props.character.class.hit_die] || 8
-  const conModifier = getModifier(getAbilitiesDisplay().find(a => a.name === 'Con')?.final || 10)
-  
-  return baseHP + conModifier
+  const { hitDie, con } = getHitPointParts()
+  return Math.max(hitDie + con, 1)
+}
+
+// "10 + 2", "8 − 1"
+function getHitPointDetail(): string {
+  const { hitDie, con } = getHitPointParts()
+  return con === 0 ? `${hitDie}` : `${hitDie} ${con > 0 ? '+' : '−'} ${Math.abs(con)}`
 }
 
 function getBaseAC(): number {
