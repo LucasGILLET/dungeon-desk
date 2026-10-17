@@ -6,7 +6,7 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 
 // --- Données de jeu (formes renvoyées par l'API) ---------------------------------------
 
-const level = (l: number, asi: number) => ({ level: l, abilityScoreImprovements: asi, cantripsKnown: null, spellsKnown: null, spellSlots: [], values: {} })
+const level = (l: number, asi: number, values: Record<string, unknown> = {}) => ({ level: l, abilityScoreImprovements: asi, cantripsKnown: null, spellsKnown: null, spellSlots: [], values })
 const fighter = {
   index: 'fighter', name: 'Guerrier', hitDie: 10, subclassLevel: 3, savingThrows: [], proficiencies: [], startingEquipment: [], spellcasting: null,
   subclasses: [{ index: 'champion', name: 'Champion', source: 'SRD', description: 'Un guerrier accompli.', spells: [] }],
@@ -15,7 +15,13 @@ const fighter = {
     { index: 'action-surge', level: 2, subclass: null, parent: null, name: 'Fougue', description: 'Une action de plus.' },
     { index: 'improved-critical', level: 3, subclass: 'champion', parent: null, name: 'Critique amélioré', description: '19-20.' },
   ],
-  table: { columns: [], levels: [level(1, 0), level(2, 0), level(3, 0), level(4, 1), level(5, 1)] },
+  table: {
+    columns: [{ key: 'ki_points', label: 'Points de ki', type: 'INTEGER' }, { key: 'unarmored_movement', label: 'Déplacement sans armure (pieds)', type: 'INTEGER' }],
+    levels: [
+      level(1, 0, { ki_points: 0, unarmored_movement: 0 }), level(2, 0, { ki_points: 2, unarmored_movement: 10 }),
+      level(3, 0, { ki_points: 3, unarmored_movement: 10 }), level(4, 1, { ki_points: 4, unarmored_movement: 10 }), level(5, 1),
+    ],
+  },
 }
 
 vi.mock('@/utils/dataLoader', () => ({
@@ -87,6 +93,23 @@ beforeEach(() => {
 })
 
 describe('CharacterSheetView', () => {
+  it('shows what the new level brings, even without a choice to make', async () => {
+    mockGetCharacter.mockResolvedValue({ data: saved(1) })
+    const wrapper = await mountSheet()
+
+    await wrapper.findAll('button').find((b) => b.text() === 'Monter de niveau')!.trigger('click')
+    await flushPromises()
+    const text = wrapper.find('[role="dialog"]').text()
+
+    expect(text).toContain('Ce que vous gagnez')
+    expect(text).toContain('Fougue')
+    expect(text).toContain('Une action de plus.')
+    expect(text).not.toContain('Second souffle') // déjà acquis au niveau 1
+    expect(text).toContain('Points de ki2')
+    expect(text).toContain('Déplacement sans armure3 m') // 10 pieds
+    expect(text).toContain('PV max12 → 19')
+  })
+
   it('shows the values computed by the back, features up to the level and the inventory', async () => {
     const text = (await mountSheet()).text()
 
@@ -127,6 +150,7 @@ describe('CharacterSheetView', () => {
     expect(wrapper.text()).toContain('Moyenne : 6 +2')
     expect(wrapper.text()).toContain('Guerrier : archétype martial')
 
+    expect(wrapper.find('[role="dialog"]').text()).not.toContain('Critique amélioré')
     // Sans sous-classe, pas de validation possible
     const validate = () => wrapper.findAll('footer button').find((b) => b.text() === 'Monter de niveau')!
     expect(validate().attributes('disabled')).toBeDefined()
@@ -134,6 +158,8 @@ describe('CharacterSheetView', () => {
     await new Promise((r) => setTimeout(r, 300))
     await flushPromises()
     expect(validate().attributes('disabled')).toBeUndefined()
+    // Capacités de la sous-classe choisie
+    expect(wrapper.find('[role="dialog"]').text()).toContain('Critique amélioré')
 
     vi.useFakeTimers()
     await validate().trigger('click')

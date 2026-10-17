@@ -94,6 +94,26 @@
           </div>
         </section>
 
+        <!-- Ce que le personnage gagne -->
+        <section v-if="gains.features.length || gains.stats.length">
+          <h3 class="section-title">Ce que vous gagnez</h3>
+          <ul v-if="gains.stats.length" class="flex flex-wrap gap-2 mb-4">
+            <li v-for="g in gains.stats" :key="g.label" class="px-3 py-1.5 rounded-lg border border-zinc-800 bg-zinc-900/60 text-sm">
+              <span class="text-zinc-400">{{ g.label }}</span>
+              <span class="ml-2 font-bold text-white">{{ g.value }}</span>
+            </li>
+          </ul>
+          <div class="space-y-2">
+            <details v-for="f in gains.features" :key="f.key" class="rounded-lg border border-zinc-800 bg-zinc-900/40 px-4 py-2" open>
+              <summary class="cursor-pointer flex justify-between gap-3">
+                <span class="font-serif font-bold text-zinc-100">{{ f.name }}</span>
+                <span class="text-[10px] uppercase text-zinc-500 whitespace-nowrap">{{ f.source }}</span>
+              </summary>
+              <p class="mt-2 text-sm text-zinc-400 whitespace-pre-line leading-relaxed">{{ f.description }}</p>
+            </details>
+          </div>
+        </section>
+
         <!-- Nouveaux choix -->
         <section v-if="preview">
           <h3 class="section-title">Choix</h3>
@@ -140,6 +160,7 @@ import type { CharacterPreview, ChoiceAnswer, SavedCharacter } from '@/types/cha
 import { loadApiClasses, loadFeats, type ApiClass, type ApiFeat } from '@/utils/dataLoader'
 import { loadSubclassesForClass, type SubclassData } from '@/utils/subclasses'
 import type { Input } from '@/utils/sheetActions'
+import { feetToMeters } from '@/utils/spellFormat'
 
 const props = defineProps<{ mode: 'level' | 'complete'; input: Input; saved: SavedCharacter }>()
 const emit = defineEmits<{ close: []; apply: [input: Input] }>()
@@ -224,6 +245,80 @@ function roll() {
   hpMode.value = 'roll'
   rollValue.value = 1 + Math.floor(Math.random() * (classRule.value?.hitDie ?? 6))
 }
+
+// --- Ce que le personnage gagne ------------------------------------------------------------
+
+// Sous-classe d'une classe après la montée de niveau (choisie ici, ou déjà là)
+const subclassAfter = (c: string) => subclassChoice[c] || owned(c)?.subclass || null
+// "Déplacement sans armure (pieds)" : affiché en mètres
+const columnValue = (label: string, value: unknown) =>
+  /\(pieds\)/.test(label) && typeof value === 'number' ? `${feetToMeters(value).replace(/ mètres?$/, ' m')}` : String(value)
+
+const gains = computed(() => {
+  const features: { key: string; name: string; description: string; source: string }[] = []
+  const stats: { label: string; value: string }[] = []
+
+  // Capacités du nouveau niveau ; avec une sous-classe choisie maintenant, aussi
+  // celles des niveaux déjà atteints
+  const targets = props.mode === 'level' && classRule.value
+    ? [{ cls: classRule.value, from: newClassLevel.value, to: newClassLevel.value }]
+    : []
+  for (const c of subclassTargets.value) {
+    const cls = allClasses.value.find((k) => k.index === c)
+    const level = props.mode === 'level' && c === classIndex.value ? newClassLevel.value : owned(c)?.levels.length ?? 0
+    if (cls) targets.push({ cls, from: 1, to: level })
+  }
+  const seen = new Set<string>()
+  for (const { cls, from, to } of targets) {
+    const sub = subclassAfter(cls.index)
+    for (const f of cls.features) {
+      if (f.parent || f.level < from || f.level > to || seen.has(f.index)) continue
+      // Capacités de classe : seulement au nouveau niveau ; de sous-classe : celle choisie
+      if (!f.subclass && (props.mode !== 'level' || cls.index !== classIndex.value || f.level !== newClassLevel.value)) continue
+      if (f.subclass && f.subclass !== sub) continue
+      seen.add(f.index)
+      const subclassName = f.subclass ? cls.subclasses.find((s) => s.index === f.subclass)?.name : null
+      features.push({ key: f.index, name: f.name, description: f.description, source: `${subclassName ?? cls.name} ${f.level}` })
+    }
+    const spells = cls.subclasses.find((s) => s.index === sub)?.spells.filter((sp) => sp.requiredClassLevel >= from && sp.requiredClassLevel <= to) ?? []
+    if (spells.length) stats.push({ label: 'Sorts toujours préparés', value: spells.map((sp) => sp.name).join(', ') })
+  }
+
+  // Colonnes de la table de classe qui changent (points de ki, rages, attaque sournoise…)
+  if (props.mode === 'level' && classRule.value) {
+    const table = classRule.value.table
+    const now = table.levels.find((l) => l.level === newClassLevel.value)?.values ?? {}
+    const before = table.levels.find((l) => l.level === newClassLevel.value - 1)?.values ?? {}
+    for (const col of table.columns) {
+      const value = now[col.key]
+      if (value == null || value === 0 || value === false || value === before[col.key]) continue
+      stats.push({ label: col.label.replace(/ \(pieds\)$/, ''), value: before[col.key] != null && before[col.key] !== 0 ? `${columnValue(col.label, before[col.key])} → ${columnValue(col.label, value)}` : columnValue(col.label, value) })
+    }
+  }
+
+  // Valeurs calculées par le back, avant et après
+  const after = preview.value?.sheet
+  if (after) {
+    const now = sheet.value
+    if (after.maxHitPoints !== now.maxHitPoints) stats.unshift({ label: 'PV max', value: `${now.maxHitPoints} → ${after.maxHitPoints}` })
+    if (after.proficiencyBonus !== now.proficiencyBonus) stats.push({ label: 'Bonus de maîtrise', value: `${signed(now.proficiencyBonus)} → ${signed(after.proficiencyBonus)}` })
+    const slots = after.spellSlots ?? []
+    slots.forEach((count, i) => {
+      const before = now.spellSlots?.[i] ?? 0
+      if (count !== before) stats.push({ label: `Emplacements de niveau ${i + 1}`, value: before ? `${before} → ${count}` : `${count}` })
+    })
+    if (after.pactSlots && JSON.stringify(after.pactSlots) !== JSON.stringify(now.pactSlots ?? null)) {
+      stats.push({ label: 'Emplacements de pacte', value: `${after.pactSlots.count} de niveau ${after.pactSlots.level}` })
+    }
+    const known = new Set(now.proficiencies.map((p) => p.index))
+    const newProfs = after.proficiencies.filter((p) => !known.has(p.index)).map((p) => p.name)
+    if (newProfs.length) stats.push({ label: 'Nouvelles maîtrises', value: newProfs.join(', ') })
+    const languages = new Set(now.languages.map((l) => l.index))
+    const newLanguages = after.languages.filter((l) => !languages.has(l.index)).map((l) => l.name)
+    if (newLanguages.length) stats.push({ label: 'Nouvelles langues', value: newLanguages.join(', ') })
+  }
+  return { features, stats }
+})
 
 // Personnage après la montée de niveau (ou les compléments), avec les réponses
 function build(answers: ChoiceAnswer[]): Input {
