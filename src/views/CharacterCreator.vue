@@ -47,16 +47,15 @@ import StepBackground from '@/components/CreateCharacterSteps/4-Background/StepB
 import StepClass from '@/components/CreateCharacterSteps/3-Class/StepClass.vue'
 import StepSubrace from '@/components/CreateCharacterSteps/2-Subrace/StepSubrace.vue'
 import StepSubclass from '@/components/CreateCharacterSteps/6-Subclass/StepSubclass.vue'
-import StepProficiencies from '@/components/CreateCharacterSteps/7-Proficiencies/StepProficiencies.vue'
-import StepSpecialChoices from '@/components/CreateCharacterSteps/8-SpecialChoices/StepSpecialChoices.vue'
-import StepSummary from '@/components/CreateCharacterSteps/9-Summary/StepSummary.vue'
+import StepChoices from '@/components/CreateCharacterSteps/7-Choices/StepChoices.vue'
+import StepSummary from '@/components/CreateCharacterSteps/8-Summary/StepSummary.vue'
 import CharacterSummaryModal from '@/components/CharacterSummaryModal.vue'
 import { computed, reactive, ref, onMounted } from 'vue'
 import { getSubracesByParentRace } from '@/utils/subrace'
 import { getAllFeaturesByClass } from '@/utils/features'
 import type { SRDBackground, SRDClass, SRDFeature, SRDRace, SRDSubclass } from '@/types/srd'
-import { useAppStore } from '@/stores/app'
-import type { Character } from '@/types/character'
+import type { Character, CharacterPreview, ChoiceAnswer } from '@/types/character'
+import { applyPreview, fetchPreview, fromSavedCharacter } from '@/utils/characterBuild'
 import { useCharacterStore } from '@/stores/character'
 import { useRouter, useRoute } from 'vue-router'
 import type { Subrace } from '@/utils/subrace'
@@ -69,12 +68,10 @@ const steps = [
   StepBackground,
   StepAbilities,
   StepSubclass,
-  StepProficiencies,
-  StepSpecialChoices,
+  StepChoices,
   StepSummary
 ]
 
-const store = useAppStore()
 const characterStore = useCharacterStore()
 const router = useRouter()
 const route = useRoute()
@@ -110,6 +107,7 @@ const character = reactive<Character>({
     category: string
   }[],
   specialChoices: {} as Record<string, string[]>,
+  choices: [] as ChoiceAnswer[],
   level: 1,
   vision: 'Vision normale',
   features: [] as SRDFeature[]
@@ -121,20 +119,17 @@ onMounted(async () => {
     currentId.value = Array.isArray(id) ? id[0] : id
     isLoading.value = true
     try {
-      const fetched = await characterStore.fetchCharacter(Number(currentId.value))
-      if (fetched) {
-        Object.assign(character, fetched) // fetched is already flattened
-
-        const legacyProficiencies = (fetched as any).allProficiencies
-        if (legacyProficiencies && (!character.proficiencies?.skills?.length && !character.proficiencies?.languages?.length && !character.proficiencies?.tools?.length)) {
-          character.proficiencies = {
-            skills: legacyProficiencies.skills ?? [],
-            languages: legacyProficiencies.languages ?? [],
-            tools: legacyProficiencies.tools ?? []
-          }
-        }
-
-        if (!character.name) character.name = fetched.name
+      const saved = await characterStore.fetchCharacter(Number(currentId.value))
+      if (saved) {
+        // Objets SRD rechargés par index, puis traits, capacités et affichage des choix
+        Object.assign(character, await fromSavedCharacter(saved))
+        const raceTraits = (character.race?.traits ?? []).map((t: any) => ({ ...t, category: 'race' }))
+        const subraceTraits = ((character.subrace as any)?.racial_traits ?? []).map((t: any) => ({ ...t, category: 'subrace' }))
+        character.allTraits = [...raceTraits, ...subraceTraits]
+        character.vision = character.allTraits.some(t => t.index === 'superior-darkvision') ? 'Vision dans le noir suppérieure (36m)'
+          : character.allTraits.some(t => t.index === 'darkvision') ? 'Vision dans le noir (18m)' : 'Vision normale'
+        character.features = await getAllFeaturesByClass(character.class.index).catch(() => [])
+        applyPreview(character, await fetchPreview(character))
         step.value = steps.length - 1
       }
     } catch (e) {
@@ -151,14 +146,6 @@ onMounted(async () => {
                 try {
                     const parsed = JSON.parse(pending);
                     Object.assign(character, parsed);
-                    const legacyProficiencies = (parsed as any).allProficiencies
-                    if (legacyProficiencies && (!character.proficiencies?.skills?.length && !character.proficiencies?.languages?.length && !character.proficiencies?.tools?.length)) {
-                      character.proficiencies = {
-                        skills: legacyProficiencies.skills ?? [],
-                        languages: legacyProficiencies.languages ?? [],
-                        tools: legacyProficiencies.tools ?? []
-                      }
-                    }
                     // Jump to Summary
                     step.value = steps.length - 1;
                 } catch (e) {
@@ -240,7 +227,10 @@ async function handleNext(payload: any) {
   }
 
   if (step.value === 6 && payload) {
-    character.proficiencies = payload.proficiencies
+    // Étape des choix : réponses, et affichage recalculé par le back
+    const { choices, preview } = payload as { choices: ChoiceAnswer[]; preview: CharacterPreview }
+    character.choices = choices
+    applyPreview(character, preview, choices)
   }
 
   
@@ -263,19 +253,16 @@ function updateCharacter(payload: Partial<Character>) {
 }
 
 async function handleFinalize() {
-  try {
-    if (currentId.value) {
-      await store.updateCharacter(currentId.value, { ...character })
-      alert('Personnage mis à jour avec succès !')
-    } else {
-      await store.createCharacter({ ...character })
-      alert('Personnage enregistré avec succès !')
-    }
-    localStorage.removeItem('pendingCharacter');
-    router.push('/')
-  } catch (e: any) {
-    alert("Erreur lors de l'enregistrement du personnage.")
+  const result = currentId.value
+    ? await characterStore.updateCharacter(currentId.value, { ...character })
+    : await characterStore.saveCharacter({ ...character })
+  if (!result.success) {
+    alert(`Erreur lors de l'enregistrement du personnage : ${result.error}`)
+    return
   }
+  alert(currentId.value ? 'Personnage mis à jour avec succès !' : 'Personnage enregistré avec succès !')
+  localStorage.removeItem('pendingCharacter');
+  router.push('/')
 }
 </script>
 

@@ -280,8 +280,8 @@
       <div class="transition-all duration-300 rounded-xl"
            :class="{'ring-4 ring-amber-500 ring-offset-4 ring-offset-zinc-950 p-2 bg-zinc-900 relative z-50 shadow-[0_0_50px_rgba(0,0,0,0.8)]': isTutorialStep(2)}">
         <StepNavigation 
-          :current-step="9" 
-          :total-steps="9"
+          :current-step="8" 
+          :total-steps="8"
           step-name="Finalisation"
           @previous="$emit('prev')"
           @next="finalizeCharacter"
@@ -304,11 +304,10 @@ import { getTranslatedClassName } from '@/utils/classes'
 import { translateSubraceName } from '@/utils/subrace'
 import { translateSubclassName } from '@/utils/subclasses'
 import StepNavigation from '../StepNavigation.vue'
-import ProficiencyBadge from '../7-Proficiencies/ProficiencyBadge.vue'
+import ProficiencyBadge from './ProficiencyBadge.vue'
 import type { SRDRace, SRDTrait } from '@/types/srd'
-import type { Character } from '@/types/character'
+import type { Character, CharacterProficiency } from '@/types/character'
 import { getBackgroundName } from '@/utils/backgrounds'
-import type { ProficiencyChoice } from '@/utils/proficiencies'
 import type { Subrace } from '@/utils/subrace'
 import { usePdfExport } from '@/composables/usePdfExport'
 import type { PDFCharacterData } from '@/types/pdfExport'
@@ -474,7 +473,7 @@ type CharacterTrait = {
   desc?: string[]
 }
 
-type CharacterProficienciesMap = Record<string, ProficiencyChoice[]>
+type CharacterProficienciesMap = Record<string, CharacterProficiency[]>
 
 const srdTraits = ref<SRDTrait[]>([])
 

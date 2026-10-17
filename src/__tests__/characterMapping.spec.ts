@@ -1,96 +1,106 @@
-import { describe, expect, it } from 'vitest'
-import { mapApiCharacterToCharacter, toCharacterCreateInput, type ApiCharacterModel, type Character } from '@/types/character'
+import { describe, expect, it, vi } from 'vitest'
+import { toCharacterCreateInput, type Character, type CharacterPreview, type SavedCharacter } from '@/types/character'
 
-const baseSheet = {
-  abilities: { str: 15, dex: 12, con: 14, int: 10, wis: 8, cha: 13 },
+vi.mock('@/api/generated/endpoints', () => ({ previewCharacter: vi.fn() }))
+const { applyPreview } = await import('@/utils/characterBuild')
+
+const base = (): Character => ({
+  name: 'Elandra',
+  level: 1,
+  abilities: { str: 8, dex: 14, con: 13, int: 15, wis: 12, cha: 10 },
   proficiencies: { skills: [], languages: [], tools: [] },
-  race: { index: 'human', name: 'Humain' },
-  class: { index: 'fighter', name: 'Guerrier' },
-  background: { index: 'soldier', name: 'Soldat' },
+  race: { index: 'elf', name: 'Elfe' } as any,
+  subrace: { index: 'high-elf', name: 'Haut-elfe' } as any,
+  class: { index: 'cleric', name: 'Clerc' } as any,
+  // Sous-classe maison du front : son index en base est "war"
+  subclass: { id: 'domaine-guerre', index: 'war', name: 'Domaine de la Guerre' } as any,
+  background: { index: 'acolyte', name: 'Acolyte' } as any,
   features: [],
-}
-
-describe('mapApiCharacterToCharacter', () => {
-  it('flattens the API model (id/name/level at top level, rest from data)', () => {
-    const apiCharacter = {
-      id: 42,
-      userId: 7,
-      name: 'Aragorn',
-      level: 3,
-      createdAt: '2026-01-01T00:00:00.000Z',
-      updatedAt: '2026-01-02T00:00:00.000Z',
-      data: { ...baseSheet, name: 'ignored', level: 999 },
-    } as unknown as ApiCharacterModel
-
-    const character = mapApiCharacterToCharacter(apiCharacter)
-
-    expect(character.id).toBe(42)
-    expect(character.userId).toBe(7)
-    expect(character.name).toBe('Aragorn')
-    expect(character.level).toBe(3)
-    expect(character.race.index).toBe('human')
-    expect(character.abilities.str).toBe(15)
-  })
-
-  it('does not let the name/level stored inside data override the top-level ones', () => {
-    const apiCharacter = {
-      id: 1,
-      userId: 1,
-      name: 'VraiNom',
-      level: 5,
-      data: { ...baseSheet, name: 'FauxNom', level: 1 },
-    } as unknown as ApiCharacterModel
-
-    const character = mapApiCharacterToCharacter(apiCharacter)
-
-    expect(character.name).toBe('VraiNom')
-    expect(character.level).toBe(5)
-  })
-
-  it('handles a character with no data payload without throwing', () => {
-    const apiCharacter = {
-      id: 2,
-      userId: 1,
-      name: 'Vide',
-      level: 1,
-      data: null,
-    } as unknown as ApiCharacterModel
-
-    expect(() => mapApiCharacterToCharacter(apiCharacter)).not.toThrow()
-    expect(mapApiCharacterToCharacter(apiCharacter).name).toBe('Vide')
-  })
+  choices: [{ choiceId: 10, optionId: 100 }, { choiceId: 11, language: 'giant' }],
+  startingEquipment: { items: [{ equipment: 'mace', name: null, quantity: 1 }], currencies: { GP: 15 } },
 })
 
 describe('toCharacterCreateInput', () => {
-  it('wraps the full character under data, keeping name/level at the top level', () => {
-    const character = {
-      ...baseSheet,
-      id: 42,
-      name: 'Aragorn',
-      level: 3,
-    } as unknown as Character
+  it('sends indexes and answers, not SRD objects', () => {
+    const input = toCharacterCreateInput(base())
 
-    const input = toCharacterCreateInput(character)
-
-    expect(input.name).toBe('Aragorn')
-    expect(input.level).toBe(3)
-    expect((input.data as any).race.index).toBe('human')
+    expect(input).toMatchObject({
+      edition: '2014',
+      name: 'Elandra',
+      race: 'elf',
+      subrace: 'high-elf',
+      background: 'acolyte',
+      abilityMethod: 'POINT_BUY',
+      abilityScores: { str: 8, int: 15 },
+      classes: [{ class: 'cleric', subclass: 'war', levels: [{ level: 1, characterLevel: 1 }] }],
+      choices: [{ choiceId: 10, optionId: 100 }, { choiceId: 11, language: 'giant' }],
+    })
   })
 
-  it('round-trips through mapApiCharacterToCharacter and toCharacterCreateInput without losing data', () => {
-    const apiCharacter = {
-      id: 10,
-      userId: 3,
-      name: 'Legolas',
-      level: 2,
-      data: baseSheet,
-    } as unknown as ApiCharacterModel
+  it('adds the starting equipment to a new character only', () => {
+    expect(toCharacterCreateInput(base())).toMatchObject({
+      items: [{ equipment: 'mace', quantity: 1, equipped: false, attuned: false }],
+      currencies: { GP: 15 },
+    })
 
-    const character = mapApiCharacterToCharacter(apiCharacter)
-    const input = toCharacterCreateInput(character)
+    const saved = {
+      id: 3, edition: '2014', name: 'Elandra', race: 'elf', abilityScores: {}, abilityMethod: 'MANUAL',
+      classes: [{ class: 'cleric', subclass: 'war', hitDiceUsed: 1, levels: [{ level: 1, characterLevel: 1 }, { level: 2, characterLevel: 2, hitPointRoll: 6 }] }],
+      items: [{ name: 'Amulette', quantity: 1 }], currencies: { GP: 3 }, notes: 'à garder',
+      names: {}, sheet: null, warnings: [], createdAt: '', updatedAt: '',
+    } as unknown as SavedCharacter
+    const input = toCharacterCreateInput({ ...base(), id: 3, saved })
 
-    expect(input.name).toBe('Legolas')
-    expect(input.level).toBe(2)
-    expect((input.data as any).class.index).toBe('fighter')
+    // Inventaire, argent, niveaux et notes du personnage enregistré conservés
+    expect(input).toMatchObject({ items: [{ name: 'Amulette' }], currencies: { GP: 3 }, notes: 'à garder', abilityMethod: 'MANUAL' })
+    expect(input.classes[0]).toMatchObject({ hitDiceUsed: 1, levels: [{ level: 1 }, { level: 2, hitPointRoll: 6 }] })
+    // Champs de lecture seule non renvoyés
+    expect(input).not.toHaveProperty('id')
+    expect(input).not.toHaveProperty('sheet')
+  })
+
+  it('names an unnamed character instead of sending an empty name', () => {
+    expect(toCharacterCreateInput({ ...base(), name: '  ' }).name).toBe('Personnage sans nom')
+  })
+})
+
+describe('applyPreview', () => {
+  const preview: CharacterPreview = {
+    valid: true,
+    errors: [],
+    sheet: {
+      level: 1, proficiencyBonus: 2, maxHitPoints: 9, abilityScores: {},
+      pending: { subclasses: [], abilityScoreImprovements: [], choices: [] },
+      proficiencies: [
+        { index: 'skill-religion', name: 'Compétence : Religion', type: 'SKILL' },
+        { index: 'calligraphers-supplies', name: 'Matériel de calligraphe', type: 'ARTISAN_TOOL' },
+        { index: 'light-armor', name: 'Armures légères', type: 'ARMOR' },
+      ],
+      expertise: [],
+      languages: [{ index: 'common', name: 'Commun' }, { index: 'giant', name: 'Géant' }],
+    },
+    choices: [
+      {
+        id: 10, kind: 'SUBFEATURE', choose: 1, description: 'Choisissez 1 option',
+        source: { type: 'trait', index: 'draconic-ancestry', name: 'Ascendance draconique' }, parentOptionId: null, pool: null,
+        options: [{ id: 100, label: 'Ascendance draconique (Rouge)', items: [], nestedChoiceId: null }],
+      },
+      {
+        id: 12, kind: 'ABILITY_SCORE_INCREASE', choose: 2, description: '', source: { type: 'race', index: 'half-elf', name: 'Demi-elfe' }, parentOptionId: null, pool: null,
+        options: [{ id: 120, label: 'Force +1', items: [{ type: 'abilityScore', index: 'str', name: 'Force', quantity: 1, bonus: 1, description: null }], nestedChoiceId: null }],
+      },
+    ],
+    startingEquipment: { items: [{ equipment: 'mace', name: null, quantity: 1 }], currencies: {} },
+  }
+
+  it('fills the display fields from the computed sheet and the answers', () => {
+    const character = base()
+    applyPreview(character, preview, [{ choiceId: 10, optionId: 100 }, { choiceId: 12, optionId: 120 }])
+
+    expect(character.proficiencies.skills.map((p) => p.name)).toEqual(['Religion'])
+    expect(character.proficiencies.tools.map((p) => p.name)).toEqual(['Matériel de calligraphe'])
+    expect(character.proficiencies.languages.map((p) => p.name)).toEqual(['Commun', 'Géant'])
+    expect(character.specialChoices).toEqual({ 'Ascendance draconique': ['Ascendance draconique (Rouge)'], halfElfAbilities: ['str'] })
+    expect(character.startingEquipment?.items).toEqual([{ equipment: 'mace', name: null, quantity: 1 }])
   })
 })

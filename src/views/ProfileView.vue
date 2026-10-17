@@ -147,7 +147,7 @@
                              <div class="flex justify-between items-start mb-2">
                                  <div>
                                     <h3 class="font-bold text-lg text-white group-hover:text-amber-400 transition-colors">{{ char.name }}</h3>
-                                                <div class="text-xs text-zinc-500">{{ char.createdAt ? new Date(char.createdAt).toLocaleDateString() : '-' }}</div>
+                                                <div class="text-xs text-zinc-500">{{ char.updatedAt ? new Date(char.updatedAt).toLocaleDateString() : '-' }}</div>
                                  </div>
                                   <span class="text-xs px-2 py-1 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
                                     Niv. {{ char.level }}
@@ -156,15 +156,15 @@
                              <div class="space-y-1 my-3">
                                  <div class="flex items-center justify-between text-sm">
                                      <span class="text-zinc-500">Race</span>
-                                     <span class="text-zinc-300">{{ translateRaceName(char.race?.name) || char.race }}</span>
+                                     <span class="text-zinc-300">{{ char.names.subrace || char.names.race || char.race }}</span>
                                  </div>
                                  <div class="flex items-center justify-between text-sm">
                                      <span class="text-zinc-500">Classe</span>
-                                     <span class="text-zinc-300">{{ getTranslatedClassName(char.class?.name) || char.class }}</span>
+                                     <span class="text-zinc-300">{{ char.names.classes.map(c => c.class).join(' / ') || char.classes[0]?.class }}</span>
                                  </div>
                                  <div class="flex items-center justify-between text-sm">
                                      <span class="text-zinc-500">Sous-classe</span>
-                                     <span class="text-zinc-300 truncate max-w-[100px]">{{ (char.subclass && char.subclass.name) ? translateSubclassName(char.subclass.name) : '-' }}</span>
+                                     <span class="text-zinc-300 truncate max-w-[100px]">{{ char.names.classes.map(c => c.subclass).filter(Boolean).join(' / ') || '-' }}</span>
                                  </div>
                              </div>
                         </div>
@@ -192,9 +192,6 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { useNpcStore } from '../stores/npc';
 import { useCharacterStore } from '../stores/character';
-import { translateRaceName } from '@/utils/race';
-import { getTranslatedClassName } from '@/utils/classes';
-import { translateSubclassName } from '@/utils/subclasses';
 
 const router = useRouter();
 const authStore = useAuthStore();

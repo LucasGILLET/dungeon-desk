@@ -318,7 +318,7 @@
       <div class="transition-all duration-300" :class="{'relative z-40': isTutorialStep(5)}">
         <StepNavigation 
           :current-step="3" 
-          :total-steps="9"
+          :total-steps="8"
           step-name="Classe"
           :disable-next="!selectedClass"
           @previous="emit('prev')"

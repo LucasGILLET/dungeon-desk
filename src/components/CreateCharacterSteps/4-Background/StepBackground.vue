@@ -130,7 +130,7 @@
     <!-- Navigation -->
     <StepNavigation 
       :current-step="4" 
-      :total-steps="9"
+      :total-steps="8"
       step-name="Historique"
       :disable-next="!selectedBackground"
       @previous="emit('prev')"

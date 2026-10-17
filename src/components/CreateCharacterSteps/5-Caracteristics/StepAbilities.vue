@@ -207,7 +207,7 @@
     <!-- Navigation (Fixed Bottom) -->
     <StepNavigation 
       :current-step="5" 
-      :total-steps="9"
+      :total-steps="8"
       step-name="Caractéristiques"
       :disable-next="remainingPoints > 0"
       @previous="emit('prev')"

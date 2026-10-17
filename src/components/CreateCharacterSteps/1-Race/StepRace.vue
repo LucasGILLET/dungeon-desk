@@ -249,7 +249,7 @@
     >
       <StepNavigation 
         :current-step="1" 
-        :total-steps="9"
+        :total-steps="8"
         step-name="Race"
         :disable-previous="true"
         :disable-next="!selectedRace"

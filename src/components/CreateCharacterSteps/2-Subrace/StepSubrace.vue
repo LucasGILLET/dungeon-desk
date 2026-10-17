@@ -167,7 +167,7 @@
       <div class="transition-all duration-300 rounded-xl">
         <StepNavigation 
           :current-step="2" 
-          :total-steps="9"
+          :total-steps="8"
           step-name="Lignée"
           :disable-next="availableSubraces.length > 0 && !selectedSubrace"
           @previous="emit('prev')"

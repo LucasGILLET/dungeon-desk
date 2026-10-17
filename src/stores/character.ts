@@ -9,47 +9,56 @@ import {
     useUpdateCharacter,
 } from '@/api/generated/endpoints';
 import {
-    mapApiCharacterToCharacter,
     toCharacterCreateInput,
-    type ApiCharacterModel,
     type Character,
+    type CharacterSummary,
+    type SavedCharacter,
 } from '@/types/character';
+
+// Message lisible : erreur réseau, ou erreurs de validation renvoyées par l'API
+export const getErrorMessage = (err: unknown, fallback = 'Failed to load characters') => {
+    if (err instanceof Error) return err.message;
+    const body = err as { message?: string; errors?: { path: string; message: string }[] } | null;
+    if (body?.errors?.length) return body.errors.map((e) => e.message).join(' · ');
+    return body?.message ?? fallback;
+};
+
+const toSummary = (c: SavedCharacter): CharacterSummary => ({
+    id: c.id,
+    name: c.name,
+    edition: c.edition ?? '2014',
+    race: c.race,
+    subrace: c.subrace ?? null,
+    classes: c.classes.map((cc) => ({ class: cc.class, subclass: cc.subclass ?? null, level: cc.levels.length })),
+    level: c.sheet?.level ?? c.classes.reduce((sum, cc) => sum + cc.levels.length, 0),
+    names: c.names,
+    updatedAt: c.updatedAt,
+});
 
 export const useCharacterStore = defineStore('character', () => {
     const queryClient = useQueryClient();
-    const characters = ref<Character[]>([]);
+    const characters = ref<CharacterSummary[]>([]);
     const loading = ref(false);
     const error = ref<string | null>(null);
     const createCharacterMutation = useCreateCharacter();
     const updateCharacterMutation = useUpdateCharacter();
 
-    const getErrorMessage = (err: unknown) => err instanceof Error ? err.message : 'Failed to load characters';
-
-    const upsertCharacter = (nextCharacter: Character) => {
-        const index = characters.value.findIndex((char) => char.id === nextCharacter.id);
-
-        if (index === -1) {
-            characters.value.unshift(nextCharacter);
-            return;
-        }
-
-        characters.value[index] = nextCharacter;
+    const upsertCharacter = (next: CharacterSummary) => {
+        const index = characters.value.findIndex((char) => char.id === next.id);
+        if (index === -1) characters.value.unshift(next);
+        else characters.value[index] = next;
     };
 
     const fetchCharacters = async () => {
         loading.value = true;
         error.value = null;
         try {
-            const fetchedCharacters = await queryClient.fetchQuery<Character[]>({
+            const fetched = await queryClient.fetchQuery<CharacterSummary[]>({
                 queryKey: getGetCharactersQueryKey(),
-                queryFn: async () => {
-                    const response = await getCharacters();
-                    return response.data.map((character) => mapApiCharacterToCharacter(character as ApiCharacterModel));
-                },
+                queryFn: async () => (await getCharacters()).data as unknown as CharacterSummary[],
             });
-
-            characters.value = fetchedCharacters;
-            return fetchedCharacters;
+            characters.value = fetched;
+            return fetched;
         } catch (err) {
             error.value = getErrorMessage(err);
             throw err;
@@ -62,12 +71,9 @@ export const useCharacterStore = defineStore('character', () => {
         loading.value = true;
         error.value = null;
         try {
-            return await queryClient.fetchQuery<Character>({
+            return await queryClient.fetchQuery<SavedCharacter>({
                 queryKey: ['characters', String(id)],
-                queryFn: async () => {
-                    const response = await getCharacter(String(id));
-                    return mapApiCharacterToCharacter(response.data as ApiCharacterModel);
-                },
+                queryFn: async () => (await getCharacter(String(id))).data as unknown as SavedCharacter,
             });
         } catch (err) {
             error.value = getErrorMessage(err);
@@ -75,23 +81,19 @@ export const useCharacterStore = defineStore('character', () => {
         } finally {
             loading.value = false;
         }
-    }
+    };
 
     const saveCharacter = async (charData: Character) => {
         loading.value = true;
         error.value = null;
         try {
-            const response = await createCharacterMutation.mutateAsync({
-                data: toCharacterCreateInput(charData as Character),
-            });
-            const newCharacter = mapApiCharacterToCharacter(response.data as ApiCharacterModel);
-
-            upsertCharacter(newCharacter);
+            const response = await createCharacterMutation.mutateAsync({ data: toCharacterCreateInput(charData) });
+            const saved = response.data as unknown as SavedCharacter;
+            upsertCharacter(toSummary(saved));
             await queryClient.invalidateQueries({ queryKey: getGetCharactersQueryKey() });
-
-            return { success: true, char: newCharacter };
+            return { success: true, char: saved };
         } catch (err) {
-            const message = getErrorMessage(err);
+            const message = getErrorMessage(err, 'Error creating character');
             error.value = message;
             return { success: false, error: message };
         } finally {
@@ -103,18 +105,14 @@ export const useCharacterStore = defineStore('character', () => {
         loading.value = true;
         error.value = null;
         try {
-            const response = await updateCharacterMutation.mutateAsync({
-                id: String(id),
-                data: toCharacterCreateInput(charData as Character),
-            });
-            const updatedCharacter = mapApiCharacterToCharacter(response.data as ApiCharacterModel);
-
-            upsertCharacter(updatedCharacter);
+            const response = await updateCharacterMutation.mutateAsync({ id: String(id), data: toCharacterCreateInput(charData) });
+            const saved = response.data as unknown as SavedCharacter;
+            upsertCharacter(toSummary(saved));
             await queryClient.invalidateQueries({ queryKey: getGetCharactersQueryKey() });
-
-            return { success: true, char: updatedCharacter };
+            queryClient.removeQueries({ queryKey: ['characters', String(id)] });
+            return { success: true, char: saved };
         } catch (err) {
-            const message = getErrorMessage(err);
+            const message = getErrorMessage(err, 'Error updating character');
             error.value = message;
             return { success: false, error: message };
         } finally {

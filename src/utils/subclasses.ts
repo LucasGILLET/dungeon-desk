@@ -2,6 +2,7 @@ import { getTranslatedClassName } from "./classes"
 
 export interface SubclassData {
   id: string
+  index: string // index de la sous-classe en base (API)
   name: string
   className: string
   source: string
@@ -20,6 +21,7 @@ export const subclasses: SubclassData[] = [
   // Sous-classes de Clerc
   {
     id: 'domaine-guerre',
+    index: 'war',
     name: 'Domaine de la Guerre',
     className: 'cleric',
     source: 'Manuel des Joueurs',
@@ -42,6 +44,7 @@ export const subclasses: SubclassData[] = [
   },
   {
     id: 'domaine-vie',
+    index: 'life',
     name: 'Domaine de la Vie',
     className: 'cleric',
     source: 'Manuel des Joueurs',
@@ -64,6 +67,7 @@ export const subclasses: SubclassData[] = [
   },
   {
     id: 'domaine-lumiere',
+    index: 'light',
     name: 'Domaine de la Lumière',
     className: 'cleric',
     source: 'Manuel des Joueurs',
@@ -86,6 +90,7 @@ export const subclasses: SubclassData[] = [
   },
   {
     id: 'domaine-nature',
+    index: 'nature',
     name: 'Domaine de la Nature',
     className: 'cleric',
     source: 'Manuel des Joueurs',
@@ -108,6 +113,7 @@ export const subclasses: SubclassData[] = [
   },
   {
     id: 'domaine-duperie',
+    index: 'trickery',
     name: 'Domaine de la Duperie',
     className: 'cleric',
     source: 'Manuel des Joueurs',
@@ -132,6 +138,7 @@ export const subclasses: SubclassData[] = [
   // Sous-classes d'Ensorceleur
   {
     id: 'lignee-draconique',
+    index: 'draconic',
     name: 'Lignée Draconique',
     className: 'sorcerer',
     source: 'Manuel des Joueurs',
@@ -149,6 +156,7 @@ export const subclasses: SubclassData[] = [
   },
   {
     id: 'magie-sauvage',
+    index: 'wild-magic',
     name: 'Magie Sauvage',
     className: 'sorcerer',
     source: 'Manuel des Joueurs',
@@ -168,6 +176,7 @@ export const subclasses: SubclassData[] = [
   // Sous-classes d'Occultiste
   {
     id: 'grand-ancien',
+    index: 'great-old-one',
     name: 'Le Grand Ancien',
     className: 'warlock',
     source: 'Manuel des Joueurs',
@@ -189,6 +198,7 @@ export const subclasses: SubclassData[] = [
   },
   {
     id: 'archifee',
+    index: 'archfey',
     name: 'L\'Archifée',
     className: 'warlock',
     source: 'Manuel des Joueurs',
@@ -210,6 +220,7 @@ export const subclasses: SubclassData[] = [
   },
   {
     id: 'fiend',
+    index: 'fiend',
     name: 'Le Fiélon',
     className: 'warlock',
     source: 'Manuel des Joueurs',
