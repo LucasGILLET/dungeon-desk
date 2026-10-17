@@ -9,10 +9,12 @@ const fakeSpells = [
   { index: 'cure-wounds', name: 'Soin des Blessures', level: 1, school: { name: 'Évocation' }, classes: [{ index: 'cleric', name: 'Clerc' }] },
 ]
 
-beforeEach(() => {
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-    json: () => Promise.resolve(fakeSpells),
-  }))
+// Sorts déjà mis en forme (l'adaptateur de l'API est testé à part)
+vi.mock('@/utils/spellFormat', () => ({ loadSpells: vi.fn() }))
+
+beforeEach(async () => {
+  const { loadSpells } = await import('@/utils/spellFormat')
+  vi.mocked(loadSpells).mockResolvedValue(fakeSpells as never)
 })
 
 async function mountView() {

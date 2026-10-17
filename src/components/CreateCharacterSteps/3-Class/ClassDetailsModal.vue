@@ -199,7 +199,7 @@ import { ref, onMounted, watch, computed } from 'vue'
 import type { SRDClass } from '@/types/srd'
 import { getClassDescription, getClassMainStats, getClassDifficulty, isMartialClass } from '@/utils/classes'
 import { getAllFeaturesByClass } from '@/utils/features'
-import { getClassProficiencies, type ProficiencyData } from '@/utils/proficiencies'
+import { loadApiClass } from '@/utils/dataLoader'
 
 interface Props {
   show: boolean
@@ -281,8 +281,8 @@ const loadFeatures = async () => {
       
       displayedFeatures.value = featuresByLevel
 
-      const proficiencies = await getClassProficiencies(props.classe.index)
-      classProficiencies.value = proficiencies
+      // Maîtrises de la classe, déjà traduites par l'API
+      classProficiencies.value = (await loadApiClass(props.classe.index))?.proficiencies.map((p) => p.name) ?? []
 
     } catch (error) {
       console.error('Erreur lors du chargement:', error)

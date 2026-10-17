@@ -373,7 +373,7 @@ onMounted(async () => {
     loading.value = true
     const [r, c] = await Promise.all([loadRaces(), loadClasses()])
     if (!r || r.length === 0) {
-        console.warn("Aucune race chargée ! Vérifiez le fichier public/data/5e-SRD-Races.json");
+        console.warn("Aucune race chargée ! Vérifiez que l'API répond sur /api/srd/2014/races");
     }
     races.value = r || []
     classes.value = c || []

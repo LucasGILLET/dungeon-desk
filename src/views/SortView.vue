@@ -48,6 +48,7 @@
 </template>
 
 <script setup lang="ts">
+import { loadSpells } from '@/utils/spellFormat'
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -61,9 +62,7 @@ const spell = ref<any | null>(null)
 
 onMounted(async () => {
   try {
-    const res = await fetch('/data/fr/5e-SRD-Spells.json')
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const list = await res.json()
+    const list = await loadSpells()
     spell.value = list.find((s: any) => s.index === index || s.name?.toLowerCase().replace(/\s+/g, '-') === index)
   } catch (e: any) {
     error.value = e.message || String(e)

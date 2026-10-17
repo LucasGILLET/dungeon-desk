@@ -1,4 +1,6 @@
-import { getTranslatedClassName } from "./classes"
+// Sous-classes lues depuis la fiche de classe de l'API (SRD et contenu maison
+// confondus) et mises en forme pour l'étape « Sous-classe ».
+import { loadApiClass, loadApiClasses, loadApiSpells } from './dataLoader'
 
 export interface SubclassData {
   id: string
@@ -7,264 +9,77 @@ export interface SubclassData {
   className: string
   source: string
   description: string
-  primaryAbility: string
   bonusSpells?: string[]
-  features?: string[]
-  level1Features: string[]
   levelProgression?: {
     level: number
-    features?: string[] // Features gagnées à ce niveau (optionnel)
+    features?: string[]
   }[]
+  // Textes de règle (bulles d'aide), par nom de capacité ou de sort
+  descriptions?: Record<string, string>
 }
 
-export const subclasses: SubclassData[] = [
-  // Sous-classes de Clerc
-  {
-    id: 'domaine-guerre',
-    index: 'war',
-    name: 'Domaine de la Guerre',
-    className: 'cleric',
-    source: 'Manuel des Joueurs',
-    description: 'Un clerc martial qui bénit les batailles et guide les guerriers au combat.',
-    primaryAbility: 'Sorts et capacités de combat améliorés',
-    bonusSpells: ['Faveur divine', 'Bouclier de la foi', 'Arme spirituelle', 'Arme magique'],
-    features: ['Prêtre guerrier', 'Sorts de domaine', 'Canalisation : Frappe guidée'],
-    level1Features: ['Prêtre guerrier', 'Sorts de domaine'],
-    levelProgression: [
-      { level: 1, features: ['Prêtre guerrier', 'Sorts de domaine (Guerre - Niv 1)'] },
-      { level: 2, features: ['Canalisation Divine : Frappe guidée'] },
-      { level: 3, features: ['Sorts de domaine (Guerre - Niv 3)'] },
-      { level: 5, features: ['Sorts de domaine (Guerre - Niv 5)'] },
-      { level: 6, features: ['Canalisation Divine : Bénédiction de guerre'] },
-      { level: 7, features: ['Sorts de domaine (Guerre - Niv 7)'] },
-      { level: 8, features: ['Frappe guerrière'] },
-      { level: 9, features: ['Sorts de domaine (Guerre - Niv 9)'] },
-      { level: 17, features: ['Avatar de bataille'] }
-    ]
-  },
-  {
-    id: 'domaine-vie',
-    index: 'life',
-    name: 'Domaine de la Vie',
-    className: 'cleric',
-    source: 'Manuel des Joueurs',
-    description: 'Un guérisseur dévoué qui canalise l\'énergie positive pour soigner et protéger.',
-    primaryAbility: 'Soins renforcés et protection divine',
-    bonusSpells: ['Bénédiction', 'Soin des blessures', 'Restauration partielle', 'Prière de guérison'],
-    features: ['Disciple de la vie', 'Sorts de domaine', 'Canalisation : Préservation de la vie'],
-    level1Features: ['Disciple de la vie', 'Sorts de domaine'],
-    levelProgression: [
-      { level: 1, features: ['Disciple de la vie', 'Sorts de domaine (Vie - Niv 1)'] },
-      { level: 2, features: ['Canalisation Divine : Préservation de la vie'] },
-      { level: 3, features: ['Sorts de domaine (Vie - Niv 3)'] },
-      { level: 5, features: ['Sorts de domaine (Vie - Niv 5)'] },
-      { level: 6, features: ['Guérisseur béni'] },
-      { level: 7, features: ['Sorts de domaine (Vie - Niv 7)'] },
-      { level: 8, features: ['Frappe divine'] },
-      { level: 9, features: ['Sorts de domaine (Vie - Niv 9)'] },
-      { level: 17, features: ['Guérison suprême'] }
-    ]
-  },
-  {
-    id: 'domaine-lumiere',
-    index: 'light',
-    name: 'Domaine de la Lumière',
-    className: 'cleric',
-    source: 'Manuel des Joueurs',
-    description: 'Un clerc qui combat les ténèbres avec la lumière divine et le feu sacré.',
-    primaryAbility: 'Sorts de lumière et de feu',
-    bonusSpells: ['Lueurs féeriques', 'Mains brûlantes', 'Sphère de feu', 'Lumière du jour'],
-    features: ['Sort mineur bonus', 'Lueur protectrice', 'Sorts de domaine'],
-    level1Features: ['Sort mineur bonus', 'Sorts de domaine'],
-    levelProgression: [
-      { level: 1, features: ['Sort mineur bonus', 'Lueur protectrice', 'Sorts de domaine (Lumière - Niv 1)'] },
-      { level: 2, features: ['Canalisation Divine : Rayonnement du soleil'] },
-      { level: 3, features: ['Sorts de domaine (Lumière - Niv 3)'] },
-      { level: 5, features: ['Sorts de domaine (Lumière - Niv 5)'] },
-      { level: 6, features: ['Lueur protectrice améliorée'] },
-      { level: 7, features: ['Sorts de domaine (Lumière - Niv 7)'] },
-      { level: 8, features: ['Amélioration des sorts mineurs'] },
-      { level: 9, features: ['Sorts de domaine (Lumière - Niv 9)'] },
-      { level: 17, features: ['Couronne de lumière'] }
-    ]
-  },
-  {
-    id: 'domaine-nature',
-    index: 'nature',
-    name: 'Domaine de la Nature',
-    className: 'cleric',
-    source: 'Manuel des Joueurs',
-    description: 'Un clerc connecté au monde naturel et à ses créatures.',
-    primaryAbility: 'Magie de la nature et communion animale',
-    bonusSpells: ['Baies magiques', 'Communication avec les animaux', 'Croissance d\'épines', 'Liberté de mouvement'],
-    features: ['Acolyte de la nature', 'Maîtrise des armures lourdes', 'Sorts de domaine'],
-    level1Features: ['Acolyte de la nature', 'Sorts de domaine'],
-    levelProgression: [
-      { level: 1, features: ['Acolyte de la nature', 'Maîtrise des armures lourdes', 'Sorts de domaine (Nature - Niv 1)'] },
-      { level: 2, features: ['Canalisation Divine : Charme des animaux et des plantes'] },
-      { level: 3, features: ['Sorts de domaine (Nature - Niv 3)'] },
-      { level: 5, features: ['Sorts de domaine (Nature - Niv 5)'] },
-      { level: 6, features: ['Résistance aux éléments'] },
-      { level: 7, features: ['Sorts de domaine (Nature - Niv 7)'] },
-      { level: 8, features: ['Frappe élémentaire'] },
-      { level: 9, features: ['Sorts de domaine (Nature - Niv 9)'] },
-      { level: 17, features: ['Maître de la nature'] }
-    ]
-  },
-  {
-    id: 'domaine-duperie',
-    index: 'trickery',
-    name: 'Domaine de la Duperie',
-    className: 'cleric',
-    source: 'Manuel des Joueurs',
-    description: 'Un clerc rusé qui utilise l\'illusion et la tromperie pour servir sa divinité.',
-    primaryAbility: 'Illusions et discrétion divine',
-    bonusSpells: ['Charme-personne', 'Déguisement', 'Image miroir', 'Invisibilité'],
-    features: ['Bénédiction du filou', 'Canalisation : Invoquer un double', 'Sorts de domaine'],
-    level1Features: ['Bénédiction du filou', 'Sorts de domaine'],
-    levelProgression: [
-      { level: 1, features: ['Bénédiction du filou', 'Sorts de domaine (Duperie - Niv 1)'] },
-      { level: 2, features: ['Canalisation Divine : Invoquer un double'] },
-      { level: 3, features: ['Sorts de domaine (Duperie - Niv 3)'] },
-      { level: 5, features: ['Sorts de domaine (Duperie - Niv 5)'] },
-      { level: 6, features: ['Canalisation Divine: Manteau d\'ombre'] },
-      { level: 7, features: ['Sorts de domaine (Duperie - Niv 7)'] },
-      { level: 8, features: ['Frappe furtive'] },
-      { level: 9, features: ['Sorts de domaine (Duperie - Niv 9)'] },
-      { level: 17, features: ['Duperie améliorée'] }
-    ]
-  },
+const SOURCE_LABELS: Record<string, string> = { SRD: 'SRD', HOMEBREW: 'Contenu maison' }
+// Libellé des sorts de sous-classe, par classe
+const SPELL_LABELS: Record<string, string> = { cleric: 'Sorts de domaine', warlock: 'Sorts étendus', paladin: 'Sorts de serment', druid: 'Sorts de cercle' }
 
-  // Sous-classes d'Ensorceleur
-  {
-    id: 'lignee-draconique',
-    index: 'draconic',
-    name: 'Lignée Draconique',
-    className: 'sorcerer',
-    source: 'Manuel des Joueurs',
-    description: 'Votre magie innée provient de la magie draconique qui coule dans vos veines.',
-    primaryAbility: 'Résistance et puissance élémentaire',
-    bonusSpells: ['Bouclier', 'Faux-semblant', 'Suggestion', 'Vol'],
-    features: ['Ancêtre dragon', 'Résistance draconique', 'Affinité élémentaire'],
-    level1Features: ['Ancêtre dragon', 'Résistance draconique'],
-    levelProgression: [
-      { level: 1, features: ['Ancêtre draconique', 'Résistance draconique'] },
-      { level: 6, features: ['Affinité élémentaire'] },
-      { level: 14, features: ['Ailes draconiques'] },
-      { level: 18, features: ['Présence draconique'] }
-    ]
-  },
-  {
-    id: 'magie-sauvage',
-    index: 'wild-magic',
-    name: 'Magie Sauvage',
-    className: 'sorcerer',
-    source: 'Manuel des Joueurs',
-    description: 'Votre magie innée provient des forces chaotiques du chaos lui-même.',
-    primaryAbility: 'Effets magiques imprévisibles',
-    bonusSpells: ['Détection de la magie', 'Lueurs féeriques', 'Flou', 'Lévitation'],
-    features: ['Poussée de magie sauvage', 'Marées de chaos', 'Résistance au chaos'],
-    level1Features: ['Poussée de magie sauvage', 'Marées de chaos'],
-    levelProgression: [
-      { level: 1, features: ['Poussée de magie sauvage', 'Marées de chaos'] },
-      { level: 6, features: ['Chance surnaturelle'] },
-      { level: 14, features: ['Chaos contrôlé'] },
-      { level: 18, features: ['Bombardement de sorts'] }
-    ]
-  },
+export async function loadSubclassesForClass(classIndex: string): Promise<SubclassData[]> {
+  const cls = await loadApiClass(classIndex)
+  if (!cls) return []
+  const hasSpells = cls.subclasses.some((s) => s.spells.length)
+  const spellTexts = hasSpells ? new Map((await loadApiSpells()).map((sp) => [sp.index, sp.description])) : new Map<string, string>()
+  const spellLabel = SPELL_LABELS[cls.index] ?? 'Sorts de sous-classe'
 
-  // Sous-classes d'Occultiste
-  {
-    id: 'grand-ancien',
-    index: 'great-old-one',
-    name: 'Le Grand Ancien',
-    className: 'warlock',
-    source: 'Manuel des Joueurs',
-    description: 'Votre patron est une entité mystérieuse dont la nature est étrangère au tissu de la réalité.',
-    primaryAbility: 'Télépathie et contrôle mental',
-    bonusSpells: ['Dissonance mentale', 'Sommeil', 'Détection des pensées', 'Suggestion'],
-    features: ['Télépathie', 'Sorts étendus', 'Protection mentale psychique'],
-    level1Features: ['Sorts étendus', 'Télépathie'],
-    levelProgression: [
-      { level: 1, features: ['Télépathie', 'Sorts étendus (Grand Ancien - Niv 1)'] },
-      { level: 3, features: ['Sorts étendus (Grand Ancien - Niv 3)'] },
-      { level: 5, features: ['Sorts étendus (Grand Ancien - Niv 5)'] },
-      { level: 6, features: ['Protection psychique'] },
-      { level: 7, features: ['Sorts étendus (Grand Ancien - Niv 7)'] },
-      { level: 9, features: ['Sorts étendus (Grand Ancien - Niv 9)'] },
-      { level: 10, features: ['Résistance psychique'] },
-      { level: 14, features: ['Créer un serviteur'] }
-    ]
-  },
-  {
-    id: 'archifee',
-    index: 'archfey',
-    name: 'L\'Archifée',
-    className: 'warlock',
-    source: 'Manuel des Joueurs',
-    description: 'Votre patron est un seigneur ou une dame des fées, une créature de légende.',
-    primaryAbility: 'Enchantements et illusions féeriques',
-    bonusSpells: ['Lueurs féeriques', 'Sommeil', 'Apaisement des émotions', 'Suggestion'],
-    features: ['Présence féerique', 'Sorts étendus', 'Fuite brumeuse'],
-    level1Features: ['Présence féerique', 'Sorts étendus'],
-    levelProgression: [
-      { level: 1, features: ['Présence féerique', 'Sorts étendus (Archifée - Niv 1)'] },
-      { level: 3, features: ['Sorts étendus (Archifée - Niv 3)'] },
-      { level: 5, features: ['Sorts étendus (Archifée - Niv 5)'] },
-      { level: 6, features: ['Fuite brumeuse'] },
-      { level: 7, features: ['Sorts étendus (Archifée - Niv 7)'] },
-      { level: 9, features: ['Sorts étendus (Archifée - Niv 9)'] },
-      { level: 10, features: ['Défenses de charme'] },
-      { level: 14, features: ['Délire ensorcelant'] }
-    ]
-  },
-  {
-    id: 'fiend',
-    index: 'fiend',
-    name: 'Le Fiélon',
-    className: 'warlock',
-    source: 'Manuel des Joueurs',
-    description: 'Vous avez conclu un pacte avec un fiélon des plans inférieurs.',
-    primaryAbility: 'Feu infernal et résistance démoniaque',
-    bonusSpells: ['Mains brûlantes', 'Injonction', 'Cécité/Surdité', 'Suggestion'],
-    features: ['Bénédiction du Ténébreux', 'Sorts étendus', 'Résistance du fiélon'],
-    level1Features: ['Bénédiction du Ténébreux', 'Sorts étendus'],
-    levelProgression: [
-      { level: 1, features: ['Bénédiction du Ténébreux', 'Sorts étendus (Fiélon - Niv 1)'] },
-      { level: 3, features: ['Sorts étendus (Fiélon - Niv 3)'] },
-      { level: 5, features: ['Sorts étendus (Fiélon - Niv 5)'] },
-      { level: 6, features: ['Résistance du fiélon'] },
-      { level: 7, features: ['Sorts étendus (Fiélon - Niv 7)'] },
-      { level: 9, features: ['Sorts étendus (Fiélon - Niv 9)'] },
-      { level: 10, features: ['Résistance fiélonne'] },
-      { level: 14, features: ['Traverser les Enfers'] }
-    ]
-  },
-]
+  return cls.subclasses.map((sub) => {
+    const descriptions: Record<string, string> = {}
+    const byLevel = new Map<number, string[]>()
+    const add = (level: number, name: string) => byLevel.set(level, [...(byLevel.get(level) ?? []), name])
+    for (const f of cls.features.filter((f) => f.subclass === sub.index && !f.parent)) {
+      add(f.level, f.name)
+      descriptions[f.name] = f.description
+    }
+    // Sorts gagnés par niveau : « Sorts de domaine : Bénédiction, Soins »
+    const spellLevels = [...new Set(sub.spells.map((sp) => sp.requiredClassLevel))]
+    for (const level of spellLevels) {
+      const spells = sub.spells.filter((sp) => sp.requiredClassLevel === level)
+      const name = `${spellLabel} : ${spells.map((sp) => sp.name).join(', ')}`
+      add(level, name)
+      descriptions[name] = spells.map((sp) => `${sp.name} — ${(spellTexts.get(sp.index) ?? '').split('\n')[0]}`).join('\n')
+    }
+    for (const sp of sub.spells) descriptions[sp.name] = spellTexts.get(sp.index) ?? ''
+    return {
+      id: sub.index,
+      index: sub.index,
+      name: sub.name,
+      className: cls.index,
+      source: SOURCE_LABELS[sub.source] ?? sub.source,
+      description: (sub.description ?? '').split('\n\n')[0] ?? '',
+      bonusSpells: sub.spells.map((sp) => sp.name),
+      levelProgression: [...byLevel.entries()].sort(([a], [b]) => a - b).map(([level, features]) => ({ level, features })),
+      descriptions,
+    }
+  })
+}
 
-export function getSubclassesByClassIndex(classIndex: any): SubclassData[] {
-  return subclasses.filter(sc => sc.className === classIndex.toLowerCase())
+// Classes qui choisissent leur sous-classe dès le niveau 1 (clerc, ensorceleur, occultiste en 2014)
+export async function getLevel1SubclassClassIds(): Promise<string[]> {
+  return (await loadApiClasses()).filter((c) => c.subclassLevel === 1).map((c) => c.index)
 }
 
 export function getSubclassEmoji(subclassId: string): string {
   const emojis: Record<string, string> = {
     // Clerc
-    'domaine-guerre': '⚔️',
-    'domaine-vie': '💚',
-    'domaine-lumiere': '☀️',
-    'domaine-nature': '🌿',
-    'domaine-duperie': '🎭',
-    
+    war: '⚔️',
+    life: '💚',
+    light: '☀️',
+    nature: '🌿',
+    trickery: '🎭',
     // Ensorceleur
-    'lignee-draconique': '🐉',
-    'magie-sauvage': '⚡',
-    'ame-divine': '👼',
-    
+    draconic: '🐉',
+    'wild-magic': '⚡',
     // Occultiste
-    'grand-ancien': '👁️',
-    'archifee': '🧚',
-    'fiend': '😈',
-    'lame-maudite': '🗡️'
+    'great-old-one': '👁️',
+    archfey: '🧚',
+    fiend: '😈',
   }
   return emojis[subclassId] || '🔮'
 }

@@ -1,17 +1,6 @@
 import { loadClasses } from './dataLoader'
 import type { SRDClass } from '@/types/srd'
 
-export async function getLevel1SubclassClasses(): Promise<SRDClass[]> {
-  const srdClasses = await loadClasses()
-  const lvl1Classes = ["cleric", "sorcerer", "warlock"]
-  return srdClasses.filter(c => lvl1Classes.includes(c.index))
-}
-
-export async function getLevel1SubclassClassIds(): Promise<string[]> {
-  const level1Classes = await getLevel1SubclassClasses()
-  return level1Classes.map(c => c.index)
-}
-
 export function getClassDifficulty(cls: SRDClass): 'Facile' | 'Moyen' | 'Difficile' {
   const easyClasses = ['barbarian', 'fighter']
   const hardClasses = ['wizard', 'druid', 'sorcerer']

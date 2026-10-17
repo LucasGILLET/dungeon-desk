@@ -11,7 +11,7 @@ import {
   type SavedCharacter,
 } from '@/types/character';
 import { loadBackgrounds, loadClasses, loadRaces, loadSubraces } from './dataLoader';
-import { subclasses } from './subclasses';
+import { loadSubclassesForClass } from './subclasses';
 
 // Choix affichés comme « talents » dans le récapitulatif (le reste : maîtrises, langues, équipement)
 const SPECIAL_KINDS = new Set(['SUBFEATURE', 'FAVORED_ENEMY', 'FAVORED_TERRAIN', 'EXPERTISE', 'SPELL']);
@@ -65,7 +65,7 @@ export function applyPreview(character: Character, preview: CharacterPreview, ch
 export async function fromSavedCharacter(saved: SavedCharacter): Promise<Character> {
   const [races, subraces, classes, backgrounds] = await Promise.all([loadRaces(), loadSubraces(), loadClasses(), loadBackgrounds()]);
   const first = saved.classes[0];
-  const subclass = subclasses.find((s) => s.index === first?.subclass) ?? null;
+  const subclass = first?.subclass ? (await loadSubclassesForClass(first.class)).find((s) => s.index === first.subclass) ?? null : null;
   const character: Character = {
     id: saved.id,
     saved,

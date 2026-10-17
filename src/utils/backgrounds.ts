@@ -1,9 +1,9 @@
 import type { SRDBackground, SRDRace } from '@/types/srd'
-import { translateSkillName } from './proficiencies'
 
 export function getBackgroundSkills(background: SRDBackground): string[] {
-  return background.starting_proficiencies?.map((proficiency: { name: string }) => 
-    translateSkillName(proficiency.name)
+  // Noms traduits par l'API : "Compétence : Religion" → "Religion"
+  return background.starting_proficiencies?.map((proficiency: { name: string }) =>
+    proficiency.name.replace(/^[^:]+ : /, '')
   ) || []
 }
 

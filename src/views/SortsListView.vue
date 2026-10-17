@@ -122,6 +122,7 @@
 </template>
 
 <script setup lang="ts">
+import { loadSpells } from '@/utils/spellFormat'
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -286,9 +287,7 @@ watch(() => route.query, (qry) => {
 
 onMounted(async () => {
   try {
-    const res = await fetch('/data/fr/5e-SRD-Spells.json')
-    const list = await res.json()
-    spells.value = list
+    spells.value = await loadSpells()
     // restore from query when first loading
     if (route && route.query) {
       const qry = route.query as Record<string, any>

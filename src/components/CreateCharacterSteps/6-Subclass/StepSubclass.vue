@@ -113,7 +113,7 @@
                                      <!-- Tooltip -->
                                      <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-zinc-950 border border-zinc-700 rounded-lg shadow-xl opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none z-50">
                                         <div class="font-bold text-xs mb-1" :class="isSpellFeature(feature) ? 'text-purple-300' : 'text-blue-300'">{{ getDisplayName(feature) }}</div>
-                                        <div class="text-[10px] text-zinc-400 leading-relaxed">{{ getFeatureDescription(feature) }}</div>
+                                        <div class="text-[10px] text-zinc-400 leading-relaxed">{{ getFeatureDescription(subclass, feature) }}</div>
                                      </div>
                                   </div>
                                </div>
@@ -132,7 +132,7 @@
                                <!-- Tooltip -->
                                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-zinc-950 border border-zinc-700 rounded-lg shadow-xl opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none z-50">
                                   <div class="font-bold text-xs mb-1 text-zinc-200">{{ spell }}</div>
-                                  <div class="text-[10px] text-zinc-400 leading-relaxed">{{ getSpellDescription(spell) }}</div>
+                                  <div class="text-[10px] text-zinc-400 leading-relaxed">{{ getSpellDescription(subclass, spell) }}</div>
                                </div>
                             </div>
                          </div>
@@ -168,10 +168,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { getLevel1SubclassClassIds } from '@/utils/classes'
-import { getSubclassesByClassIndex, getSubclassEmoji, type SubclassData } from '@/utils/subclasses'
-import { getSpellDescription } from '@/utils/spells'
-import { getFeatureDescription } from '@/utils/features'
+import { getLevel1SubclassClassIds, getSubclassEmoji, loadSubclassesForClass, type SubclassData } from '@/utils/subclasses'
 import StepNavigation from '../StepNavigation.vue'
 import TutorialGuide from '@/components/TutorialGuide.vue'
 import { useTutorial } from '@/composables/useTutorial'
@@ -212,20 +209,25 @@ const {
 
 const selectedSubclass = ref<SubclassData | null>(null)
 const level1SubclassClasses = ref<string[]>([])
+const availableSubclasses = ref<SubclassData[]>([])
 
 onMounted(async () => {
   level1SubclassClasses.value = await getLevel1SubclassClassIds()
+  if (needsSubclass.value) {
+    availableSubclasses.value = await loadSubclassesForClass(props.character.class.index)
+    // Sous-classe déjà choisie (retour en arrière, modification)
+    const current = (props.character.subclass as { index?: string } | null)?.index
+    selectedSubclass.value = availableSubclasses.value.find((s) => s.index === current) ?? null
+  }
 })
 
 const needsSubclass = computed(() => {
   return level1SubclassClasses.value.includes(props.character.class.index)
 })
 
-const availableSubclasses = computed(() => {
-  if (!needsSubclass.value) return []
-  console.log(props.character.class)
-  return getSubclassesByClassIndex(props.character.class.index)
-})
+// Bulles d'aide : texte de règle venu de l'API
+const getFeatureDescription = (subclass: SubclassData, name: string) => subclass.descriptions?.[name] ?? ''
+const getSpellDescription = (subclass: SubclassData, name: string) => subclass.descriptions?.[name] ?? ''
 
 function getGridColumns(): string {
   const count = availableSubclasses.value.length
@@ -242,18 +244,13 @@ function validateSubclass() {
   }
 }
 
-function getDisplayName(featureName: string): string {
-  if (featureName.startsWith('Sorts de domaine')) {
-    return 'Sorts de domaine'
-  }
-  if (featureName.startsWith('Sorts étendus')) {
-    return 'Sorts étendus'
-  }
-  return featureName
+// « Sorts de domaine : Bénédiction, Soins » : le détail est dans la bulle d'aide
+function isSpellFeature(featureName: string): boolean {
+  return /^Sorts (de domaine|étendus|de serment|de cercle|de sous-classe) : /.test(featureName)
 }
 
-function isSpellFeature(featureName: string): boolean {
-  return featureName.startsWith('Sorts de domaine') || featureName.startsWith('Sorts étendus')
+function getDisplayName(featureName: string): string {
+  return isSpellFeature(featureName) ? featureName.split(' : ')[0]! : featureName
 }
 </script>
 
