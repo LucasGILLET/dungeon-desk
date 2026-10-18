@@ -47,6 +47,14 @@ export const desktopNavigationGroups: NavigationGroup[] = [
       {
         label: 'Générateur PNJ',
         to: '/npc-generator'
+      },
+      {
+        label: 'Bestiaire',
+        to: '/bestiaire'
+      },
+      {
+        label: 'Objets magiques',
+        to: '/objets-magiques'
       }
     ]
   }
@@ -72,5 +80,13 @@ export const mobileNavigationLinks: NavigationLink[] = [
   {
     label: 'Générateur PNJ',
     to: '/npc-generator'
+  },
+  {
+    label: 'Bestiaire',
+    to: '/bestiaire'
+  },
+  {
+    label: 'Objets magiques',
+    to: '/objets-magiques'
   }
 ]

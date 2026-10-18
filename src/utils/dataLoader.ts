@@ -9,7 +9,7 @@ const LANG = 'fr'
 
 // --- Réponses de l'API --------------------------------------------------------------
 
-interface Ref { index: string; name: string }
+export interface Ref { index: string; name: string }
 interface ApiTrait extends Ref { description: string }
 interface ApiBonus extends Ref { bonus: number }
 interface ApiRace extends Ref {
@@ -268,3 +268,92 @@ export const loadAbilityScores = () => get<ApiAbilityScore[]>('ability-scores')
 export const loadCreationRules = () => get<ApiCreationRules>('rules')
 export const loadNpcTables = () => get<ApiNpcTables>('npc-tables')
 export const loadAlignments = () => get<(Ref & { abbreviation: string })[]>('alignments')
+
+// --- Bestiaire et objets magiques ------------------------------------------------------
+
+export type Size = 'TINY' | 'SMALL' | 'MEDIUM' | 'LARGE' | 'HUGE' | 'GARGANTUAN'
+export interface ApiMonsterSummary extends Ref {
+  source: 'SRD' | 'HOMEBREW'
+  size: Size
+  type: Ref
+  subtypes: Ref[]
+  swarmOfSize: Size | null
+  alignment: { unaligned: boolean; options: Ref[] }
+  armorClass: number | null
+  hitPoints: number
+  challengeRating: number
+  xp: number
+  legendary: boolean
+  imageUrl: string | null
+}
+export type MonsterUsage =
+  | { type: 'at_will' }
+  | { type: 'per_day'; times: number }
+  | { type: 'recharge'; dice: string; minValue: number }
+  | { type: 'per_rest'; rests: ('short' | 'long')[] }
+export interface ApiMonsterAction {
+  name: string
+  description: string
+  attack: { type: string; bonus: number | null; reachFt: number | null; rangeFt: { normal: number; long: number | null } | null } | null
+  save: { ability: Ref; dc: number; success: 'NONE' | 'HALF' | 'OTHER' } | null
+  usage: MonsterUsage | null
+  legendaryCost: number | null
+  damages: { dice: string; damageType: Ref; alternativeGroup: number | null }[]
+  multiattack: { action: string; count: number; alternativeGroup: number }[]
+  spellcasting: {
+    ability: Ref
+    saveDc: number | null
+    attackBonus: number | null
+    casterLevel: number | null
+    class: Ref | null
+    slots: Record<string, number> | null
+    spells: (Ref & { level: number; usage: MonsterUsage | null })[]
+  } | null
+}
+export interface ApiDamageModifier { damageType: Ref | null; nonMagicalOnly: boolean; note: string | null }
+export interface ApiMonster extends ApiMonsterSummary {
+  description: string | null
+  armorClasses: { value: number; source: 'NATURAL' | 'ARMOR' | 'DEXTERITY' | 'SPELL' | 'CONDITION'; armor: Ref[]; spell: Ref | null; condition: Ref | null; note: string | null }[]
+  hitDice: { count: number; size: number; bonus: number }
+  speeds: Partial<Record<'walk' | 'fly' | 'swim' | 'climb' | 'burrow', number>> & { hover?: boolean }
+  abilityScores: Record<'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha', number>
+  savingThrows: (Ref & { bonus: number })[]
+  skills: (Ref & { bonus: number })[]
+  damageVulnerabilities: ApiDamageModifier[]
+  damageResistances: ApiDamageModifier[]
+  damageImmunities: ApiDamageModifier[]
+  conditionImmunities: Ref[]
+  senses: Partial<Record<'darkvision' | 'blindsight' | 'truesight' | 'tremorsense', number>> & { blindBeyond?: true }
+  passivePerception: number
+  languages: { text: string | null; list: (Ref & { understandOnly: boolean })[]; telepathyFt: number | null }
+  proficiencyBonus: number
+  legendaryActionsPerRound: number | null
+  traits: ApiMonsterAction[]
+  actions: ApiMonsterAction[]
+  bonusActions: ApiMonsterAction[]
+  reactions: ApiMonsterAction[]
+  legendaryActions: ApiMonsterAction[]
+  lairActions: ApiMonsterAction[]
+  forms: Ref[]
+}
+
+export type MagicItemRarity = 'COMMON' | 'UNCOMMON' | 'RARE' | 'VERY_RARE' | 'LEGENDARY' | 'ARTIFACT' | 'VARIES'
+export interface ApiMagicItemSummary extends Ref {
+  source: 'SRD' | 'HOMEBREW'
+  subtitle: string | null
+  category: Ref
+  rarity: MagicItemRarity
+  requiresAttunement: boolean
+  variantOf: string | null
+  imageUrl: string | null
+}
+export interface ApiMagicItem extends Omit<ApiMagicItemSummary, 'variantOf'> {
+  description: string
+  variantOf: Ref | null
+  variants: (Ref & { rarity: MagicItemRarity })[]
+}
+
+export const loadMonsters = () => get<ApiMonsterSummary[]>('monsters')
+export const loadMonster = (index: string) => get<ApiMonster>(`monsters/${encodeURIComponent(index)}`)
+export const loadMagicItems = () => get<ApiMagicItemSummary[]>('magic-items')
+export const loadMagicItem = (index: string) => get<ApiMagicItem>(`magic-items/${encodeURIComponent(index)}`)
