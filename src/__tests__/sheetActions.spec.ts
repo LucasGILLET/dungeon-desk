@@ -68,4 +68,21 @@ describe('sheetActions', () => {
     expect(a.toggleCondition(poisoned, 'poisoned').conditions).toEqual([])
     expect(a.setCurrency(base(), 'GP', 12.7).currencies).toEqual({ GP: 12 })
   })
+
+  it('counts limited uses and recovers only short-rest ones on a short rest', () => {
+    const raged = a.setFeatureUsed(a.setFeatureUsed(base(), { feature: 'rage' }, 2), { trait: 'breath-weapon' }, 1)
+    expect(raged.state?.featureUsage).toEqual([{ feature: 'rage', trait: null, used: 2 }, { feature: null, trait: 'breath-weapon', used: 1 }])
+    // Le souffle se recharge au repos court, la rage au repos long
+    expect(a.shortRest(raged, [{ trait: 'breath-weapon' }]).state?.featureUsage).toEqual([{ feature: 'rage', trait: null, used: 2 }])
+    expect(a.longRest(raged).state?.featureUsage).toEqual([])
+    expect(a.setFeatureUsed(raged, { feature: 'rage' }, 0).state?.featureUsage).toEqual([{ feature: null, trait: 'breath-weapon', used: 1 }])
+  })
+
+  it('adds, prepares and removes spells per class', () => {
+    const known = a.addSpell(a.addSpell(base(), 'wizard', 'magic-missile'), 'wizard', 'magic-missile')
+    expect(known.spells).toEqual([{ class: 'wizard', spell: 'magic-missile', prepared: false }])
+    expect(a.togglePrepared(known, 'wizard', 'magic-missile').spells?.[0]?.prepared).toBe(true)
+    expect(a.removeSpell(known, 'wizard', 'magic-missile').spells).toEqual([])
+  })
 })
+

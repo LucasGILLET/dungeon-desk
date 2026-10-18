@@ -89,7 +89,10 @@
         <div class="space-y-6">
           <section class="panel">
             <h2 class="panel-title">Combat</h2>
-            <div class="grid grid-cols-3 gap-3 text-center">
+            <div class="grid grid-cols-4 gap-3 text-center">
+              <div class="stat" :title="sheet.armorClass?.detail">
+                <div class="stat-value">{{ sheet.armorClass?.value ?? '—' }}</div><div class="stat-label">CA</div>
+              </div>
               <div class="stat"><div class="stat-value">{{ signed(mod('dex')) }}</div><div class="stat-label">Initiative</div></div>
               <div class="stat"><div class="stat-value">{{ speed }}</div><div class="stat-label">Vitesse</div></div>
               <div class="stat">
@@ -97,6 +100,8 @@
                 <div class="stat-label">Inspiration</div>
               </div>
             </div>
+
+            <p v-if="sheet.armorClass" class="mt-2 text-xs text-zinc-500">CA : {{ sheet.armorClass.detail }}</p>
 
             <!-- Points de vie -->
             <div class="mt-5 rounded-lg bg-zinc-950/60 border border-zinc-800 p-4">
@@ -145,9 +150,34 @@
               </div>
               <p v-if="lastRoll" class="text-xs text-zinc-500 mt-1">{{ lastRoll }}</p>
               <div class="mt-3 flex gap-2">
-                <button class="btn-secondary flex-1" @click="update(shortRest(input))">Repos court</button>
+                <button class="btn-secondary flex-1" @click="update(shortRest(input, shortRechargeKeys))">Repos court</button>
                 <button class="btn-secondary flex-1" @click="update(longRest(input))">Repos long</button>
               </div>
+            </div>
+          </section>
+
+          <!-- Capacités à utilisations limitées -->
+          <section v-if="sheet.featureResources?.length" class="panel">
+            <h2 class="panel-title">Capacités limitées</h2>
+            <div v-for="r in sheet.featureResources" :key="r.feature ?? r.trait ?? r.name" class="flex items-center justify-between py-1.5 text-sm gap-3">
+              <span>
+                {{ r.name }}
+                <span class="text-[10px] uppercase text-zinc-600 ml-1">{{ r.recharge === 'SHORT' ? 'repos court' : 'repos long' }}</span>
+              </span>
+              <!-- Peu d'utilisations : des pastilles ; une réserve (imposition des mains) : un compteur -->
+              <span v-if="r.max <= 10" class="flex gap-1">
+                <button
+                  v-for="n in r.max" :key="n" class="dot"
+                  :class="n <= r.max - usedOf(r) ? 'bg-amber-500' : 'bg-zinc-800'"
+                  :title="n <= r.max - usedOf(r) ? 'Disponible' : 'Utilisée'"
+                  @click="useResource(r, n)"
+                ></button>
+              </span>
+              <span v-else class="flex items-center gap-2">
+                <button class="qty" @click="setUsed(r, usedOf(r) + 1)" :disabled="usedOf(r) >= r.max">−</button>
+                <span class="w-14 text-center font-mono">{{ r.max - usedOf(r) }} / {{ r.max }}</span>
+                <button class="qty" @click="setUsed(r, usedOf(r) - 1)" :disabled="usedOf(r) <= 0">+</button>
+              </span>
             </div>
           </section>
 
@@ -221,6 +251,9 @@
         </div>
       </div>
 
+      <!-- Sorts connus et préparés -->
+      <SheetSpells :input="input" :sheet="sheet" :classes="classes" @update="update" />
+
       <!-- Inventaire -->
       <SheetInventory :input="input" @update="update" />
 
@@ -265,11 +298,12 @@ import {
   type ApiClass, type ApiCondition, type ApiSkill,
 } from '@/utils/dataLoader'
 import {
-  applyDamage, currentHp, heal, longRest, setDeathSave, setSlotsUsed, setTemporaryHp, shortRest, slotsUsed, spendHitDie, toggleCondition,
+  applyDamage, currentHp, heal, longRest, setDeathSave, setFeatureUsed, setSlotsUsed, setTemporaryHp, shortRest, slotsUsed, spendHitDie, toggleCondition,
   type Input,
 } from '@/utils/sheetActions'
 import { feetToMeters } from '@/utils/spellFormat'
 import SheetInventory from '@/components/sheet/SheetInventory.vue'
+import SheetSpells from '@/components/sheet/SheetSpells.vue'
 import LevelUpModal from '@/components/sheet/LevelUpModal.vue'
 
 const ABILITIES = [
@@ -474,6 +508,21 @@ function toggleSlot(level: number, n: number, pact = false) {
   update(setSlotsUsed(input.value!, level, used === n ? n - 1 : n, pact))
 }
 
+// --- Capacités à utilisations limitées ---------------------------------------------------
+
+type Resource = NonNullable<typeof sheet.value.featureResources>[number]
+// Utilisations lues dans le personnage en cours (à jour avant la réponse du back)
+const usedOf = (r: Resource) =>
+  input.value?.state?.featureUsage?.find((u) => (r.feature ? u.feature === r.feature : u.trait === r.trait))?.used ?? 0
+const setUsed = (r: Resource, used: number) =>
+  update(setFeatureUsed(input.value!, { feature: r.feature, trait: r.trait }, Math.min(r.max, Math.max(0, used))))
+// Clic sur une pastille : elle devient la dernière disponible (ou se dépense)
+function useResource(r: Resource, n: number) {
+  const available = r.max - usedOf(r)
+  setUsed(r, r.max - (available === n ? n - 1 : n))
+}
+const shortRechargeKeys = computed(() => (sheet.value.featureResources ?? []).filter((r) => r.recharge === 'SHORT').map((r) => ({ feature: r.feature, trait: r.trait })))
+
 function applyLevelUp(next: Input) {
   levelUpMode.value = null
   update(next)
@@ -489,6 +538,7 @@ function applyLevelUp(next: Input) {
 .stat-label { @apply text-[10px] uppercase tracking-widest text-zinc-500 font-bold; }
 .input { @apply rounded-md border border-zinc-700 bg-zinc-950 px-2 py-1 text-zinc-100 outline-none focus:border-amber-500; }
 .dot { @apply w-4 h-4 rounded-full border border-zinc-600 transition-colors; }
+.qty { @apply w-6 h-6 rounded border border-zinc-700 text-zinc-300 hover:bg-zinc-800 disabled:opacity-40; }
 .btn-primary { @apply px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold disabled:opacity-40; }
 .btn-secondary { @apply px-4 py-2 rounded-lg border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-sm; }
 .btn-danger { @apply px-3 py-1 rounded-md bg-red-900/60 hover:bg-red-800 text-red-100 text-sm disabled:opacity-40; }

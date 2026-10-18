@@ -45,10 +45,46 @@ export function spendHitDie(input: Input, maxHp: number, classIndex: string, rol
   return next
 }
 
-// Repos court : les emplacements de pacte reviennent
-export function shortRest(input: Input): Input {
+// Capacité ou trait à utilisations limitées (rage, ki, souffle…)
+export type ResourceKey = { feature?: string | null; trait?: string | null }
+const sameResource = (u: { feature?: string | null; trait?: string | null }, key: ResourceKey) =>
+  key.feature ? u.feature === key.feature : !!key.trait && u.trait === key.trait
+
+export function setFeatureUsed(input: Input, key: ResourceKey, used: number): Input {
+  const others = (state(input).featureUsage ?? []).filter((u) => !sameResource(u, key))
+  const entry = { feature: key.feature ?? null, trait: key.trait ?? null, used }
+  return withState(input, { featureUsage: used > 0 ? [...others, entry] : others })
+}
+
+// Repos court : les emplacements de pacte et les capacités qui se rechargent au repos court reviennent
+export function shortRest(input: Input, shortRecharge: ResourceKey[] = []): Input {
   const s = state(input)
-  return withState(input, { spellSlotsUsed: (s.spellSlotsUsed ?? []).filter((u) => !u.pact) })
+  return withState(input, {
+    spellSlotsUsed: (s.spellSlotsUsed ?? []).filter((u) => !u.pact),
+    featureUsage: (s.featureUsage ?? []).filter((u) => !shortRecharge.some((key) => sameResource(u, key))),
+  })
+}
+
+// --- Sorts ---------------------------------------------------------------------------------
+
+export function addSpell(input: Input, classIndex: string, spell: string, prepared = false): Input {
+  const next = clone(input)
+  const spells = next.spells ?? []
+  if (!spells.some((s) => s.class === classIndex && s.spell === spell)) spells.push({ class: classIndex, spell, prepared })
+  next.spells = spells
+  return next
+}
+
+export function removeSpell(input: Input, classIndex: string, spell: string): Input {
+  const next = clone(input)
+  next.spells = (next.spells ?? []).filter((s) => !(s.class === classIndex && s.spell === spell))
+  return next
+}
+
+export function togglePrepared(input: Input, classIndex: string, spell: string): Input {
+  const next = clone(input)
+  next.spells = (next.spells ?? []).map((s) => (s.class === classIndex && s.spell === spell ? { ...s, prepared: !s.prepared } : s))
+  return next
 }
 
 // Repos long : PV, emplacements et capacités au maximum ; la moitié des dés de vie (au moins 1) revient

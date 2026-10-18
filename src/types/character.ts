@@ -74,6 +74,8 @@ export interface CharacterSheetValues {
   spellSlots?: number[]; // index 0 = sorts de niveau 1
   pactSlots?: { level: number; count: number } | null;
   spellcasting?: { class: string; ability: string; saveDC: number; attackBonus: number }[];
+  armorClass?: { value: number; detail: string };
+  featureResources?: { feature: string | null; trait: string | null; name: string; max: number; used: number; recharge: 'SHORT' | 'LONG' }[];
 }
 
 export interface StartingEquipment {

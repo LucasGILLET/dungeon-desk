@@ -58,6 +58,11 @@ const sheetValues = (levels: number) => ({
   proficiencies: [{ index: 'skill-athletics', name: 'Compétence : Athlétisme', type: 'SKILL' }, { index: 'saving-throw-str', name: 'Jet de sauvegarde : FOR', type: 'SAVING_THROW' }],
   expertise: [], languages: [{ index: 'common', name: 'Commun' }],
   hitDice: [{ class: 'fighter', die: 10, total: levels, used: 0 }], spellSlots: [], pactSlots: null, spellcasting: [],
+  armorClass: { value: 16, detail: 'Cotte de mailles 16' },
+  featureResources: [
+    { feature: 'second-wind', trait: null, name: 'Second souffle', max: 1, used: 0, recharge: 'SHORT' },
+    { feature: 'lay-on-hands', trait: null, name: 'Imposition des mains', max: 15, used: 0, recharge: 'LONG' },
+  ],
 })
 const saved = (levels: number) => ({
   id: 7, name: 'Bram', edition: '2014', race: 'human', subrace: null, background: 'soldier', abilityMethod: 'POINT_BUY',
@@ -123,6 +128,9 @@ describe('CharacterSheetView', () => {
     expect(text).toContain('Grade militaire')
     expect(text).toContain('Épée longue')
     expect(text).toContain('9 m') // 30 pieds
+    expect(text).toContain('Cotte de mailles 16')
+    expect(text).toContain('Second souffle')
+    expect(text).toContain('15 / 15') // réserve affichée en compteur
   })
 
   it('saves damage automatically, in the exchange format', async () => {
@@ -187,4 +195,15 @@ describe('CharacterSheetView', () => {
     const sent = mockUpdate.mock.calls.at(-1)![0].data
     expect(sent.classes[0].levels[3]).toMatchObject({ level: 4, feat: 'grappler', abilityIncreases: [] })
   })
+
+  it('spends a limited use and saves it', async () => {
+    vi.useFakeTimers()
+    const wrapper = await mountSheet()
+
+    await wrapper.find('button[title="Disponible"]').trigger('click')
+    await vi.advanceTimersByTimeAsync(700)
+
+    expect(mockUpdate.mock.calls.at(-1)![0].data.state.featureUsage).toEqual([{ feature: 'second-wind', trait: null, used: 1 }])
+  })
 })
+
