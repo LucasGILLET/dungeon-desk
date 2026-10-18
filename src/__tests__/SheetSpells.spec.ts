@@ -61,4 +61,17 @@ describe('SheetSpells', () => {
     // Grimoire du magicien : ajouté sans être préparé
     expect(sent.spells).toContainEqual({ class: 'wizard', spell: 'shield', prepared: false })
   })
+
+  it('loads the spell list when the classes arrive after the first render', async () => {
+    const { default: SheetSpells } = await import('@/components/sheet/SheetSpells.vue')
+    const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/', component: { template: '<div />' } }, { path: '/sort/:index', component: { template: '<div />' } }] })
+    const wrapper = mount(SheetSpells, { props: { input, sheet, classes: [] } as never, global: { plugins: [router] } })
+    await flushPromises()
+    await wrapper.setProps({ classes: [wizard] } as never)
+    await flushPromises()
+
+    await wrapper.findAll('button').find((b) => b.text().includes('Ajouter un sort'))!.trigger('click')
+    expect(wrapper.text()).toContain('Bouclier')
+  })
 })
+

@@ -72,7 +72,7 @@
 // Sorts connus (ou du grimoire) et préparés, par classe d'incantation. Les
 // limites viennent de la table de classe ; le back refuse un sort hors liste
 // ou d'un niveau pas encore lançable.
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { CharacterSheetValues } from '@/types/character'
 import { loadApiSpells, type ApiClass, type ApiSpell } from '@/utils/dataLoader'
 import { addSpell, removeSpell, togglePrepared, type Input } from '@/utils/sheetActions'
@@ -85,9 +85,11 @@ const adding = ref<string | null>(null)
 const query = ref('')
 const signed = (n: number) => (n >= 0 ? `+${n}` : `${n}`)
 
-onMounted(async () => {
-  if (props.classes.some((c) => c.spellcasting)) spells.value = await loadApiSpells()
-})
+// Les classes du personnage arrivent après le premier affichage de la fiche :
+// la liste des sorts se charge dès qu'une classe d'incantation est connue
+watch(() => props.classes.some((c) => c.spellcasting), async (hasCaster) => {
+  if (hasCaster && !spells.value.length) spells.value = await loadApiSpells()
+}, { immediate: true })
 
 const byIndex = computed(() => new Map(spells.value.map((s) => [s.index, s])))
 
