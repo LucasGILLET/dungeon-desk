@@ -62,7 +62,7 @@
            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 sm:gap-3 auto-rows-fr mb-4 transition-all duration-300 rounded-lg p-1" :class="{'relative z-40 bg-red-900/10': isTutorialStep(1)}">
             <!-- Martials -->
             <div
-              v-for="classe in sortedClasses.filter(c => isMartialClass(c.index))"
+              v-for="classe in sortedClasses.filter(c => isMartialClass(c))"
               :key="classe.index"
               role="button"
               tabindex="0"
@@ -162,7 +162,7 @@
                         :key="stat" 
                         class="px-1.5 py-0.5 rounded text-[9px] font-bold border bg-zinc-900/60"
                         :class="[
-                          isMartialClass(classe.index) ? 'text-red-200 border-red-900/50' : 'text-purple-200 border-purple-900/50',
+                          isMartialClass(classe) ? 'text-red-200 border-red-900/50' : 'text-purple-200 border-purple-900/50',
                           (selectedClass?.index === classe.index && isTutorialStep(3)) ? 'bg-zinc-800' : ''
                         ]"
                       >
@@ -194,7 +194,7 @@
            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 sm:gap-3 auto-rows-fr transition-all duration-300 rounded-lg p-1" :class="{'relative z-40 bg-purple-900/10': isTutorialStep(1)}">
             <!-- Casters -->
             <div
-              v-for="classe in sortedClasses.filter(c => !isMartialClass(c.index))"
+              v-for="classe in sortedClasses.filter(c => !isMartialClass(c))"
               :key="classe.index"
               role="button"
               tabindex="0"
@@ -296,7 +296,7 @@
                         :key="stat" 
                         class="px-1.5 py-0.5 rounded text-[9px] font-bold border bg-zinc-900/60"
                         :class="[
-                          isMartialClass(classe.index) ? 'text-red-200 border-red-900/50' : 'text-purple-200 border-purple-900/50',
+                          isMartialClass(classe) ? 'text-red-200 border-red-900/50' : 'text-purple-200 border-purple-900/50',
                           (selectedClass?.index === classe.index && isTutorialStep(3)) ? 'bg-zinc-800' : ''
                         ]"
                       >
@@ -427,8 +427,8 @@ const getDifficultyValue = (cls: SRDClass) => difficultyOrder[getClassDifficulty
 const sortedClasses = computed(() => {
   return [...classes.value].sort((a, b) => {
     // 1. Sort by Martial vs Magic
-    const isAMartial = isMartialClass(a.index)
-    const isBMartial = isMartialClass(b.index)
+    const isAMartial = isMartialClass(a)
+    const isBMartial = isMartialClass(b)
     
     if (isAMartial && !isBMartial) return -1
     if (!isAMartial && isBMartial) return 1

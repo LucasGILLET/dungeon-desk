@@ -1,52 +1,21 @@
-import { loadClasses } from './dataLoader'
 import type { SRDClass } from '@/types/srd'
 
+const DIFFICULTIES = { EASY: 'Facile', MEDIUM: 'Moyen', HARD: 'Difficile' } as const
 export function getClassDifficulty(cls: SRDClass): 'Facile' | 'Moyen' | 'Difficile' {
-  const easyClasses = ['barbarian', 'fighter']
-  const hardClasses = ['wizard', 'druid', 'sorcerer']
-  
-  if (easyClasses.includes(cls.index)) return 'Facile'
-  if (hardClasses.includes(cls.index)) return 'Difficile'
-  return 'Moyen'
+  return DIFFICULTIES[cls.difficulty ?? 'MEDIUM']
 }
 
 export function getClassDescription(cls: SRDClass): string {
-  const descriptions: Record<string, string> = {
-    'barbarian': 'Combattant sauvage utilisant la rage comme arme.',
-    'bard': 'Artiste magique, soutien polyvalent du groupe.',
-    'cleric': 'Guérisseur divin, soutien et protection du groupe.',
-    'druid': 'Gardien de la nature, magie et métamorphose.',
-    'fighter': 'Maître des armes et de l\'armure, spécialiste du combat.',
-    'monk': 'Artiste martial utilisant l\'énergie interne.',
-    'paladin': 'Guerrier saint, alliant combat et magie divine.',
-    'ranger': 'Chasseur expert, à l\'aise en nature et à distance.',
-    'rogue': 'Expert en discrétion, crochetage et attaques sournoises.',
-    'sorcerer': 'Magie innée puissante mais limitée en sorts.',
-    'warlock': 'Pacte avec des entités d\'outre-monde pour la magie.',
-    'wizard': 'Manipulateur de la magie arcane, puissant mais fragile.'
-  }
-  return descriptions[cls.index] || 'Classe de personnage D&D 5e.'
+  return cls.summary ?? ''
 }
 
+// Caractéristiques à privilégier, dans l'ordre (« Force », « Constitution »)
 export function getClassMainStats(cls: SRDClass): string[] {
-  const statsMap: Record<string, string[]> = {
-    'barbarian': ['Force', 'Constitution'],
-    'bard': ['Charisme', 'Dextérité'],
-    'cleric': ['Sagesse', 'Constitution'],
-    'druid': ['Sagesse', 'Constitution'],
-    'fighter': ['Force', 'Constitution'],
-    'monk': ['Dextérité', 'Sagesse'],
-    'paladin': ['Force', 'Charisme'],
-    'ranger': ['Dextérité', 'Sagesse'],
-    'rogue': ['Dextérité', 'Intelligence'],
-    'sorcerer': ['Charisme', 'Constitution'],
-    'warlock': ['Charisme', 'Constitution'],
-    'wizard': ['Intelligence', 'Constitution']
-  }
-  return statsMap[cls.index] || ['Force']
+  return (cls.recommended_abilities ?? []).map((a) => a.name)
 }
 
-export function isMartialClass(classIndex: string): boolean {
-  return ['barbarian', 'fighter', 'monk', 'paladin', 'ranger', 'rogue'].includes(classIndex)
+// Classe martiale : pas d'incantation, ou demi-lanceur (paladin, rôdeur)
+export function isMartialClass(cls: SRDClass): boolean {
+  return !cls.caster_type || cls.caster_type === 'HALF' || cls.caster_type === 'THIRD'
 }
 

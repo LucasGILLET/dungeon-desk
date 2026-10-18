@@ -13,6 +13,10 @@ interface Ref { index: string; name: string }
 interface ApiTrait extends Ref { description: string }
 interface ApiBonus extends Ref { bonus: number }
 interface ApiRace extends Ref {
+  icon: string | null
+  summary: string | null
+  abilityBonusChoice: { choose: number; bonus: number } | null
+  npcProfile: { frequency: number; heightCm: { base: number; variance: number } | null; weightKg: { base: number; variance: number } | null }
   sizes: string[]
   speeds: { walk: number }
   age: string | null
@@ -25,12 +29,15 @@ interface ApiRace extends Ref {
   subraces: (Ref & { description: string | null; abilityBonuses: ApiBonus[]; traits: ApiTrait[] })[]
 }
 interface ApiBackground extends Ref {
+  icon: string | null
+  summary: string | null
   feature: { name: string; description: string | null } | null
   proficiencies: Ref[]
   startingEquipment: (Ref & { quantity: number })[]
   personality: { id: number; kind: 'PERSONALITY_TRAIT' | 'IDEAL' | 'BOND' | 'FLAW'; text: string; alignments: Ref[] }[]
 }
 export interface ApiSubclass extends Ref {
+  icon: string | null
   source: 'SRD' | 'HOMEBREW'
   description: string | null
   spells: (Ref & { level: number; requiredClassLevel: number })[]
@@ -38,10 +45,13 @@ export interface ApiSubclass extends Ref {
 export interface ApiClass extends Ref {
   hitDie: number
   subclassLevel: number
+  summary: string | null
+  difficulty: 'EASY' | 'MEDIUM' | 'HARD'
+  recommendedAbilities: Ref[]
   savingThrows: Ref[]
   proficiencies: Ref[]
   startingEquipment: (Ref & { quantity: number })[]
-  spellcasting: { ability: Ref; startLevel: number; sections: { title: string; description: string }[] } | null
+  spellcasting: { ability: Ref; startLevel: number; casterType: 'FULL' | 'HALF' | 'THIRD' | 'PACT'; sections: { title: string; description: string }[] } | null
   subclasses: ApiSubclass[]
   features: { index: string; level: number; subclass: string | null; parent: string | null; name: string; description: string }[]
   table: {
@@ -98,6 +108,9 @@ export async function loadRaces(): Promise<SRDRace[]> {
   return (await loadApiRaces()).map((r) => ({
     index: r.index,
     name: r.name,
+    icon: r.icon,
+    summary: r.summary,
+    ability_bonus_choice: r.abilityBonusChoice,
     speed: r.speeds.walk,
     ability_bonuses: bonuses(r.abilityBonuses),
     alignment: r.alignment ?? '',
@@ -116,6 +129,7 @@ export async function loadSubraces(): Promise<SRDSubclass[]> {
   return (await loadApiRaces()).flatMap((r) => r.subraces.map((s) => ({
     index: s.index,
     name: s.name,
+    icon: r.icon,
     race: ref(r),
     desc: s.description ?? '',
     description: s.description ?? '',
@@ -153,6 +167,10 @@ export async function loadClasses(): Promise<SRDClass[]> {
   return (await loadApiClasses()).map((c) => ({
     index: c.index,
     name: c.name,
+    summary: c.summary,
+    difficulty: c.difficulty,
+    recommended_abilities: c.recommendedAbilities.map(ref),
+    caster_type: c.spellcasting?.casterType ?? null,
     hit_die: c.hitDie,
     proficiency_choices: [],
     proficiencies: c.proficiencies.map(ref),
@@ -206,6 +224,8 @@ export async function loadBackgrounds(): Promise<SRDBackground[]> {
     return {
       index: b.index,
       name: b.name,
+      icon: b.icon,
+      summary: b.summary,
       starting_proficiencies: b.proficiencies.map(ref),
       starting_equipment: b.startingEquipment.map((e) => ({ equipment: ref(e), quantity: e.quantity })),
       feature: { name: b.feature?.name ?? '', desc: paragraphs(b.feature?.description) },
@@ -239,3 +259,12 @@ export const loadSkills = () => get<ApiSkill[]>('skills')
 export const loadConditions = () => get<ApiCondition[]>('conditions')
 export const loadEquipmentCatalog = () => get<ApiEquipment[]>('equipment')
 export const loadFeats = () => get<ApiFeat[]>('feats')
+
+export interface ApiAbilityScore extends Ref { abbreviation: string; summary: string | null; description: string | null }
+export interface ApiCreationRules { pointBuy: { budget: number; costs: Record<string, number> }; standardArray: number[] }
+export type ApiNpcTables = Partial<Record<string, { race: string | null; text: string; weight: number }[]>>
+
+export const loadAbilityScores = () => get<ApiAbilityScore[]>('ability-scores')
+export const loadCreationRules = () => get<ApiCreationRules>('rules')
+export const loadNpcTables = () => get<ApiNpcTables>('npc-tables')
+export const loadAlignments = () => get<(Ref & { abbreviation: string })[]>('alignments')

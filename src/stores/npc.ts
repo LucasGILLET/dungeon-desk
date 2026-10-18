@@ -1,3 +1,4 @@
+import { toNpcInput, type GeneratedNPC } from '@/utils/npcGenerator';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { useMutation, useQueryClient } from '@tanstack/vue-query';
@@ -63,16 +64,11 @@ export const useNpcStore = defineStore('npc', () => {
         }
     };
 
-    const saveNpc = async (npcData: any) => {
+    const saveNpc = async (npcData: GeneratedNPC) => {
         loading.value = true;
         error.value = null;
         try {
-            const payload = {
-                name: `${npcData.firstName} ${npcData.lastName}`,
-                race: npcData.race.name,
-                class: npcData.class?.name,
-                data: npcData
-            };
+            const payload = toNpcInput(npcData);
 
             const response = await createNpcMutation.mutateAsync({
                 data: payload,

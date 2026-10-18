@@ -123,7 +123,6 @@ import { ref, onMounted } from 'vue'
 import { loadTraits } from '@/utils/dataLoader'
 import type { SRDRace, SRDTrait } from '@/types/srd'
 import { getRaceDescription, getRaceStats } from '@/utils/race'
-import { translateAbilityScore } from '@/utils/abilities'
 
 interface Props {
   show: boolean

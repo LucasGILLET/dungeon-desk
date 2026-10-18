@@ -77,10 +77,10 @@
                 <!-- Header -->
                 <div class="p-6 border-b border-zinc-800 bg-gradient-to-b from-white/5 to-transparent relative overflow-hidden">
                    <!-- Emoji BG decoration -->
-                   <div class="absolute -right-4 -top-4 text-8xl opacity-5 select-none font-serif grayscale">{{ getSubclassEmoji(subclass.id) }}</div>
+                   <div class="absolute -right-4 -top-4 text-8xl opacity-5 select-none font-serif grayscale">{{ getSubclassEmoji(subclass) }}</div>
                    
                    <div class="relative z-10 flex flex-col items-center text-center">
-                      <div class="text-4xl mb-3 filter drop-shadow-lg">{{ getSubclassEmoji(subclass.id) }}</div>
+                      <div class="text-4xl mb-3 filter drop-shadow-lg">{{ getSubclassEmoji(subclass) }}</div>
                       <h3 class="text-xl font-bold text-white font-serif mb-1">{{ subclass.name }}</h3>
                       <p class="text-zinc-500 text-xs uppercase tracking-wider">{{ subclass.source }}</p>
                    </div>

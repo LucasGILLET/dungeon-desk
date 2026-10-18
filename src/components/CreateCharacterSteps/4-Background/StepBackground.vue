@@ -86,7 +86,7 @@
                     {{ background?.name }}
                   </h3>
                   <div class="text-xl filter drop-shadow-md grayscale group-hover:grayscale-0 transition-all duration-300">
-                    {{ getBackgroundEmoji(background.index) }}
+                    {{ getBackgroundEmoji(background) }}
                   </div>
                 </div>
 

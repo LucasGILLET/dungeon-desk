@@ -28,9 +28,9 @@
                       <div class="flex items-center gap-3 text-sm text-zinc-400 font-medium">
                         <span 
                             class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest border"
-                            :class="isMartialClass(classe.index) ? 'border-red-900 text-red-400 bg-red-900/10' : 'border-purple-900 text-purple-400 bg-purple-900/10'"
+                            :class="isMartialClass(classe) ? 'border-red-900 text-red-400 bg-red-900/10' : 'border-purple-900 text-purple-400 bg-purple-900/10'"
                         >
-                            {{ isMartialClass(classe.index) ? 'Martial' : 'Magique' }}
+                            {{ isMartialClass(classe) ? 'Martial' : 'Magique' }}
                         </span>
                         <span>•</span>
                         <span class="text-amber-500 font-serif italic">{{ getClassDifficulty(classe) }}</span>

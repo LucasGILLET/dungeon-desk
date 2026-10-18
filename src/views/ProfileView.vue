@@ -98,17 +98,17 @@
                                     <div class="text-xs text-zinc-500">{{ new Date(npc.createdAt).toLocaleDateString() }}</div>
                                  </div>
                                   <span class="text-xs px-2 py-1 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
-                                    {{ npc.race }}
+                                    {{ npc.names?.race ?? npc.race }}
                                 </span>
                              </div>
                              <div class="space-y-1 my-3">
                                  <div class="flex items-center justify-between text-sm">
                                      <span class="text-zinc-500">Classe</span>
-                                     <span class="text-zinc-300">{{ npc.class || 'Aucune' }}</span>
+                                     <span class="text-zinc-300">{{ npc.names?.class || 'Aucune' }}</span>
                                  </div>
                                  <div class="flex items-center justify-between text-sm">
                                      <span class="text-zinc-500">Métier</span>
-                                     <span class="text-zinc-300 truncate max-w-[120px] text-right" :title="npc.data.profession">{{ npc.data.profession }}</span>
+                                     <span class="text-zinc-300 truncate max-w-[120px] text-right" :title="npc.profession">{{ npc.profession }}</span>
                                  </div>
                              </div>
                         </div>

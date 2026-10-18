@@ -1,5 +1,11 @@
-import { describe, expect, it } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { describe, expect, it, vi } from 'vitest'
+import { flushPromises, mount } from '@vue/test-utils'
+
+// Règles d'achat de points de l'édition (API)
+vi.mock('@/utils/dataLoader', () => ({
+  loadCreationRules: vi.fn(async () => ({ pointBuy: { budget: 27, costs: { 8: 0, 9: 1, 10: 2, 11: 3, 12: 4, 13: 5, 14: 7, 15: 9 } }, standardArray: [15, 14, 13, 12, 10, 8] })),
+  loadAbilityScores: vi.fn(async () => []),
+}))
 import StepAbilities from '@/components/CreateCharacterSteps/5-Caracteristics/StepAbilities.vue'
 
 const character = {
@@ -9,18 +15,20 @@ const character = {
   class: { index: 'fighter', name: 'Fighter' },
 } as any
 
-function mountStep(props: Partial<{ character: any }> = {}) {
-  return mount(StepAbilities, {
+async function mountStep(props: Partial<{ character: any }> = {}) {
+  const wrapper = mount(StepAbilities, {
     props: { character, ...props },
     global: {
       stubs: { TutorialGuide: true },
     },
   })
+  await flushPromises()
+  return wrapper
 }
 
 describe('StepAbilities', () => {
-  it('starts every ability at 8 with all 27 points unspent, and blocks "next"', () => {
-    const wrapper = mountStep()
+  it('starts every ability at 8 with all 27 points unspent, and blocks "next"', async () => {
+    const wrapper = await mountStep()
     const nav = wrapper.findComponent({ name: 'StepNavigation' })
 
     expect(wrapper.find('[aria-label="Augmenter Force"]').exists()).toBe(true)
@@ -28,7 +36,7 @@ describe('StepAbilities', () => {
   })
 
   it('spends 1 point when raising an ability from 8 to 9', async () => {
-    const wrapper = mountStep()
+    const wrapper = await mountStep()
     await wrapper.find('[aria-label="Augmenter Force"]').trigger('click')
 
     // 27 total points - 1 spent = 26 remaining, still > 0 so next stays disabled
@@ -38,7 +46,7 @@ describe('StepAbilities', () => {
   })
 
   it('never lets an ability drop below 8', async () => {
-    const wrapper = mountStep()
+    const wrapper = await mountStep()
     const decreaseButton = wrapper.find('[aria-label="Diminuer Force"]')
 
     expect(decreaseButton.attributes('disabled')).toBeDefined()
@@ -49,7 +57,7 @@ describe('StepAbilities', () => {
   })
 
   it('never lets the total spent points exceed the 27-point budget (13 -> 14 costs 2, not 1)', async () => {
-    const wrapper = mountStep()
+    const wrapper = await mountStep()
     const incForce = () => wrapper.find('[aria-label="Augmenter Force"]').trigger('click')
 
     // Spend down to exactly 1 point remaining: raise 5 abilities from 8 to 13 (cost 5 each = 25),
@@ -75,7 +83,7 @@ describe('StepAbilities', () => {
   })
 
   it('never lets an ability rise above 15', async () => {
-    const wrapper = mountStep()
+    const wrapper = await mountStep()
     const increaseButton = wrapper.find('[aria-label="Augmenter Force"]')
 
     // Spend all reachable points on Force alone by clicking well past the cap
@@ -88,7 +96,7 @@ describe('StepAbilities', () => {
   })
 
   it('enables "next" once all 27 points are spent', async () => {
-    const wrapper = mountStep()
+    const wrapper = await mountStep()
     const abilityNames = ['Force', 'Dextérité', 'Constitution', 'Intelligence', 'Sagesse', 'Charisme']
 
     // Raise every ability to 13 (cost 5 each = 30 total, more than 27) is too much;

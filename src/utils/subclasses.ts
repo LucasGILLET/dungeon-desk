@@ -9,6 +9,7 @@ export interface SubclassData {
   className: string
   source: string
   description: string
+  icon?: string | null
   bonusSpells?: string[]
   levelProgression?: {
     level: number
@@ -52,6 +53,7 @@ export async function loadSubclassesForClass(classIndex: string): Promise<Subcla
       name: sub.name,
       className: cls.index,
       source: SOURCE_LABELS[sub.source] ?? sub.source,
+      icon: sub.icon,
       description: (sub.description ?? '').split('\n\n')[0] ?? '',
       bonusSpells: sub.spells.map((sp) => sp.name),
       levelProgression: [...byLevel.entries()].sort(([a], [b]) => a - b).map(([level, features]) => ({ level, features })),
@@ -65,21 +67,6 @@ export async function getLevel1SubclassClassIds(): Promise<string[]> {
   return (await loadApiClasses()).filter((c) => c.subclassLevel === 1).map((c) => c.index)
 }
 
-export function getSubclassEmoji(subclassId: string): string {
-  const emojis: Record<string, string> = {
-    // Clerc
-    war: '⚔️',
-    life: '💚',
-    light: '☀️',
-    nature: '🌿',
-    trickery: '🎭',
-    // Ensorceleur
-    draconic: '🐉',
-    'wild-magic': '⚡',
-    // Occultiste
-    'great-old-one': '👁️',
-    archfey: '🧚',
-    fiend: '😈',
-  }
-  return emojis[subclassId] || '🔮'
+export function getSubclassEmoji(subclass: SubclassData): string {
+  return subclass.icon ?? '🔮'
 }

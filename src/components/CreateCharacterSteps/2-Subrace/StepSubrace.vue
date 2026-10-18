@@ -94,7 +94,7 @@
                 <div class="flex items-start justify-between mb-4">
                   <div class="flex items-center gap-4">
                     <div class="w-16 h-16 rounded-2xl bg-zinc-950 border border-zinc-700 flex items-center justify-center shadow-inner group-hover:border-amber-500/30 transition-colors">
-                      <span class="text-4xl filter drop-shadow-md transform group-hover:scale-110 transition-transform duration-300">{{ getSubraceEmoji(subrace.race.index) }}</span>
+                      <span class="text-4xl filter drop-shadow-md transform group-hover:scale-110 transition-transform duration-300">{{ getSubraceEmoji(subrace) }}</span>
                     </div>
                     <div>
                        <h3 class="text-xl font-bold text-zinc-100 font-serif leading-tight group-hover:text-amber-100 transition-colors">{{ subrace.name }}</h3>

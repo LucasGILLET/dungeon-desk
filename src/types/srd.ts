@@ -3,6 +3,10 @@
 export interface SRDRace {
   index: string
   name: string
+  icon?: string | null
+  summary?: string | null
+  // Bonus de caractéristique au choix (demi-elfe : +1 à deux caractéristiques)
+  ability_bonus_choice?: { choose: number; bonus: number } | null
   speed: number
   ability_bonuses: Array<{
     ability_score: {
@@ -60,6 +64,10 @@ export interface SRDTrait {
 export interface SRDClass {
   index: string
   name: string
+  summary?: string | null
+  difficulty?: 'EASY' | 'MEDIUM' | 'HARD'
+  recommended_abilities?: { index: string; name: string; url: string }[]
+  caster_type?: 'FULL' | 'HALF' | 'THIRD' | 'PACT' | null
   hit_die: number
   proficiency_choices: Array<{
     desc: string
@@ -126,6 +134,7 @@ export interface SRDSubclass {
   index: string
   id?: string
   name: string
+  icon?: string | null
   race: {
     index: string
     name: string
@@ -152,6 +161,8 @@ export interface SRDSubclass {
 export interface SRDBackground {
   index: string
   name: string
+  icon?: string | null
+  summary?: string | null
   starting_proficiencies: Array<{
     index: string
     name: string
@@ -267,6 +278,10 @@ export interface SRDFeature {
 export interface SRDClass {
   index: string
   name: string
+  summary?: string | null
+  difficulty?: 'EASY' | 'MEDIUM' | 'HARD'
+  recommended_abilities?: { index: string; name: string; url: string }[]
+  caster_type?: 'FULL' | 'HALF' | 'THIRD' | 'PACT' | null
   hit_die: number
   proficiency_choices: Array<{
     desc: string

@@ -170,7 +170,7 @@
 
                    <button
                       @click="increaseAbility(ability)"
-                      :disabled="ability.value >= 15 || (getAbilityPointCost(ability.value + 1) - getAbilityPointCost(ability.value)) > remainingPoints"
+                      :disabled="ability.value >= maxValue || (getAbilityPointCost(ability.value + 1) - getAbilityPointCost(ability.value)) > remainingPoints"
                       :aria-label="`Augmenter ${ability.name}`"
                       class="w-8 h-8 flex items-center justify-center rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-green-400 disabled:opacity-30 disabled:hover:bg-zinc-800 transition-colors border border-zinc-700"
                     >
@@ -241,7 +241,7 @@ import { useTutorial } from '@/composables/useTutorial'
 import type { SRDRace } from '@/types/srd'
 import type { Character } from '@/types/character'
 import type { Ability } from '@/utils/abilities'
-import { getAbilityPointCost, getAbilityDescription } from '@/utils/abilities'
+import { useCreationRules } from '@/composables/useCreationRules'
 import { getClassMainStats } from '@/utils/classes'
 
 
@@ -256,8 +256,8 @@ const emit = defineEmits<{
   'update:character': [payload: Partial<Character>]
 }>()
 
-const TOTAL_POINTS = 27
-const BASE_VALUE = 8
+// Achat de points : budget et coûts de l'édition (API)
+const { cost: getAbilityPointCost, summaryOf: getAbilityDescription, budget, minValue, maxValue } = useCreationRules()
 
 const abilities = ref<Ability[]>([
   { name: 'Force', value: 8 },
@@ -324,7 +324,7 @@ watch(() => props.character.race, (newRace) => {
 const tutorialSteps = [
     { title: "Bienvenue", text: "Définissez les attributs de votre héros. C'est ici que vous décidez s'il sera fort, agile, ou intelligent." },
     { title: "Priorités de Classe", text: "Regardez ici ! Votre classe a besoin de certaines statistiques pour briller. Essayez de les maximiser." },
-    { title: "Votre Capital", text: "Vous avez 27 points. Passer de 8 à 13 coûte 1 point. Monter à 14 ou 15 coûte plus cher. Gérez bien votre budget !" },
+    { title: "Votre Capital", text: "Vous disposez d'un capital de points (affiché en haut). Monter une caractéristique coûte 1 point par niveau, plus cher pour les valeurs les plus hautes. Gérez bien votre budget !" },
     { title: "Les Caractéristiques", text: "Chaque carte représente un attribut. Le gros chiffre est votre score total (incluant les bonus de race)." },
     { title: "Le Modificateur", text: "C'est LE chiffre important (+2, -1...). C'est ce bonus qui sera ajouté à vos jets de dés en jeu." },
     { title: "Ajustements", text: "Utilisez ces boutons pour dépenser vos points. Vous ne pouvez pas dépasser 15 (avant bonus) à la création." }
@@ -352,7 +352,7 @@ onMounted(() => {
       const engKey = abilityNameMap[ability.name]
       // @ts-ignore - Dynamic access to mapped keys
       const savedValue = props.character.abilities[engKey]
-      if (typeof savedValue === 'number' && savedValue >= BASE_VALUE) {
+      if (typeof savedValue === 'number' && savedValue >= minValue.value) {
         ability.value = savedValue
       }
     })
@@ -371,7 +371,7 @@ const remainingPoints = computed(() => {
   const usedPoints = abilities.value.reduce((total, ability) => {
     return total + getAbilityPointCost(ability.value)
   }, 0)
-  return TOTAL_POINTS - usedPoints
+  return budget.value - usedPoints
 })
 
 function getRacialBonus(abilityName: string): number {
@@ -447,7 +447,7 @@ function getModifier(value: number): number {
 
 
 function increaseAbility(ability: Ability) {
-  if (ability.value >= 15) return
+  if (ability.value >= maxValue.value) return
   // Le coût marginal n'est pas toujours 1 (passer de 13 à 14 ou de 14 à 15 coûte 2 points).
   const marginalCost = getAbilityPointCost(ability.value + 1) - getAbilityPointCost(ability.value)
   if (marginalCost > remainingPoints.value) return
@@ -455,13 +455,13 @@ function increaseAbility(ability: Ability) {
 }
 
 function decreaseAbility(ability: Ability) {
-  if (ability.value > BASE_VALUE) {
+  if (ability.value > minValue.value) {
     ability.value--
   }
 }
 
 function resetAbilities() {
-  abilities.value.forEach(a => a.value = BASE_VALUE)
+  abilities.value.forEach(a => a.value = minValue.value)
 }
 
 function randomizeAbilities() {
@@ -487,15 +487,15 @@ function randomizeAbilities() {
     const ability = shuffledAbilities[index]
     
     // On augmente si possible (max 15)
-    if (ability && ability.value < 15) {
+    if (ability && ability.value < maxValue.value) {
         // Vérifier si on a assez de points pour le prochain niveau
-        const cost = (ability.value >= 13) ? 2 : 1
+        const cost = getAbilityPointCost(ability.value + 1) - getAbilityPointCost(ability.value)
         if (remainingPoints.value >= cost) {
             ability.value++
         } else {
             // Si on ne peut pas augmenter celle-ci à cause du coût, on essaie une autre
             // (cas rare en fin de points)
-             const cheapAbility = shuffledAbilities.find(a => a.value < 13)
+             const cheapAbility = shuffledAbilities.find(a => a.value < maxValue.value && getAbilityPointCost(a.value + 1) - getAbilityPointCost(a.value) <= remainingPoints.value)
              if (cheapAbility) cheapAbility.value++
              else break // On ne peut plus rien faire
         }

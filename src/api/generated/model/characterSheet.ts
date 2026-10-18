@@ -10,6 +10,11 @@ import type { CharacterSheetPending } from './characterSheetPending';
 import type { CharacterSheetProficienciesItem } from './characterSheetProficienciesItem';
 import type { CharacterSheetExpertiseItem } from './characterSheetExpertiseItem';
 import type { CharacterSheetLanguagesItem } from './characterSheetLanguagesItem';
+import type { CharacterSheetHitDiceItem } from './characterSheetHitDiceItem';
+import type { CharacterSheetPactSlots } from './characterSheetPactSlots';
+import type { CharacterSheetSpellcastingItem } from './characterSheetSpellcastingItem';
+import type { CharacterSheetArmorClass } from './characterSheetArmorClass';
+import type { CharacterSheetFeatureResourcesItem } from './characterSheetFeatureResourcesItem';
 
 /**
  * Valeurs calculées (jamais stockées)
@@ -24,4 +29,13 @@ export interface CharacterSheet {
   proficiencies: CharacterSheetProficienciesItem[];
   expertise: CharacterSheetExpertiseItem[];
   languages: CharacterSheetLanguagesItem[];
+  hitDice?: CharacterSheetHitDiceItem[];
+  /** Emplacements par niveau de sort (index 0 = niveau 1), multiclassage compris */
+  spellSlots?: number[];
+  /** @nullable */
+  pactSlots?: CharacterSheetPactSlots;
+  spellcasting?: CharacterSheetSpellcastingItem[];
+  armorClass?: CharacterSheetArmorClass;
+  /** Capacités à utilisations limitées (rage, ki, conduit divin…) */
+  featureResources?: CharacterSheetFeatureResourcesItem[];
 }

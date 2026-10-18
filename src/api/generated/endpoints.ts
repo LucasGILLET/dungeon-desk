@@ -34,6 +34,10 @@ import type {
   CharacterCreateInput,
   CharacterPreview,
   CharacterSummary,
+  GetAbilityScoresParams,
+  GetCreationRulesParams,
+  GetNpcTablesParams,
+  GetSrdAlignmentsParams,
   GetSrdBackgroundsParams,
   GetSrdConditionsParams,
   GetSrdEditionClassesIndexParams,
@@ -44,9 +48,10 @@ import type {
   GetSrdSkillsParams,
   GetSrdSpellsParams,
   MessageResponse,
+  Npc,
+  NpcInput,
   PostAuthLoginBody,
   PostAuthRegisterBody,
-  PostNpcsBody,
   PreviewCharacterParams
 } from './model';
 
@@ -797,10 +802,10 @@ export const useUpdateCharacter = <TError = void,
     }
     
 /**
- * @summary Create a new NPC
+ * @summary Create an NPC
  */
 export type postNpcsResponse200 = {
-  data: void
+  data: Npc
   status: 200
 }
     
@@ -819,7 +824,7 @@ export const getPostNpcsUrl = () => {
   return `/npcs`
 }
 
-export const postNpcs = async (postNpcsBody: PostNpcsBody, options?: RequestInit): Promise<postNpcsResponse> => {
+export const postNpcs = async (npcInput: NpcInput, options?: RequestInit): Promise<postNpcsResponse> => {
   
   return customFetch<postNpcsResponse>(getPostNpcsUrl(),
   {      
@@ -827,7 +832,7 @@ export const postNpcs = async (postNpcsBody: PostNpcsBody, options?: RequestInit
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(
-      postNpcsBody,)
+      npcInput,)
   }
 );}
 
@@ -835,8 +840,8 @@ export const postNpcs = async (postNpcsBody: PostNpcsBody, options?: RequestInit
 
 
 export const getPostNpcsMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postNpcs>>, TError,{data: PostNpcsBody}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof postNpcs>>, TError,{data: PostNpcsBody}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postNpcs>>, TError,{data: NpcInput}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof postNpcs>>, TError,{data: NpcInput}, TContext> => {
 
 const mutationKey = ['postNpcs'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -848,7 +853,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postNpcs>>, {data: PostNpcsBody}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postNpcs>>, {data: NpcInput}> = (props) => {
           const {data} = props ?? {};
 
           return  postNpcs(data,requestOptions)
@@ -860,18 +865,18 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type PostNpcsMutationResult = NonNullable<Awaited<ReturnType<typeof postNpcs>>>
-    export type PostNpcsMutationBody = PostNpcsBody
+    export type PostNpcsMutationBody = NpcInput
     export type PostNpcsMutationError = unknown
 
     /**
- * @summary Create a new NPC
+ * @summary Create an NPC
  */
 export const usePostNpcs = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postNpcs>>, TError,{data: PostNpcsBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postNpcs>>, TError,{data: NpcInput}, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationReturnType<
         Awaited<ReturnType<typeof postNpcs>>,
         TError,
-        {data: PostNpcsBody},
+        {data: NpcInput},
         TContext
       > => {
 
@@ -881,10 +886,10 @@ export const usePostNpcs = <TError = unknown,
     }
     
 /**
- * @summary Get all NPCs for the current user
+ * @summary List the NPCs of the current user
  */
 export type getNpcsResponse200 = {
-  data: void
+  data: Npc[]
   status: 200
 }
     
@@ -948,7 +953,7 @@ export type GetNpcsQueryError = unknown
 
 
 /**
- * @summary Get all NPCs for the current user
+ * @summary List the NPCs of the current user
  */
 
 export function useGetNpcs<TData = Awaited<ReturnType<typeof getNpcs>>, TError = unknown>(
@@ -970,28 +975,21 @@ export function useGetNpcs<TData = Awaited<ReturnType<typeof getNpcs>>, TError =
 
 
 /**
- * @summary Get an NPC by ID
+ * @summary Get an NPC
  */
-export type getNpcsIdResponse200 = {
-  data: void
+export type getNpcByIdResponse200 = {
+  data: Npc
   status: 200
 }
-
-export type getNpcsIdResponse404 = {
-  data: void
-  status: 404
-}
     
-export type getNpcsIdResponseSuccess = (getNpcsIdResponse200) & {
+export type getNpcByIdResponseSuccess = (getNpcByIdResponse200) & {
   headers: Headers;
 };
-export type getNpcsIdResponseError = (getNpcsIdResponse404) & {
-  headers: Headers;
-};
+;
 
-export type getNpcsIdResponse = (getNpcsIdResponseSuccess | getNpcsIdResponseError)
+export type getNpcByIdResponse = (getNpcByIdResponseSuccess)
 
-export const getGetNpcsIdUrl = (id: string,) => {
+export const getGetNpcByIdUrl = (id: string,) => {
 
 
   
@@ -999,9 +997,9 @@ export const getGetNpcsIdUrl = (id: string,) => {
   return `/npcs/${id}`
 }
 
-export const getNpcsId = async (id: string, options?: RequestInit): Promise<getNpcsIdResponse> => {
+export const getNpcById = async (id: string, options?: RequestInit): Promise<getNpcByIdResponse> => {
   
-  return customFetch<getNpcsIdResponse>(getGetNpcsIdUrl(id),
+  return customFetch<getNpcByIdResponse>(getGetNpcByIdUrl(id),
   {      
     ...options,
     method: 'GET'
@@ -1014,45 +1012,45 @@ export const getNpcsId = async (id: string, options?: RequestInit): Promise<getN
 
 
 
-export const getGetNpcsIdQueryKey = (id?: MaybeRef<string>,) => {
+export const getGetNpcByIdQueryKey = (id?: MaybeRef<string>,) => {
     return [
     'npcs',id
     ] as const;
     }
 
     
-export const getGetNpcsIdQueryOptions = <TData = Awaited<ReturnType<typeof getNpcsId>>, TError = void>(id: MaybeRef<string>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNpcsId>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export const getGetNpcByIdQueryOptions = <TData = Awaited<ReturnType<typeof getNpcById>>, TError = unknown>(id: MaybeRef<string>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNpcById>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  getGetNpcsIdQueryKey(id);
+  const queryKey =  getGetNpcByIdQueryKey(id);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getNpcsId>>> = ({ signal }) => getNpcsId(unref(id), { signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getNpcById>>> = ({ signal }) => getNpcById(unref(id), { signal, ...requestOptions });
 
       
 
       
 
-   return  { queryKey, queryFn, enabled: computed(() => !!(unref(id))), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getNpcsId>>, TError, TData> 
+   return  { queryKey, queryFn, enabled: computed(() => !!(unref(id))), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getNpcById>>, TError, TData> 
 }
 
-export type GetNpcsIdQueryResult = NonNullable<Awaited<ReturnType<typeof getNpcsId>>>
-export type GetNpcsIdQueryError = void
+export type GetNpcByIdQueryResult = NonNullable<Awaited<ReturnType<typeof getNpcById>>>
+export type GetNpcByIdQueryError = unknown
 
 
 /**
- * @summary Get an NPC by ID
+ * @summary Get an NPC
  */
 
-export function useGetNpcsId<TData = Awaited<ReturnType<typeof getNpcsId>>, TError = void>(
- id: MaybeRef<string>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNpcsId>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export function useGetNpcById<TData = Awaited<ReturnType<typeof getNpcById>>, TError = unknown>(
+ id: MaybeRef<string>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNpcById>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient 
  ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetNpcsIdQueryOptions(id,options)
+  const queryOptions = getGetNpcByIdQueryOptions(id,options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -1065,6 +1063,174 @@ export function useGetNpcsId<TData = Awaited<ReturnType<typeof getNpcsId>>, TErr
 
 
 
+/**
+ * @summary Update an NPC
+ */
+export type updateNpcResponse200 = {
+  data: Npc
+  status: 200
+}
+    
+export type updateNpcResponseSuccess = (updateNpcResponse200) & {
+  headers: Headers;
+};
+;
+
+export type updateNpcResponse = (updateNpcResponseSuccess)
+
+export const getUpdateNpcUrl = (id: string,) => {
+
+
+  
+
+  return `/npcs/${id}`
+}
+
+export const updateNpc = async (id: string,
+    npcInput: NpcInput, options?: RequestInit): Promise<updateNpcResponse> => {
+  
+  return customFetch<updateNpcResponse>(getUpdateNpcUrl(id),
+  {      
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      npcInput,)
+  }
+);}
+
+
+
+
+export const getUpdateNpcMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateNpc>>, TError,{id: string;data: NpcInput}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateNpc>>, TError,{id: string;data: NpcInput}, TContext> => {
+
+const mutationKey = ['updateNpc'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateNpc>>, {id: string;data: NpcInput}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateNpc(id,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateNpcMutationResult = NonNullable<Awaited<ReturnType<typeof updateNpc>>>
+    export type UpdateNpcMutationBody = NpcInput
+    export type UpdateNpcMutationError = unknown
+
+    /**
+ * @summary Update an NPC
+ */
+export const useUpdateNpc = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateNpc>>, TError,{id: string;data: NpcInput}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationReturnType<
+        Awaited<ReturnType<typeof updateNpc>>,
+        TError,
+        {id: string;data: NpcInput},
+        TContext
+      > => {
+
+      const mutationOptions = getUpdateNpcMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Delete an NPC
+ */
+export type deleteNpcResponse200 = {
+  data: MessageResponse
+  status: 200
+}
+    
+export type deleteNpcResponseSuccess = (deleteNpcResponse200) & {
+  headers: Headers;
+};
+;
+
+export type deleteNpcResponse = (deleteNpcResponseSuccess)
+
+export const getDeleteNpcUrl = (id: string,) => {
+
+
+  
+
+  return `/npcs/${id}`
+}
+
+export const deleteNpc = async (id: string, options?: RequestInit): Promise<deleteNpcResponse> => {
+  
+  return customFetch<deleteNpcResponse>(getDeleteNpcUrl(id),
+  {      
+    ...options,
+    method: 'DELETE'
+    
+    
+  }
+);}
+
+
+
+
+export const getDeleteNpcMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteNpc>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteNpc>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['deleteNpc'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteNpc>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteNpc(id,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteNpcMutationResult = NonNullable<Awaited<ReturnType<typeof deleteNpc>>>
+    
+    export type DeleteNpcMutationError = unknown
+
+    /**
+ * @summary Delete an NPC
+ */
+export const useDeleteNpc = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteNpc>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationReturnType<
+        Awaited<ReturnType<typeof deleteNpc>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+
+      const mutationOptions = getDeleteNpcMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
 /**
  * @summary List the classes of an edition
  */
@@ -1974,6 +2140,410 @@ export function useGetSrdSkills<TData = Awaited<ReturnType<typeof getSrdSkills>>
  ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetSrdSkillsQueryOptions(edition,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Ability scores with their short summary (translated)
+ */
+export type getAbilityScoresResponse200 = {
+  data: void
+  status: 200
+}
+    
+export type getAbilityScoresResponseSuccess = (getAbilityScoresResponse200) & {
+  headers: Headers;
+};
+;
+
+export type getAbilityScoresResponse = (getAbilityScoresResponseSuccess)
+
+export const getGetAbilityScoresUrl = (edition: string,
+    params?: GetAbilityScoresParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/srd/${edition}/ability-scores?${stringifiedParams}` : `/srd/${edition}/ability-scores`
+}
+
+export const getAbilityScores = async (edition: string,
+    params?: GetAbilityScoresParams, options?: RequestInit): Promise<getAbilityScoresResponse> => {
+  
+  return customFetch<getAbilityScoresResponse>(getGetAbilityScoresUrl(edition,params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getGetAbilityScoresQueryKey = (edition?: MaybeRef<string>,
+    params?: MaybeRef<GetAbilityScoresParams>,) => {
+    return [
+    'srd',edition,'ability-scores', ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetAbilityScoresQueryOptions = <TData = Awaited<ReturnType<typeof getAbilityScores>>, TError = unknown>(edition: MaybeRef<string>,
+    params?: MaybeRef<GetAbilityScoresParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAbilityScores>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  getGetAbilityScoresQueryKey(edition,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAbilityScores>>> = ({ signal }) => getAbilityScores(unref(edition),unref(params), { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: computed(() => !!(unref(edition))), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAbilityScores>>, TError, TData> 
+}
+
+export type GetAbilityScoresQueryResult = NonNullable<Awaited<ReturnType<typeof getAbilityScores>>>
+export type GetAbilityScoresQueryError = unknown
+
+
+/**
+ * @summary Ability scores with their short summary (translated)
+ */
+
+export function useGetAbilityScores<TData = Awaited<ReturnType<typeof getAbilityScores>>, TError = unknown>(
+ edition: MaybeRef<string>,
+    params?: MaybeRef<GetAbilityScoresParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAbilityScores>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAbilityScoresQueryOptions(edition,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Ability score creation rules of the edition (point buy, standard array)
+ */
+export type getCreationRulesResponse200 = {
+  data: void
+  status: 200
+}
+    
+export type getCreationRulesResponseSuccess = (getCreationRulesResponse200) & {
+  headers: Headers;
+};
+;
+
+export type getCreationRulesResponse = (getCreationRulesResponseSuccess)
+
+export const getGetCreationRulesUrl = (edition: string,
+    params?: GetCreationRulesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/srd/${edition}/rules?${stringifiedParams}` : `/srd/${edition}/rules`
+}
+
+export const getCreationRules = async (edition: string,
+    params?: GetCreationRulesParams, options?: RequestInit): Promise<getCreationRulesResponse> => {
+  
+  return customFetch<getCreationRulesResponse>(getGetCreationRulesUrl(edition,params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getGetCreationRulesQueryKey = (edition?: MaybeRef<string>,
+    params?: MaybeRef<GetCreationRulesParams>,) => {
+    return [
+    'srd',edition,'rules', ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetCreationRulesQueryOptions = <TData = Awaited<ReturnType<typeof getCreationRules>>, TError = unknown>(edition: MaybeRef<string>,
+    params?: MaybeRef<GetCreationRulesParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCreationRules>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  getGetCreationRulesQueryKey(edition,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCreationRules>>> = ({ signal }) => getCreationRules(unref(edition),unref(params), { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: computed(() => !!(unref(edition))), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCreationRules>>, TError, TData> 
+}
+
+export type GetCreationRulesQueryResult = NonNullable<Awaited<ReturnType<typeof getCreationRules>>>
+export type GetCreationRulesQueryError = unknown
+
+
+/**
+ * @summary Ability score creation rules of the edition (point buy, standard array)
+ */
+
+export function useGetCreationRules<TData = Awaited<ReturnType<typeof getCreationRules>>, TError = unknown>(
+ edition: MaybeRef<string>,
+    params?: MaybeRef<GetCreationRulesParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCreationRules>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetCreationRulesQueryOptions(edition,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary NPC generator tables, by kind (translated)
+ */
+export type getNpcTablesResponse200 = {
+  data: void
+  status: 200
+}
+    
+export type getNpcTablesResponseSuccess = (getNpcTablesResponse200) & {
+  headers: Headers;
+};
+;
+
+export type getNpcTablesResponse = (getNpcTablesResponseSuccess)
+
+export const getGetNpcTablesUrl = (edition: string,
+    params?: GetNpcTablesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/srd/${edition}/npc-tables?${stringifiedParams}` : `/srd/${edition}/npc-tables`
+}
+
+export const getNpcTables = async (edition: string,
+    params?: GetNpcTablesParams, options?: RequestInit): Promise<getNpcTablesResponse> => {
+  
+  return customFetch<getNpcTablesResponse>(getGetNpcTablesUrl(edition,params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getGetNpcTablesQueryKey = (edition?: MaybeRef<string>,
+    params?: MaybeRef<GetNpcTablesParams>,) => {
+    return [
+    'srd',edition,'npc-tables', ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetNpcTablesQueryOptions = <TData = Awaited<ReturnType<typeof getNpcTables>>, TError = unknown>(edition: MaybeRef<string>,
+    params?: MaybeRef<GetNpcTablesParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNpcTables>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  getGetNpcTablesQueryKey(edition,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getNpcTables>>> = ({ signal }) => getNpcTables(unref(edition),unref(params), { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: computed(() => !!(unref(edition))), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getNpcTables>>, TError, TData> 
+}
+
+export type GetNpcTablesQueryResult = NonNullable<Awaited<ReturnType<typeof getNpcTables>>>
+export type GetNpcTablesQueryError = unknown
+
+
+/**
+ * @summary NPC generator tables, by kind (translated)
+ */
+
+export function useGetNpcTables<TData = Awaited<ReturnType<typeof getNpcTables>>, TError = unknown>(
+ edition: MaybeRef<string>,
+    params?: MaybeRef<GetNpcTablesParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getNpcTables>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetNpcTablesQueryOptions(edition,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Alignments (translated)
+ */
+export type getSrdAlignmentsResponse200 = {
+  data: void
+  status: 200
+}
+    
+export type getSrdAlignmentsResponseSuccess = (getSrdAlignmentsResponse200) & {
+  headers: Headers;
+};
+;
+
+export type getSrdAlignmentsResponse = (getSrdAlignmentsResponseSuccess)
+
+export const getGetSrdAlignmentsUrl = (edition: string,
+    params?: GetSrdAlignmentsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/srd/${edition}/alignments?${stringifiedParams}` : `/srd/${edition}/alignments`
+}
+
+export const getSrdAlignments = async (edition: string,
+    params?: GetSrdAlignmentsParams, options?: RequestInit): Promise<getSrdAlignmentsResponse> => {
+  
+  return customFetch<getSrdAlignmentsResponse>(getGetSrdAlignmentsUrl(edition,params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getGetSrdAlignmentsQueryKey = (edition?: MaybeRef<string>,
+    params?: MaybeRef<GetSrdAlignmentsParams>,) => {
+    return [
+    'srd',edition,'alignments', ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetSrdAlignmentsQueryOptions = <TData = Awaited<ReturnType<typeof getSrdAlignments>>, TError = unknown>(edition: MaybeRef<string>,
+    params?: MaybeRef<GetSrdAlignmentsParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdAlignments>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  getGetSrdAlignmentsQueryKey(edition,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSrdAlignments>>> = ({ signal }) => getSrdAlignments(unref(edition),unref(params), { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: computed(() => !!(unref(edition))), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSrdAlignments>>, TError, TData> 
+}
+
+export type GetSrdAlignmentsQueryResult = NonNullable<Awaited<ReturnType<typeof getSrdAlignments>>>
+export type GetSrdAlignmentsQueryError = unknown
+
+
+/**
+ * @summary Alignments (translated)
+ */
+
+export function useGetSrdAlignments<TData = Awaited<ReturnType<typeof getSrdAlignments>>, TError = unknown>(
+ edition: MaybeRef<string>,
+    params?: MaybeRef<GetSrdAlignmentsParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdAlignments>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSrdAlignmentsQueryOptions(edition,params,options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

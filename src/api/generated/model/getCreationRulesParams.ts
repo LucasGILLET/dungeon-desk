@@ -6,8 +6,6 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type PostNpcsBody = {
-  firstName?: string;
-  race?: string;
-  description?: string;
+export type GetCreationRulesParams = {
+lang?: string;
 };

@@ -15,19 +15,8 @@ export async function getSubracesByParentRace(parentRaceIndex: string): Promise<
   return allSubraces.filter(subrace => subrace.race.index === parentRaceIndex)
 }
 
-export function getSubraceEmoji(parentRaceIndex: string): string {
-  const emojiMap: Record<string, string> = {
-    'human': '👤',
-    'elf': '🧝',
-    'dwarf': '⚔️',
-    'halfling': '🌱',
-    'dragonborn': '🐲',
-    'gnome': '🔮',
-    'half-elf': '✨',
-    'half-orc': '💪',
-    'tiefling': '😈'
-  }
-  return emojiMap[parentRaceIndex] || '❓'
+export function getSubraceEmoji(subrace: SRDSubclass): string {
+  return subrace.icon ?? '❓'
 }
 
 export function getSubraceAbilityBonuses(subrace: SRDSubclass): Record<string, number> {
