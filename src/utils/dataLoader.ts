@@ -3,6 +3,7 @@
 // la seule source : il n'y a plus de fichiers JSON côté front.
 import type { SRDBackground, SRDClass, SRDFeature, SRDRace, SRDSubclass, SRDTrait } from '@/types/srd'
 import { buildApiUrl } from './api'
+import type { GuideAccent } from './guideAccent'
 
 export const EDITION = '2014'
 const LANG = 'fr'
@@ -357,3 +358,48 @@ export const loadMonsters = () => get<ApiMonsterSummary[]>('monsters')
 export const loadMonster = (index: string) => get<ApiMonster>(`monsters/${encodeURIComponent(index)}`)
 export const loadMagicItems = () => get<ApiMagicItemSummary[]>('magic-items')
 export const loadMagicItem = (index: string) => get<ApiMagicItem>(`magic-items/${encodeURIComponent(index)}`)
+
+// --- Règles du SRD et guides -------------------------------------------------------------
+
+export interface ApiRuleChapter extends Ref { sections: Ref[] }
+export interface ApiRuleSection extends Ref { chapter: Ref; description: string }
+
+export interface ApiGuideCard {
+  index: string
+  icon: string | null
+  accent: GuideAccent | null
+  title: string
+  eyebrow: string | null
+  summary: string | null
+  advice: string | null
+  lists: { label: string | null; items: string[] }[]
+  class: Ref | null
+  race: Ref | null
+  rule: Ref | null
+  // Section de la même page qui détaille la carte
+  detail: string | null
+}
+export interface ApiGuideSection {
+  index: string
+  // Niveau de titre : 1 (partie), 2, 3
+  level: number
+  icon: string | null
+  accent: GuideAccent | null
+  title: string | null
+  subtitle: string | null
+  body: string | null
+  cards: ApiGuideCard[]
+}
+export interface ApiGuideSummary { index: string; title: string; shortTitle: string | null; icon: string | null; accent: GuideAccent | null }
+export interface ApiGuidePage extends ApiGuideSummary {
+  published: boolean
+  eyebrow: string | null
+  heading: string | null
+  intro: string | null
+  sections: ApiGuideSection[]
+}
+
+export const loadRuleChapters = () => get<ApiRuleChapter[]>('rule-chapters')
+export const loadRuleSection = (index: string) => get<ApiRuleSection>(`rule-sections/${encodeURIComponent(index)}`)
+export const loadGuides = () => get<ApiGuideSummary[]>('guides')
+export const loadGuide = (index: string) => get<ApiGuidePage>(`guides/${encodeURIComponent(index)}`)

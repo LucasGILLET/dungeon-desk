@@ -15,6 +15,7 @@ import BestiaryView from '@/views/BestiaryView.vue'
 import MonsterView from '@/views/MonsterView.vue'
 import MagicItemsView from '@/views/MagicItemsView.vue'
 import MagicItemView from '@/views/MagicItemView.vue'
+import RulesView from '@/views/RulesView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -63,6 +64,11 @@ const router = createRouter({
       path: '/objets-magiques/:index',
       name: 'magic-item-view',
       component: MagicItemView
+    },
+    {
+      path: '/regles',
+      name: 'rules',
+      component: RulesView
     },
     {
       path: '/documentation',

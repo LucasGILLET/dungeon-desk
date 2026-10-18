@@ -21,6 +21,10 @@ export const desktopNavigationGroups: NavigationGroup[] = [
       {
         label: 'Choix de race',
         to: { path: '/documentation', query: { section: 'races' } }
+      },
+      {
+        label: 'Règles du SRD',
+        to: '/regles'
       }
     ]
   },
@@ -64,6 +68,10 @@ export const mobileNavigationLinks: NavigationLink[] = [
   {
     label: 'Apprendre DnD',
     to: '/documentation'
+  },
+  {
+    label: 'Règles du SRD',
+    to: '/regles'
   },
   {
     label: 'Création de PJ',
