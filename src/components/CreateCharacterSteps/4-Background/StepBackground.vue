@@ -61,7 +61,7 @@
             role="button"
             tabindex="0"
             :aria-pressed="selectedBackground?.index === background.index"
-            :aria-label="`Choisir l'historique ${getBackgroundName(background.index)}`"
+            :aria-label="`Choisir l'historique ${background?.name}`"
             @click="selectedBackground = background"
             @keydown.enter="selectedBackground = background"
             @keydown.space.prevent="selectedBackground = background"
@@ -83,7 +83,7 @@
                     class="text-base font-bold font-serif truncate pr-2 transition-colors"
                     :class="selectedBackground?.index === background.index ? 'text-amber-400' : 'text-zinc-200 group-hover:text-amber-200'"
                   >
-                    {{ getBackgroundName(background.index) }}
+                    {{ background?.name }}
                   </h3>
                   <div class="text-xl filter drop-shadow-md grayscale group-hover:grayscale-0 transition-all duration-300">
                     {{ getBackgroundEmoji(background.index) }}
@@ -172,7 +172,7 @@ import { useTutorial } from '@/composables/useTutorial'
 import { loadBackgrounds } from '@/utils/dataLoader'
 import type { SRDBackground, SRDRace } from '@/types/srd'
 import type { Character } from '@/types/character'
-import { getBackgroundDescription, getBackgroundSkills, getBackgroundName, getBackgroundEmoji } from '@/utils/backgrounds'
+import { getBackgroundDescription, getBackgroundSkills, getBackgroundEmoji } from '@/utils/backgrounds'
 
 const props = defineProps<{
   character: Character

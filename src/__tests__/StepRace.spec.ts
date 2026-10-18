@@ -4,8 +4,9 @@ import StepRace from '@/components/CreateCharacterSteps/1-Race/StepRace.vue'
 
 vi.mock('@/utils/dataLoader', () => ({
   loadRaces: vi.fn().mockResolvedValue([
-    { index: 'human', name: 'Human', ability_bonuses: [], traits: [] },
-    { index: 'elf', name: 'Elf', ability_bonuses: [], traits: [] },
+    // Noms déjà traduits par l'API
+    { index: 'human', name: 'Humain', ability_bonuses: [], traits: [] },
+    { index: 'elf', name: 'Elfe', ability_bonuses: [], traits: [] },
   ]),
 }))
 

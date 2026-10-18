@@ -67,7 +67,7 @@
               role="button"
               tabindex="0"
               :aria-pressed="selectedClass?.index === classe.index"
-              :aria-label="`Choisir la classe ${getTranslatedClassName(classe.name)}`"
+              :aria-label="`Choisir la classe ${classe.name}`"
               @click="selectedClass = classe"
               @keydown.enter="selectedClass = classe"
               @keydown.space.prevent="selectedClass = classe"
@@ -138,7 +138,7 @@
                 <div class="relative z-10 transform transition-transform duration-300 group-hover:-translate-y-1">
                   <!-- Name -->
                   <h3 class="text-lg sm:text-xl font-bold text-zinc-100 mb-0.5 font-serif tracking-wide group-hover:text-amber-100 transition-colors drop-shadow-md">
-                    {{ getTranslatedClassName(classe.name) }}
+                    {{ classe.name }}
                   </h3>
 
                   <!-- Divider animation -->
@@ -199,7 +199,7 @@
               role="button"
               tabindex="0"
               :aria-pressed="selectedClass?.index === classe.index"
-              :aria-label="`Choisir la classe ${getTranslatedClassName(classe.name)}`"
+              :aria-label="`Choisir la classe ${classe.name}`"
               @click="selectedClass = classe"
               @keydown.enter="selectedClass = classe"
               @keydown.space.prevent="selectedClass = classe"
@@ -272,7 +272,7 @@
 
                   <!-- Name -->
                   <h3 class="text-lg sm:text-xl font-bold text-zinc-100 mb-0.5 font-serif tracking-wide group-hover:text-purple-100 transition-colors drop-shadow-md">
-                    {{ getTranslatedClassName(classe.name) }}
+                    {{ classe.name }}
                   </h3>
 
                   <!-- Divider animation -->
@@ -361,7 +361,7 @@ import { useTutorial } from '@/composables/useTutorial'
 import { loadClasses } from '@/utils/dataLoader'
 import type { SRDClass, SRDRace } from '@/types/srd'
 import type { Character } from '@/types/character'
-import { getClassDescription, getClassMainStats, getClassDifficulty, isMartialClass, getTranslatedClassName } from '@/utils/classes'
+import { getClassDescription, getClassMainStats, getClassDifficulty, isMartialClass } from '@/utils/classes'
 
 const props = defineProps<{
   character: Character
@@ -439,7 +439,7 @@ const sortedClasses = computed(() => {
     if (diffA !== diffB) return diffA - diffB
     
     // 3. Then alphabetically within groups
-    return getTranslatedClassName(a.name).localeCompare(getTranslatedClassName(b.name))
+    return a.name.localeCompare(b.name)
   })
 })
 

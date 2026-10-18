@@ -118,7 +118,7 @@
             role="button"
             tabindex="0"
             :aria-pressed="selectedRace?.index === race.index"
-            :aria-label="`Choisir la race ${translateRaceName(race.name)}`"
+            :aria-label="`Choisir la race ${race.name}`"
             @click="selectedRace = race"
             @keydown.enter="selectedRace = race"
             @keydown.space.prevent="selectedRace = race"
@@ -176,7 +176,7 @@
               <!-- Nom de la race -->
               <h3 class="text-xl sm:text-2xl font-bold text-amber-50 mb-2 font-serif tracking-wide drop-shadow-lg transition-all duration-300 transform"
                   :class="selectedRace?.index === race.index ? '-translate-y-2' : ''">
-                {{ translateRaceName(race.name) }}
+                {{ race.name }}
               </h3>
               
               <!-- Description (visible au hover ou si selectionné) -->
@@ -305,7 +305,7 @@ import { useTutorial, enableTutorials, disableTutorials } from '@/composables/us
 import { loadRaces } from '@/utils/dataLoader'
 import type { SRDRace } from '@/types/srd'
 import type { Character } from '@/types/character'
-import { getRaceDescription, translateRaceName, getRaceStats, getRaceTraits } from '@/utils/race';
+import { getRaceDescription, getRaceStats, getRaceTraits } from '@/utils/race';
 
 const props = defineProps<{
   character: Character

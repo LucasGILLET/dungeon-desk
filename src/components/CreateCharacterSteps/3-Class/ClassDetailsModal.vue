@@ -18,12 +18,12 @@
                  <div class="flex items-end gap-6">
                     <!-- Icon / Portrait -->
                     <div class="w-24 h-24 rounded-xl border-2 border-zinc-600 shadow-xl overflow-hidden shrink-0 bg-zinc-800">
-                         <img :src="getImageUrl(classe.index + '.png')" :alt="getTranslatedClassName(classe.name)" class="w-full h-full object-cover">
+                         <img :src="getImageUrl(classe.index + '.png')" :alt="classe.name" class="w-full h-full object-cover">
                     </div>
                     
                     <div class="mb-1">
                       <div class="flex items-center gap-3 mb-1">
-                         <h2 class="text-4xl sm:text-5xl font-bold text-zinc-100 font-serif tracking-wide drop-shadow-md">{{ getTranslatedClassName(classe.name) }}</h2>
+                         <h2 class="text-4xl sm:text-5xl font-bold text-zinc-100 font-serif tracking-wide drop-shadow-md">{{ classe.name }}</h2>
                       </div>
                       <div class="flex items-center gap-3 text-sm text-zinc-400 font-medium">
                         <span 
@@ -213,25 +213,6 @@ defineEmits<{
 
 const getImageUrl = (file: string) => {
   return new URL(`../../../images/classes/${file}`, import.meta.url).href
-}
-
-const getTranslatedClassName = (englishName: string): string => {
-  const translations: Record<string, string> = {
-    'Barbarian': 'Barbare',
-    'Bard': 'Barde',
-    'Cleric': 'Clerc',
-    'Druid': 'Druide',
-    'Fighter': 'Guerrier',
-    'Monk': 'Moine',
-    'Paladin': 'Paladin',
-    'Ranger': 'Rôdeur',
-    'Rogue': 'Roublard',
-    'Sorcerer': 'Ensorceleur',
-    'Warlock': 'Occultiste',
-    'Wizard': 'Magicien'
-  }
-
-  return translations[englishName] || englishName
 }
 
 const displayedFeatures = ref<Record<number, any[]>>({})

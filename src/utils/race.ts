@@ -18,21 +18,6 @@ export function getRaceDescription(race: SRDRace): string {
   return descriptions[race.name] || race.size_description || race.alignment
 }
 
-export function translateRaceName(englishName: string): string {
-  const translations: Record<string, string> = {
-    'Dwarf': 'Nain',
-    'Elf': 'Elfe',
-    'Halfling': 'Halfelin',
-    'Human': 'Humain',
-    'Dragonborn': 'Drakéide',
-    'Gnome': 'Gnome',
-    'Half-Elf': 'Demi-elfe',
-    'Half-Orc': 'Demi-orc',
-    'Tiefling': 'Tieffelin'
-  }
-  return translations[englishName] || englishName
-}
-
 export function getRaceStats(race: SRDRace): string[] {
   if (!race) return []
 

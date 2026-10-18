@@ -26,25 +26,6 @@ export function getBackgroundDescription(background: SRDBackground): string {
   return descriptions[background.index] || 'Un background D&D 5e.'
 }
 
-export function getBackgroundName(backgroundIndex: string): string {
-  const names: Record<string, string> = {
-    'acolyte': 'Acolyte',
-    'charlatan': 'Charlatan',
-    'criminal': 'Criminel',
-    'entertainer': 'Artiste',
-    'folk-hero': 'Héros du Peuple',
-    'guild-artisan': 'Artisan de Guilde',
-    'hermit': 'Ermite',
-    'noble': 'Noble',
-    'outlander': 'Étranger',
-    'sage': 'Sage',
-    'sailor': 'Marin',
-    'soldier': 'Soldat',
-    'urchin': 'Enfant des Rues'
-  }
-  return names[backgroundIndex] || backgroundIndex
-}
-
 export function getBackgroundEmoji(backgroundIndex: string): string {
   const emojis: Record<string, string> = {
     'acolyte': '⛪',

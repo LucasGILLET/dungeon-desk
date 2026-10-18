@@ -14,7 +14,7 @@
       <!-- Header sticky -->
       <div class="p-6 pb-4 border-b border-zinc-800 relative z-10 flex justify-between items-start bg-zinc-900/95 backdrop-blur-md">
         <div>
-          <h3 class="text-3xl font-bold font-serif text-white mb-1">{{ translateRaceName(race.name) }}</h3>
+          <h3 class="text-3xl font-bold font-serif text-white mb-1">{{ race.name }}</h3>
           <div class="flex items-center gap-3 text-sm">
              <span class="px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700 text-xs uppercase tracking-wide font-bold">{{ race.size }}</span>
              <span class="text-zinc-600">•</span>
@@ -122,7 +122,7 @@
 import { ref, onMounted } from 'vue'
 import { loadTraits } from '@/utils/dataLoader'
 import type { SRDRace, SRDTrait } from '@/types/srd'
-import { translateRaceName, getRaceDescription, getRaceStats } from '@/utils/race'
+import { getRaceDescription, getRaceStats } from '@/utils/race'
 import { translateAbilityScore } from '@/utils/abilities'
 
 interface Props {

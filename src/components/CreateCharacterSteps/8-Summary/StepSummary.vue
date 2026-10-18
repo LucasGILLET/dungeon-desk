@@ -41,7 +41,7 @@
              </div>
           </div>
            <p class="text-zinc-500 mt-4 font-light text-sm uppercase tracking-widest">
-             {{ translateRaceName(character.race?.name) }} {{ character.subrace?.name ? `(${translateSubraceName(character.subrace.name)})` : '' }} • {{ getTranslatedClassName(character.class.name) }} {{ character.subclass ? `• ${translateSubclassName(character.subclass.name)}` : '' }} • Niv. 1
+             {{ character.race?.name }} {{ character.subrace?.name ? `(${character.subrace.name})` : '' }} • {{ character.class.name }} {{ character.subclass ? `• ${character.subclass.name}` : '' }} • Niv. 1
           </p>
         </div>
 
@@ -142,23 +142,23 @@
                     <div class="space-y-4 text-sm">
                         <div class="flex justify-between border-b border-zinc-800 pb-2 hover:bg-zinc-900/50 transition-colors px-2 rounded">
                             <span class="text-zinc-500">Race</span>
-                            <span class="text-zinc-300 font-medium">{{ translateRaceName(character.race?.name) }}</span>
+                            <span class="text-zinc-300 font-medium">{{ character.race?.name }}</span>
                         </div>
                          <div v-if="character.subrace" class="flex justify-between border-b border-zinc-800 pb-2 hover:bg-zinc-900/50 transition-colors px-2 rounded">
                             <span class="text-zinc-500">Sous-race</span>
-                            <span class="text-zinc-300 font-medium">{{ translateSubraceName(character.subrace.name) }}</span>
+                            <span class="text-zinc-300 font-medium">{{ character.subrace.name }}</span>
                         </div>
                         <div class="flex justify-between border-b border-zinc-800 pb-2 hover:bg-zinc-900/50 transition-colors px-2 rounded">
                             <span class="text-zinc-500">Classe</span>
-                            <span class="text-zinc-300 font-medium">{{ getTranslatedClassName(character.class.name) }}</span>
+                            <span class="text-zinc-300 font-medium">{{ character.class.name }}</span>
                         </div>
                         <div v-if="character.subclass" class="flex justify-between border-b border-zinc-800 pb-2 hover:bg-zinc-900/50 transition-colors px-2 rounded">
                             <span class="text-zinc-500">Sous-classe</span>
-                            <span class="text-zinc-300 font-medium">{{ translateSubclassName(character.subclass.name) }}</span>
+                            <span class="text-zinc-300 font-medium">{{ character.subclass.name }}</span>
                         </div>
                         <div class="flex justify-between border-b border-zinc-800 pb-2 hover:bg-zinc-900/50 transition-colors px-2 rounded">
                             <span class="text-zinc-500">Historique</span>
-                            <span class="text-zinc-300 font-medium">{{ getBackgroundName(character.background.name.toLowerCase()) }}</span>
+                            <span class="text-zinc-300 font-medium">{{ character.background?.name }}</span>
                         </div>
                         <div class="flex justify-between items-center text-xs text-zinc-500 pt-2 px-2">
                            <div class="flex gap-4">
@@ -300,15 +300,10 @@ import TutorialGuide from '@/components/TutorialGuide.vue'
 import { useTutorial } from '@/composables/useTutorial'
 import { getTraitDescriptionCombined } from '@/utils/traits'
 import { loadTraits } from '@/utils/dataLoader'
-import { translateRaceName } from '@/utils/race'
-import { getTranslatedClassName } from '@/utils/classes'
-import { translateSubraceName } from '@/utils/subrace'
-import { translateSubclassName } from '@/utils/subclasses'
 import StepNavigation from '../StepNavigation.vue'
 import ProficiencyBadge from './ProficiencyBadge.vue'
 import type { SRDRace, SRDTrait } from '@/types/srd'
 import type { Character, CharacterProficiency } from '@/types/character'
-import { getBackgroundName } from '@/utils/backgrounds'
 import type { Subrace } from '@/utils/subrace'
 import { usePdfExport } from '@/composables/usePdfExport'
 import type { PDFCharacterData } from '@/types/pdfExport'
