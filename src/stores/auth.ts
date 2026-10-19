@@ -17,7 +17,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     const getToken = async () => {
         try {
-            const accessToken = await getAccessTokenSilently();
+            const accessToken = (await getAccessTokenSilently()) ?? null;
             token.value = accessToken;
             return accessToken;
         } catch (e) {
