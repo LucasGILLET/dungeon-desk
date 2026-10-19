@@ -13,7 +13,8 @@
       <!-- En-tête -->
       <header class="flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-zinc-800 pb-5">
         <div>
-          <router-link to="/profile" class="text-xs text-zinc-500 hover:text-zinc-300">← Mes personnages</router-link>
+          <router-link v-if="readOnly" :to="{ name: 'gm-dashboard' }" class="text-xs text-zinc-500 hover:text-zinc-300">← Mes campagnes</router-link>
+          <router-link v-else to="/profile" class="text-xs text-zinc-500 hover:text-zinc-300">← Mes personnages</router-link>
           <h1 class="text-3xl sm:text-4xl font-bold font-serif text-white mt-1">{{ input.name }}</h1>
           <p class="text-zinc-400 mt-1">
             {{ saved.names.subrace || saved.names.race }}
@@ -21,7 +22,10 @@
             <span v-if="saved.names.background"> · {{ saved.names.background }}</span>
           </p>
         </div>
-        <div class="flex flex-wrap items-center gap-2">
+        <p v-if="readOnly" class="rounded-full border border-sky-500/30 bg-sky-500/10 px-3 py-1 text-xs text-sky-200">
+          Fiche d'un joueur de votre campagne : lecture seule
+        </p>
+        <div v-else class="flex flex-wrap items-center gap-2">
           <span class="text-xs mr-2" :class="saveStatusClass">{{ saveStatusLabel }}</span>
           <button class="btn-secondary" @click="levelUpMode = 'complete'" v-if="hasPending">Compléter</button>
           <button class="btn-primary" :disabled="sheet.level >= 20" @click="levelUpMode = 'level'">Monter de niveau</button>
@@ -30,7 +34,7 @@
       </header>
 
       <!-- À compléter -->
-      <div v-if="hasPending" class="p-4 rounded-xl border border-amber-700/40 bg-amber-950/20 text-sm text-amber-200 flex flex-wrap items-center justify-between gap-3">
+      <div v-if="hasPending && !readOnly" class="p-4 rounded-xl border border-amber-700/40 bg-amber-950/20 text-sm text-amber-200 flex flex-wrap items-center justify-between gap-3">
         <span>
           À compléter :
           {{ pendingSummary }}
@@ -41,6 +45,8 @@
         Modification refusée : {{ saveError }}
       </div>
 
+      <!-- Lecture seule (MJ) : tous les boutons et champs de la fiche désactivés -->
+      <fieldset :disabled="readOnly" class="contents">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Colonne 1 : caractéristiques, sauvegardes, compétences -->
         <div class="space-y-6">
@@ -275,6 +281,7 @@
           <input type="number" min="0" class="input w-28" :value="input.state?.experiencePoints ?? 0" @change="onXp" />
         </label>
       </section>
+      </fieldset>
     </div>
 
     <LevelUpModal
@@ -377,7 +384,11 @@ const pendingSave = ref(false)
 const saveError = ref<string | null>(null)
 let timer: ReturnType<typeof setTimeout> | undefined
 
+// Personnage d'un joueur consulté par le MJ de sa campagne : rien n'est modifiable
+const readOnly = computed(() => saved.value?.access === 'GAME_MASTER')
+
 function update(next: Input) {
+  if (readOnly.value) return
   input.value = next
   saveError.value = null
   pendingSave.value = true

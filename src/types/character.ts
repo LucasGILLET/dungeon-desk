@@ -106,6 +106,8 @@ export type SavedCharacter = CharacterCreateInput & {
   names: CharacterNames;
   sheet: CharacterSheetValues | null;
   warnings: { path: string; message: string }[];
+  // GAME_MASTER : personnage d'un joueur de la campagne du MJ, en lecture seule
+  access?: 'OWNER' | 'GAME_MASTER';
   createdAt: string;
   updatedAt: string;
 };
@@ -201,6 +203,6 @@ export const toCharacterCreateInput = (character: Character): CharacterCreateInp
 
 // Champs de lecture seule renvoyés par l'API, à ne pas renvoyer
 export function stripSaved(saved: SavedCharacter): CharacterCreateInput {
-  const { id: _id, names: _names, sheet: _sheet, warnings: _warnings, createdAt: _c, updatedAt: _u, ...input } = saved;
+  const { id: _id, names: _names, sheet: _sheet, warnings: _warnings, access: _a, createdAt: _c, updatedAt: _u, ...input } = saved;
   return input;
 }

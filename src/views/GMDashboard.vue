@@ -1,59 +1,126 @@
 <template>
-  <div class="min-h-[calc(100vh-5rem)] bg-zinc-950 text-zinc-200 font-sans selection:bg-amber-500/30 flex flex-col relative overflow-hidden">
-    <!-- Background Effects -->
-    <div class="fixed inset-0 pointer-events-none">
-      <div class="absolute top-0 left-1/4 w-96 h-96 bg-red-900/20 rounded-full blur-[128px]"></div>
-      <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-amber-900/10 rounded-full blur-[128px]"></div>
-      <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#09090b_100%)]"></div>
-      <div class="absolute inset-0 opacity-[0.03]" style="background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\' fill=\'%23ffffff\' fill-rule=\'evenodd\'/%3E%3C/svg%3E')"></div>    </div>
+  <div class="relative min-h-[calc(100vh-5rem)] overflow-hidden bg-zinc-950 text-zinc-200">
+    <div class="pointer-events-none fixed inset-0">
+      <div class="absolute top-0 left-1/4 h-96 w-96 rounded-full bg-red-900/20 blur-[128px]"></div>
+      <div class="absolute bottom-0 right-1/4 h-96 w-96 rounded-full bg-amber-900/10 blur-[128px]"></div>
+    </div>
 
-    <!-- Navigation -->
-    <nav class="sticky top-0 z-50 border-b border-red-900/30 bg-zinc-950/80 backdrop-blur-md">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-20">
-          <router-link to="/" class="flex items-center space-x-3 group cursor-pointer hover:opacity-80 transition-opacity">
-            <h1 class="text-xl md:text-2xl font-bold bg-gradient-to-r from-red-400 via-red-500 to-amber-600 bg-clip-text text-transparent font-serif tracking-wide">
-              Assistant MJ
-            </h1>
-          </router-link>
+    <div class="relative mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+      <header class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 class="font-serif text-4xl font-bold text-red-50 sm:text-5xl">Tableau de bord MJ</h1>
+          <p class="mt-2 text-zinc-400">Vos campagnes, et celles où vous jouez.</p>
         </div>
-      </div>
-    </nav>
+        <button v-if="authStore.isAuthenticated && !creating" type="button" class="ui-btn-primary" @click="creating = true">+ Nouvelle campagne</button>
+      </header>
 
-    <!-- Coming Soon Content -->
-    <div class="flex-grow flex flex-col items-center justify-center p-4 z-10">
-      <div class="relative max-w-lg w-full">
-        <!-- Decorative Glow -->
-        <div class="absolute -inset-1 bg-gradient-to-r from-red-600 to-amber-600 rounded-2xl blur opacity-25"></div>
-        
-        <div class="relative bg-zinc-900 border border-zinc-800 p-8 rounded-2xl shadow-2xl flex flex-col items-center text-center">
-          
-          <div class="w-20 h-20 mb-6 rounded-full bg-red-900/20 border border-red-500/20 flex items-center justify-center">
-            <span class="text-4xl">🚧</span>
+      <section v-if="!authStore.isAuthenticated" class="rounded-3xl border border-white/10 bg-white/[0.03] p-10 text-center">
+        <p class="text-lg text-zinc-200">Connectez-vous pour créer et retrouver vos campagnes.</p>
+        <button type="button" class="ui-btn-primary mt-5" @click="authStore.login()">Se connecter</button>
+      </section>
+
+      <template v-else>
+        <form v-if="creating" class="mb-8 grid gap-4 rounded-3xl border border-red-900/40 bg-zinc-900/80 p-6" @submit.prevent="create">
+          <h2 class="font-serif text-2xl font-bold text-amber-100">Nouvelle campagne</h2>
+          <label class="ui-label">
+            <span>Nom</span>
+            <input v-model="form.name" required maxlength="200" class="ui-input" placeholder="La mine perdue de Phandelver" />
+          </label>
+          <label class="ui-label">
+            <span>Thème</span>
+            <input v-model="form.theme" maxlength="500" class="ui-input" placeholder="Exploration, horreur gothique…" />
+          </label>
+          <label class="ui-label">
+            <span>Présentation (Markdown, visible des joueurs)</span>
+            <textarea v-model="form.description" rows="4" class="ui-input"></textarea>
+          </label>
+          <p v-if="formError" class="text-sm text-red-300">{{ formError }}</p>
+          <div class="flex gap-2">
+            <button type="submit" class="ui-btn-primary" :disabled="saving || !form.name.trim()">Créer</button>
+            <button type="button" class="ui-btn" @click="creating = false">Annuler</button>
           </div>
+        </form>
 
-          <h2 class="text-3xl font-bold text-white mb-4 font-serif">Zone Interdite</h2>
-          
-          <p class="text-lg text-zinc-400 mb-8 leading-relaxed">
-            Cette section du donjon est encore en cours d'excavation par nos gobelins ingénieurs. Revenez plus tard, aventurier !
-          </p>
+        <p v-if="loading" class="text-zinc-400">Chargement des campagnes…</p>
+        <p v-else-if="error" class="text-red-300">{{ error }}</p>
 
-          <router-link 
-            to="/" 
-            class="group relative inline-flex items-center justify-center px-8 py-3 overflow-hidden font-serif font-bold tracking-wide text-white transition-all duration-300 bg-red-900/50 rounded-lg hover:bg-red-800 border border-red-700/50 hover:border-red-500"
-          >
-            <span class="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease"></span>
-            <span class="relative flex items-center gap-2">
-              <span>🛡️</span> Retour à l'accueil
-            </span>
-          </router-link>
-
-        </div>
-      </div>
+        <template v-else>
+          <section v-for="group in groups" :key="group.title" class="mb-10">
+            <h2 class="mb-4 font-serif text-2xl font-bold text-amber-200">{{ group.title }}</h2>
+            <p v-if="!group.campaigns.length" class="text-sm text-zinc-500">{{ group.empty }}</p>
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <router-link
+                v-for="c in group.campaigns"
+                :key="c.id"
+                :to="{ name: 'campaign', params: { id: c.id } }"
+                class="group rounded-3xl border border-white/10 bg-white/[0.03] p-5 transition hover:-translate-y-1 hover:border-red-500/40"
+              >
+                <div class="flex items-start justify-between gap-3">
+                  <h3 class="text-xl font-semibold text-amber-100 group-hover:text-white">{{ c.name }}</h3>
+                  <span class="shrink-0 rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-xs text-zinc-300">{{ CAMPAIGN_STATUS_LABELS[c.status] }}</span>
+                </div>
+                <p v-if="c.theme" class="mt-1 text-sm text-zinc-400">{{ c.theme }}</p>
+                <p class="mt-4 text-xs text-zinc-500">
+                  <template v-if="c.role === 'PLAYER'">MJ : {{ c.gm }} · </template>
+                  {{ c.memberCount }} joueur{{ c.memberCount > 1 ? 's' : '' }} · {{ c.sessionCount }} séance{{ c.sessionCount > 1 ? 's' : '' }}
+                </p>
+              </router-link>
+            </div>
+          </section>
+        </template>
+      </template>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-// Pas de logique spécifique
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { CAMPAIGN_STATUS_LABELS, campaignsApi, type CampaignSummary } from '@/api/campaigns'
+import { useAuthStore } from '@/stores/auth'
+
+const authStore = useAuthStore()
+const router = useRouter()
+const campaigns = ref<CampaignSummary[]>([])
+const loading = ref(false)
+const error = ref<string | null>(null)
+
+const creating = ref(false)
+const saving = ref(false)
+const formError = ref<string | null>(null)
+const form = reactive({ name: '', theme: '', description: '' })
+
+const groups = computed(() => [
+  { title: 'Mes campagnes', empty: "Vous n'avez pas encore créé de campagne.", campaigns: campaigns.value.filter((c) => c.role === 'GM') },
+  { title: 'Campagnes où je joue', empty: "Rejoignez une campagne avec le lien d'invitation de votre MJ.", campaigns: campaigns.value.filter((c) => c.role === 'PLAYER') },
+])
+
+async function load() {
+  if (!authStore.isAuthenticated) return
+  loading.value = true
+  error.value = null
+  try {
+    campaigns.value = await campaignsApi.list()
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Impossible de charger les campagnes.'
+  } finally {
+    loading.value = false
+  }
+}
+
+async function create() {
+  saving.value = true
+  formError.value = null
+  try {
+    const { id } = await campaignsApi.create({ name: form.name.trim(), theme: form.theme.trim() || null, description: form.description || null })
+    router.push({ name: 'campaign', params: { id } })
+  } catch (e) {
+    formError.value = e instanceof Error ? e.message : 'Création impossible.'
+  } finally {
+    saving.value = false
+  }
+}
+
+onMounted(load)
+watch(() => authStore.isAuthenticated, load)
 </script>

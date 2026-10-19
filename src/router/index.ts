@@ -16,6 +16,8 @@ import MonsterView from '@/views/MonsterView.vue'
 import MagicItemsView from '@/views/MagicItemsView.vue'
 import MagicItemView from '@/views/MagicItemView.vue'
 import RulesView from '@/views/RulesView.vue'
+import CampaignView from '@/views/CampaignView.vue'
+import JoinCampaignView from '@/views/JoinCampaignView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -89,6 +91,16 @@ const router = createRouter({
       path: '/gm-dashboard',
       name: 'gm-dashboard',
       component: GMDashboard
+    },
+    {
+      path: '/campagnes/rejoindre/:code',
+      name: 'join-campaign',
+      component: JoinCampaignView
+    },
+    {
+      path: '/campagnes/:id(\d+)',
+      name: 'campaign',
+      component: CampaignView
     },
     {
       path: '/character-creator',

@@ -49,6 +49,10 @@ export const desktopNavigationGroups: NavigationGroup[] = [
     label: 'Outils MJ',
     links: [
       {
+        label: 'Mes campagnes',
+        to: '/gm-dashboard'
+      },
+      {
         label: 'Générateur PNJ',
         to: '/npc-generator'
       },
@@ -84,6 +88,10 @@ export const mobileNavigationLinks: NavigationLink[] = [
   {
     label: 'Aide combat',
     to: '/combat-cheat-sheet'
+  },
+  {
+    label: 'Mes campagnes',
+    to: '/gm-dashboard'
   },
   {
     label: 'Générateur PNJ',
