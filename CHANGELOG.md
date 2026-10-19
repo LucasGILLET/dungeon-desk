@@ -33,6 +33,15 @@ Données de jeu lues depuis l'API (branche `feat/srd-database`).
 - Le bouton « Générer » du générateur de PNJ attend le chargement des
   tables (il ne faisait rien si on cliquait trop tôt).
 
+### Sécurité
+- DOMPurify 3.2.6 → 3.4.16 (contournements connus jusqu'à 3.4.15, signalés
+  par `npm audit`).
+
+### Documentation
+- Dossier `docs/` mis à jour pour cette version : architecture, frameworks,
+  prototype, manuels, sécurité, qualité, accessibilité, plan de correction
+  des bogues (bogues d'octobre), cahier de recette (SC-23 à SC-37).
+
 ### Supprimé
 - `public/data` (8 Mo de JSON du SRD), données et descriptions codées en
   dur, `stores/app.ts`, code et dépendances inutilisés

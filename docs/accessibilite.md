@@ -1,5 +1,8 @@
 # Actions d'accessibilité
 
+> **Mise à jour du 2026-10-19** : section sur les pages ajoutées depuis la
+> 1.0.0. L'audit de juillet (créateur de personnage) reste valable.
+
 Périmètre de cette campagne : le créateur de personnage
 (`src/components/CreateCharacterSteps/`), identifié comme le point le plus
 urgent lors de l'audit initial (aucune action d'accessibilité n'avait été
@@ -60,6 +63,30 @@ sélection au clavier (`@keydown.enter`) et vérifie `aria-pressed`.
 `App.vue` : le conteneur principal (`<div class="bg-zinc-950 pt-20">
 <RouterView /></div>`) est devenu `<main>`.
 
+## Pages ajoutées en octobre 2026 (version en préparation)
+
+Les pages créées depuis la 1.0.0 (fiche de personnage, bestiaire, objets
+magiques, règles, campagnes, profil) n'ont **pas fait l'objet d'un audit
+dédié**. Ce qui y est fait, relevé dans le code le 2026-10-19 :
+
+- **Formulaires** : champs associés à un `<label>` (filtres du bestiaire et
+  des objets magiques, formulaires de campagne, de séance, de quête, de
+  rencontre, inventaire, notes des PNJ) ; champs sans libellé visible
+  (recherche de monstre, lien d'invitation) avec un `aria-label`.
+- **Navigation** : onglets de la campagne et du profil, sommaire des
+  règles signalent l'élément courant (`aria-current="page"`) ; le sommaire
+  des règles est un `<nav aria-label="Sommaire des règles">`.
+- **Fenêtres** : la montée de niveau et le détail d'un PNJ sont des
+  `role="dialog"` avec `aria-modal="true"` et un bouton de fermeture
+  nommé. **Pas de piège de focus ni de fermeture par `Échap`** (seul le
+  lanceur de dés gère `Échap`).
+- **Boutons d'icône** (🗑️, ×) : nom accessible par `aria-label`
+  (« Supprimer Test moine »).
+- **Images** du bestiaire : texte alternatif (nom de la créature), et
+  chargement annoncé (`role="status"`).
+- **Fiche en lecture seule** (MJ) : un `<fieldset disabled>` désactive tous
+  les contrôles, y compris pour le clavier et les lecteurs d'écran.
+
 ## Hors périmètre — non traité
 
 - **`ProficiencyBadge.vue`** : les badges de compétences/langues affichent
@@ -76,9 +103,10 @@ sélection au clavier (`@keydown.enter`) et vérifie `aria-pressed`.
   la palette Tailwind (zinc/amber) dans le code, pas de calcul de ratio réel
   (aucun outil type axe-core ou Lighthouse exécuté).
 - **Autres vues** (`HomeView`, `SortsListView`, `SortView`, `NPCGenerator`,
-  `CombatCheatSheetView`, `GMDashboard`, `DocumentationView`) : non
-  auditées dans cette campagne, qui portait spécifiquement sur le créateur
-  de personnage à la demande explicite du projet.
+  `CombatCheatSheetView`, `GMDashboard`, `DocumentationView`, et les pages
+  ajoutées en octobre 2026) : non auditées, la campagne de juillet portant
+  spécifiquement sur le créateur de personnage à la demande explicite du
+  projet.
 - **Aucun outil automatisé d'accessibilité** (axe-core, `eslint-plugin-vuejs-accessibility`)
   n'est intégré à la CI — les vérifications faites ici sont manuelles
   (lecture de code) ou couvertes par des tests de comportement (clic/clavier),
@@ -98,4 +126,5 @@ sélection au clavier (`@keydown.enter`) et vérifie `aria-pressed`.
 | Tooltips au clavier | ⬜ Non traité |
 | Focus trap des modales | ⬜ Non vérifié |
 | Contrastes (mesure réelle) | ⬜ Non mesurés (évaluation qualitative seulement) |
-| Autres pages que le créateur de personnage | ⬜ Hors périmètre de cette campagne |
+| Autres pages que le créateur de personnage | ⬜ Non auditées ; bonnes pratiques appliquées aux pages d'octobre 2026 (libellés, `aria-current`, `role="dialog"`), sans vérification outillée |
+| Fenêtres de dialogue (focus, `Échap`) | ⬜ Pas de piège de focus ni de fermeture au clavier |

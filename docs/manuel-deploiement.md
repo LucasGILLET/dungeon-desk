@@ -1,5 +1,9 @@
 # Manuel de déploiement
 
+> **Mise à jour du 2026-10-19** (version en préparation) : variables
+> d'environnement, seed et Directus. La mise en production de cette version
+> n'a pas encore eu lieu ; les étapes nouvelles sont signalées.
+
 ## Frontend — Azure Static Web Apps
 
 ### Déploiement automatique (voie normale)
@@ -42,7 +46,7 @@ requests** — seul le push sur `main` déclenche le pipeline.
 ### Prérequis (secrets GitHub)
 - `DATABASE_URL` (chaîne de connexion Neon, avec pooling)
 - `GCP_SA_KEY` (clé JSON du compte de service GCP, pour `google-github-actions/auth@v2`)
-- `JWT_SECRET`, `FRONTEND_URL`, `AUTH0_AUDIENCE`, `AUTH0_ISSUER`
+- `FRONTEND_URL`, `AUTH0_AUDIENCE`, `AUTH0_ISSUER` (`JWT_SECRET` n'est plus utilisé depuis le 2026-10-19)
 
 ### Infrastructure cible (définie dans `deploy.yml`)
 - Projet GCP : `dungeon-desk-486622`
@@ -67,7 +71,7 @@ npx prisma migrate deploy
 gcloud run deploy dungeon-desk-back \
   --image europe-west9-docker.pkg.dev/dungeon-desk-486622/dungeon-desk-repo/dungeon-desk-back:manual \
   --region europe-west9 \
-  --set-env-vars DATABASE_URL=...,JWT_SECRET=...,FRONTEND_URL=...,AUTH0_AUDIENCE=...,AUTH0_ISSUER=...
+  --set-env-vars DATABASE_URL=...,FRONTEND_URL=...,AUTH0_AUDIENCE=...,AUTH0_ISSUER=...
 ```
 
 ### Port d'écoute
@@ -81,17 +85,52 @@ Décrit dans `dungeon-desk-back/README.md` :
 ```bash
 cd dungeon-desk-back
 npm install
-cp .env.example .env   # puis ajuster JWT_SECRET, DATABASE_URL...
+cp .env.example .env   # base locale, origine du front, Auth0
 docker compose up -d   # lance Postgres local + API sur http://localhost:3000
-# ou, sans Docker :
+npx prisma migrate deploy && npx prisma db seed   # schéma + données de jeu
+# ou, sans Docker pour l'API :
 npm run dev
 ```
 
-⚠️ `.env.example` ne liste que `PORT`, `JWT_SECRET`, `DATABASE_URL`,
-`DIRECT_URL` — il manque `FRONTEND_URL`, `AUTH0_AUDIENCE`, `AUTH0_ISSUER`,
-pourtant nécessaires (`app.ts` et `authMiddleware.ts` les lisent). À
-compléter si une nouvelle personne doit démarrer l'environnement local à
-partir de ce seul fichier.
+`.env.example` liste toutes les variables lues par l'API (complété le
+2026-10-19 : `FRONTEND_URL`, `AUTH0_AUDIENCE`, `AUTH0_ISSUER`). Le front a
+son propre `.env.example` (`VITE_API_URL`, `VITE_AUTH0_*`).
+
+## Back-office — Directus (nouveau)
+
+En local :
+```bash
+docker compose -f docker-compose.yml -f docker-compose.directus.yml up -d   # http://localhost:8055
+npm run directus:config   # menus, formulaires, rôles, automatisations
+```
+Secrets dans `.env.directus` (à partir de `.env.directus.example`) : clé
+de chiffrement, compte administrateur, jeton d'API, licence. La licence
+(programme Open Innovation Grant) est liée à l'adresse publique de
+l'instance (`PUBLIC_URL`) : chaque nouvelle adresse consomme une
+activation.
+
+En production (**à mettre en place**) : un service Cloud Run sur la même
+base Neon, avec :
+- `PUBLIC_URL` = son adresse définitive (avant d'activer la licence) ;
+- `CONTENT_SECURITY_POLICY_DIRECTIVES__FRAME_SRC` incluant l'adresse du
+  front (sinon l'aperçu des pages est bloqué) ;
+- `DIRECTUS_PREVIEW_URL` = l'adresse du front, pour le lien « Voir sur le
+  site » ;
+- puis `npm run directus:config` contre cette instance.
+
+## Mise en production de la version en préparation
+
+Étapes propres à cette version (une seule fois) :
+1. **Sauvegarder la base Neon** : la migration `20261017100000_character_model`
+   supprime les personnages existants (ancien format JSON).
+2. Fusionner `feat/srd-database` dans `main` sur les deux dépôts : la CI
+   applique les migrations puis déploie l'API et le front.
+3. **Lancer le seed** contre la base de production (`npx prisma db seed`,
+   environ 1 min 15) : la CI ne le fait pas.
+4. Déployer et configurer Directus (section précédente).
+5. Vérifier côté Auth0 que les URL de rappel et origines autorisées
+   contiennent l'adresse de production du front, et côté API que
+   `FRONTEND_URL` correspond (CORS).
 
 ## Base de données (Prisma / Neon)
 
@@ -100,7 +139,7 @@ Consulter/modifier la base sans passer par l'API :
 npx prisma studio   # interface graphique sur http://localhost:5555
 ```
 
-Les migrations sont versionnées dans `prisma/migrations/` et appliquées
+Les migrations sont versionnées dans `prisma/schema/migrations/` et appliquées
 automatiquement en CI via `npx prisma migrate deploy` — jamais `migrate dev`
 en production (voir [manuel-mise-a-jour.md](./manuel-mise-a-jour.md) pour la
 création d'une nouvelle migration).

@@ -1,69 +1,104 @@
 # Mesures de sécurité
 
-Reprise de l'audit initial (2026-07-07), avec pour chaque point l'état
-d'origine, ce qui a été ajouté/corrigé le même jour, et ce qui reste ouvert.
+Reprise de l'audit initial (2026-07-07), mise à jour le **2026-10-19** pour
+la version en préparation (branche `feat/srd-database`). Pour chaque point :
+l'état, ce qui a été corrigé et quand, et ce qui reste ouvert.
 
 ## Authentification
 
-**Système hybride** : JWT interne (`bcryptjs` + `jsonwebtoken`,
-`authController.ts`) et Auth0 (OAuth2, `authMiddleware.ts`, fonction `protect`).
+**Auth0 seul** (OAuth2 / OIDC) : le front redirige vers Auth0
+(`loginWithRedirect`, `stores/auth.ts`), l'API vérifie le jeton à chaque
+requête protégée (`authMiddleware.ts`, fonction `protect`, bibliothèque
+`express-oauth2-jwt-bearer` : signature, émetteur et audience).
 
-- Le frontend n'utilise **que Auth0** en pratique (`authStore.login()` appelle
-  `loginWithRedirect` d'`@auth0/auth0-vue` — vérifié dans `LoginView.vue`,
-  `RegisterView.vue`, `stores/auth.ts`). Les routes `/api/auth/register` et
-  `/api/auth/login` (JWT) restent actives côté API et testées
-  (`auth.test.ts`, 6 tests) mais ne sont plus appelées par l'interface —
-  documenté dans le [cahier de recette](./cahier-de-recette.md).
-- **Non corrigé** : `authMiddleware.ts` contient une URL Auth0 en dur
-  (`https://dev-mvx3b7ah7u0lggj0.us.auth0.com/userinfo`) au lieu d'utiliser
-  `process.env.AUTH0_ISSUER`. Repéré en lisant le code, laissé tel quel
-  (changement de comportement risqué sans certitude sur le format attendu,
-  hors périmètre validé).
-
-## Hachage des mots de passe
-
-`bcrypt.genSalt(10)` + `bcrypt.hash()` (`authController.ts:33-34`), uniquement
-pour le flux JWT interne. Auth0 gère ses propres mots de passe (le champ
-`password` local est stocké vide pour les comptes Auth0,
-`authMiddleware.ts:73`).
+- **Corrigé le 2026-10-19** : l'ancienne authentification locale (routes
+  `/api/auth/register` et `/api/auth/login`, JWT signé par l'API, mots de
+  passe hachés par bcrypt) a été **supprimée**. Elle n'était plus appelée
+  par le front, et les jetons qu'elle émettait étaient de toute façon
+  refusés par `protect` ; elle restait pourtant ouverte et permettait de
+  créer des comptes. Vérifié après suppression : routes protégées → 401
+  sans jeton ou avec un jeton invalide, anciennes routes → 404.
+- **Corrigé le 2026-10-19** : `authMiddleware.ts` contenait une URL Auth0
+  en dur (tenant de développement, `…/userinfo`). Elle est désormais tirée
+  de `AUTH0_ISSUER`, comme la vérification des jetons.
+- Les mots de passe ne sont plus gérés par l'application : ils restent chez
+  Auth0. La colonne `password` de `User` subsiste en base, vide (à retirer
+  par une migration).
 
 ## Autorisation et isolation des données par utilisateur
 
-Toutes les requêtes Prisma sur `characters` et `npcs` filtrent par `userId`
-issu du token vérifié (`req.user.id`), jamais d'un paramètre client.
+Toutes les requêtes Prisma sur les personnages, les PNJ et les campagnes
+filtrent par `userId` issu du token vérifié (`req.user.id`), jamais d'un
+paramètre client. Une ressource d'un autre utilisateur répond **404**, sans
+révéler qu'elle existe (testé : `characters.test.ts`, « should return 404
+for a character of another user »).
+
+**Campagnes (ajoutées en octobre 2026)** :
+- le MJ (propriétaire) modifie tout ; un joueur invité lit la campagne
+  **sans** les notes du MJ, les PNJ, les rencontres ni les quêtes non
+  révélées — filtrage fait par l'API, pas par l'interface ; un utilisateur
+  extérieur reçoit 404, un joueur qui tente une modification 403 (testé :
+  `campaigns.test.ts`) ;
+- l'invitation se fait par un code aléatoire (9 octets,
+  `crypto.randomBytes`), que le MJ peut régénérer pour invalider l'ancien
+  lien ; le MJ ne peut pas rejoindre sa propre campagne, et un joueur ne
+  peut y rattacher que **ses** personnages ;
+- le MJ peut **lire** la fiche des personnages de ses joueurs
+  (`GET /api/characters/:id`, `access: "GAME_MASTER"`) mais pas la
+  modifier : `PUT` et `DELETE` restent réservés au propriétaire (vérifié de
+  bout en bout le 2026-10-19 : le MJ obtient 404 sur `PUT`).
 
 **Corrigé le 2026-07-07** (commit `524c851`) : `updateCharacter` et
-`deleteNpc` vérifiaient la propriété avec un `findFirst` séparé, puis
-exécutaient l'action (`update`/`delete`) sans refiltrer par `userId` — un
-TOCTOU mineur (risque théorique, pas une faille exploitée). Les deux
-utilisent maintenant `updateMany`/`deleteMany` avec `userId` directement
-dans la clause `where` de l'action elle-même.
+`deleteNpc` refiltrent par `userId` dans la requête qui modifie la donnée
+(`updateMany`/`deleteMany`), plus seulement dans une vérification préalable.
 
-## Validation des entrées (Zod)
+## Validation des entrées
 
-| Route | Avant | Après le 2026-07-07 |
-|---|---|---|
-| `POST /api/auth/register`, `/login` | ✅ Zod | inchangé |
-| `POST /api/characters` | ✅ Zod | inchangé |
-| `PUT /api/characters/:id` | ❌ aucune validation | ✅ `updateCharacterSchema` (= `createCharacterSchema`, le frontend envoie toujours l'objet complet) |
-| `POST /api/npcs` | ❌ `if (!name \|\| !race \|\| !data)` | ✅ `createNpcSchema` (`src/validators/npcValidator.ts`) |
-| `:id` de route (`characters/:id`, `npcs/:id`) | ❌ `Number(id)` pouvait donner `NaN` | ✅ middleware `validateIdParam` (regex `^\d+$`), 400 sinon |
+| Entrée | Validation |
+|---|---|
+| Personnages (`POST`, `PUT`, `POST /preview`) | Zod (`CharacterInputSchema`) pour la forme, puis moteur de règles (`analyse()`) : contenu existant dans l'édition, choix autorisés, multiclassage, sorts de la liste de classe ; erreurs renvoyées avec leur chemin |
+| PNJ | Zod (`npcInputSchema`) + existence de la race, classe, alignement dans l'édition |
+| Campagnes, séances, quêtes, PNJ de campagne, rencontres | Zod (`campaignValidator.ts`) + appartenance (PNJ du MJ, séance de la campagne, monstres de l'édition) |
+| `:id` de route | middleware `validateIdParam`, 400 si non entier positif |
+| Colonnes JSONB (vitesses, sens, usages…) | schémas Zod partagés (`src/srd/jsonb.ts`) au seed |
 
-**Bug corrigé au passage** : `updateCharacter` dérivait les colonnes
-`race`/`class` de `req.body.race`/`req.body.class`, des champs que le
-frontend n'envoie jamais (`toCharacterCreateInput` n'envoie que
-`name`/`level`/`data`). Modifier la race ou la classe d'un personnage
-existant ne mettait donc jamais à jour ces colonnes. Corrigé pour dériver
-`race`/`class` de `data.race.name`/`data.class.name`, comme à la création.
+## Contenu rédigé et affichage HTML
+
+Les règles et les pages de documentation sont du Markdown édité dans
+Directus, affiché avec `v-html`. Le HTML produit par `marked` passe
+toujours par **DOMPurify** (`utils/markdown.ts`) : un `<script>` ou un
+attribut `onerror` est retiré (testé : `guides.spec.ts`). DOMPurify a été
+mis à jour le 2026-10-19 (3.2.6 → 3.4.16) après l'audit des dépendances,
+qui signalait des contournements connus dans les versions ≤ 3.4.15.
+
+Les autres textes longs (descriptions d'objets magiques) sont rendus sans
+`v-html`, par un découpage en paragraphes et tableaux (`RichText.vue`).
+
+## Back-office (Directus)
+
+- Rôles au moindre privilège : le **rédacteur de la documentation** ne
+  modifie que les pages de documentation et ne fait que lire les classes,
+  races et règles ; le **traducteur** ne modifie que les traductions ;
+  l'**éditeur** des données de jeu ne supprime que des traductions et des
+  liaisons. Rôles définis par script (`src/directus/roles.ts`), pas à la
+  main.
+- Secrets (clé de chiffrement, compte administrateur, jeton d'API, licence)
+  dans `.env.directus`, non versionné ; seul `.env.directus.example` est
+  commité, sans valeur réelle.
+- La politique de sécurité de contenu de Directus n'autorise l'affichage
+  dans son cadre d'aperçu que du front (`frame-src 'self'` + l'adresse du
+  front), vérifié le 2026-10-19 (une autre adresse reste bloquée).
 
 ## Gestion des secrets
 
-Vérifié par `git ls-files` : `.env` **n'est pas** versionné (bien listé dans
-`.gitignore`). Seul `.env.example` est commité, avec des valeurs de
-développement local cohérentes avec `docker-compose.yml` (`admin`/`password123`),
-pas de secret réel. Les vrais secrets (Neon, JWT, Auth0, clé de service GCP)
-sont stockés dans les secrets GitHub Actions et injectés au déploiement — voir
-[protocole-cicd.md](./protocole-cicd.md).
+`.env` et `.env.directus` **ne sont pas** versionnés (`.gitignore`). Seuls
+`.env.example` (back et front) et `.env.directus.example` sont commités,
+avec des valeurs de développement local, pas de secret réel (vérifié par
+recherche dans l'historique Git le 2026-10-19). Les vrais secrets (Neon,
+Auth0, clé de service GCP, jeton Azure) sont stockés dans les secrets
+GitHub Actions et injectés au déploiement — voir
+[protocole-cicd.md](./protocole-cicd.md). `JWT_SECRET` n'est plus utilisé
+depuis la suppression de l'authentification locale.
 
 ## CORS
 
@@ -72,64 +107,57 @@ origine autorisée, configurée par variable d'environnement (pas de wildcard).
 
 ## Rate limiting
 
-`express-rate-limit` : 50 requêtes / 15 minutes par IP, appliqué globalement
-(`app.use(limiter)` avant les routes). Limite connue : pas de limite plus
-stricte spécifique sur `/api/auth/login` (un brute-force sur les mots de
-passe reste soumis à la même limite générale que le reste de l'API, pas à
-une limite dédiée plus agressive).
+`express-rate-limit` : **1000 requêtes / 15 minutes par IP**, appliqué
+globalement. La limite a été relevée (50 en juillet) parce que le créateur
+de personnage interroge l'API à chaque réponse pour recalculer l'aperçu ;
+la limite plus stricte dédiée à `/api/auth` a disparu avec ces routes. La
+protection contre le bourrage d'identifiants relève désormais d'Auth0.
 
 ## En-têtes de sécurité HTTP
 
-**Ajouté le 2026-07-07** (commit `524c851`) : `helmet()` — X-Frame-Options,
-X-Content-Type-Options, Strict-Transport-Security, etc. Vérifiés présents
-via `curl -sI` sur un serveur local démarré pendant la session. La
-Content-Security-Policy est **désactivée** volontairement
-(`{ contentSecurityPolicy: false }`) car elle bloquait les scripts/styles
-inline de Swagger UI (`/api-docs`) — vérifié : `/api-docs` répond 200 avec
-CSP désactivée, non testé avec CSP activée.
+`helmet()` sur l'API (X-Content-Type-Options, Strict-Transport-Security,
+X-Frame-Options…), ajouté le 2026-07-07. La Content-Security-Policy de
+l'API reste **désactivée** (`contentSecurityPolicy: false`) car elle
+bloquait les scripts/styles inline de Swagger UI (`/api-docs`).
 
 ## Journalisation
 
 Winston (structuré, format JSON en production pour Google Cloud Logging) +
-Morgan pour les requêtes HTTP. **Corrigé le 2026-07-07** : tous les
-`console.error` bruts (contrôleurs `character`/`npc`/`auth`, middleware
-d'authentification, health check) remplacés par `logger.error()` avec
-seulement le message d'erreur (`error.message`), pas l'objet complet — pour
-éviter de fuiter des stack traces ou des détails de requête dans des logs
-non structurés.
+Morgan pour les requêtes HTTP. Les erreurs sont journalisées par leur
+message (`error.message`), pas l'objet complet, pour ne pas fuiter de
+traces ou de détails de requête.
 
 ## Dépendances
 
-`npm audit` (déclenché en installant `helmet`) a révélé 21 vulnérabilités
-connues, dont 1 critique et 11 hautes — non détectées par l'audit initial
-qui n'avait inspecté que les numéros de version. Analyse : la majorité
-(`vite`, `vitest`, `rollup`, `esbuild`, `postcss`...) sont des dépendances de
-**développement** tirées transitivement par Vitest, non présentes dans
-l'image Docker de production. Deux concernent potentiellement la production :
+`npm audit --omit=dev` (dépendances de production seulement), le
+2026-10-19 :
 
-- `express-rate-limit` (haute) — les adresses IPv4-mappées-IPv6 peuvent
-  contourner la limite par IP sur un serveur dual-stack.
-- `path-to-regexp` (haute) — ReDoS via le système de routage d'Express.
+| Dépôt | Vulnérabilités | Dont |
+|---|---|---|
+| `dungeon-desk-back` | 12 (1 critique, 7 hautes, 4 modérées) | `proxy-addr` (critique), `express-rate-limit`, `path-to-regexp`, `compression`, `body-parser`, `qs` — presque toutes tirées par Express |
+| `dungeon-desk-front` | 7 (6 hautes, 1 basse) | `vue`, `vite`, `postcss`, `nanoid` |
 
-**Non corrigées** à ce jour (décision reportée avec l'utilisateur — une mise
-à jour de dépendance n'est pas anodine et n'était pas dans le périmètre
-validé de cette session). Voir
-[criteres-qualite-performance.md](./criteres-qualite-performance.md) pour le
-détail complet.
+Corrigé : `dompurify` (voir plus haut). **Non corrigé** : le reste demande
+de mettre à jour Express, Vue et Vite (versions majeures ou mineures avec
+changements), à planifier comme un chantier à part, tests à l'appui, plutôt
+qu'au détour d'une mise en production. Les vulnérabilités `express-rate-limit`
+et `path-to-regexp` relevées en juillet sont toujours ouvertes.
 
 ## Synthèse
 
 | Mesure | Statut |
 |---|---|
-| Authentification (Auth0 + JWT) | ✅ En place |
-| Hachage des mots de passe | ✅ bcrypt, salt 10 |
-| Isolation des données par utilisateur | ✅ Corrigé (defense in depth) |
-| Validation des entrées (Zod) | ✅ Complétée sur toutes les routes d'écriture |
-| Validation des paramètres d'URL | ✅ Ajoutée |
-| Secrets | ✅ Correct (jamais commités) |
+| Authentification (Auth0) | ✅ En place, authentification locale supprimée |
+| Isolation des données par utilisateur | ✅ Personnages, PNJ, campagnes ; testée |
+| Accès du MJ aux fiches de ses joueurs | ✅ Lecture seule, vérifié de bout en bout |
+| Validation des entrées (Zod + règles) | ✅ Sur toutes les routes d'écriture |
+| Validation des paramètres d'URL | ✅ |
+| Contenu rédigé (Markdown) | ✅ Nettoyé par DOMPurify, testé |
+| Back-office (Directus) | ✅ Rôles au moindre privilège, secrets hors dépôt |
+| Secrets | ✅ Jamais commités |
 | CORS | ✅ Restreint à une origine |
-| Rate limiting | ✅ En place (limite générale, pas de limite dédiée sur `/login`) |
-| En-têtes de sécurité HTTP | ✅ Ajoutés (helmet, CSP désactivée) |
+| Rate limiting | ✅ Limite générale (1000 / 15 min) |
+| En-têtes de sécurité HTTP | ✅ helmet (CSP de l'API désactivée) |
 | Journalisation | ✅ Structurée, sans fuite d'objets bruts |
-| Dépendances à jour | 🟡 Auditées, 2 vulnérabilités production non corrigées |
-| URL Auth0 en dur | ⬜ Repérée, non corrigée |
+| Dépendances à jour | 🟡 Auditées le 2026-10-19 ; DOMPurify corrigé, Express / Vue / Vite à mettre à jour |
+| URL Auth0 en dur | ✅ Corrigée le 2026-10-19 |

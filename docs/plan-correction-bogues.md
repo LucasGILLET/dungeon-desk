@@ -1,5 +1,9 @@
 # Plan de correction des bogues
 
+> **Mise à jour du 2026-10-19** : bogues trouvés et corrigés pendant le
+> développement de la version en préparation (section « Campagne
+> d'octobre 2026 »), et état actualisé des points restés ouverts en juillet.
+
 ## Bogues identifiés et corrigés
 
 ### 1. Compteur de points de caractéristiques pouvant devenir négatif
@@ -78,20 +82,58 @@
   `userId` de façon uniforme) ; non couverte par un test automatisé
   multi-comptes. C'est le scénario SC-12 du cahier de recette.
 
-## Bugs identifiés, non corrigés (hors périmètre de cette session)
+## Campagne d'octobre 2026 (version en préparation)
+
+Le passage des données de jeu en base et le nouveau modèle des personnages
+ont été développés par itérations courtes, chacune testée par
+l'utilisateur du projet avant la suivante. Les bogues ci-dessous ont été
+trouvés de quatre façons, notées pour chacun : **test d'acceptation** par
+l'utilisateur, **test automatisé** (écrit avant ou après le correctif),
+**test E2E** rejoué, **mise en situation** (utiliser l'outil comme le
+ferait un rédacteur).
+
+| # | Bogue | Détecté par | Impact | Correctif | Vérification |
+|---|---|---|---|---|---|
+| 4 | Sous-races introuvables : le chargeur lisait un fichier français inexistant, le serveur renvoyait la page HTML | Test d'acceptation (« impossible de rouvrir mon personnage ») | Étape sous-race toujours sautée, réouverture d'un personnage impossible | `2fc86ae` (front) | Réouverture confirmée par l'utilisateur ; chargeur remplacé depuis par l'API |
+| 5 | PV max du récapitulatif toujours calculés avec un d8 | Test d'acceptation (moine) | PV faux à la création | `21bffef` (front) | Valeur vérifiée par l'utilisateur ; calcul désormais fait par le moteur de règles du back (`characterRules.test.ts`) |
+| 6 | Choix d'un historique qui changeait de nature au réimport des données (associés par position, pas par type) | Analyse du correctif du Sage | Un choix d'équipement pouvait devenir un choix de langue, en gardant son id référencé par des personnages | `d74581a` (back) | Seed relancé deux fois sur base vierge, ids stables |
+| 7 | Liste de sorts vide sur la fiche d'un magicien | Test d'acceptation (capture d'écran) | Impossible d'ajouter un sort | `b48621e` (front) | Ajout de sort confirmé ; `SheetSpells.spec.ts` |
+| 8 | Nom de sort français contenant du Markdown (« \*\*\*Dissipation de la magie.\*\*\* ») | Vérification visuelle d'une fiche de monstre | Nom affiché avec des astérisques | `bc92bfb` (back) | Recherche des autres noms concernés : aucun |
+| 9 | Création d'un élément traduit depuis un autre impossible dans Directus (lien vers le parent marqué obligatoire) | Mise en situation (compte rédacteur) | Toute création imbriquée bloquée, sur toutes les collections | `0c9613e` (back) | Page complète créée dans Directus par le compte rédacteur |
+| 10 | Remplissage automatique de Directus sans effet (résultat du script ignoré sans `return: $last`) | Mise en situation, puis test isolé du flow | Identifiants aléatoires au lieu d'un slug lisible | `0c9613e` (back) | Page créée : identifiant tiré du titre |
+| 11 | Bouton « Générer » du générateur de PNJ inactif si cliqué avant le chargement des tables | Test E2E rejoué le 2026-10-19 | Un clic sans effet, sans message | `66817cc` (front) | Test E2E mis à jour (attend le bouton actif) et au vert |
+| 12 | URL Auth0 écrite en dur (tenant de développement) | Audit avant mise en production | E-mail des nouveaux utilisateurs lu sur le mauvais tenant en production | `aa00909` (back) | Lecture de code ; variable présente en local et en CI |
+| 13 | Page blanche au rechargement d'une campagne : motif `'/campagnes/:id(\d+)'` dont la barre oblique inverse disparaissait dans la chaîne | Test d'acceptation | Lien direct ou rechargement d'une campagne impossible | `ac15af6` (front) | `router.spec.ts` (résolution des adresses tapées directement), écrit avec le correctif |
+| 14 | « Tueur de colosses » (option choisie) absent de la fiche : les sous-capacités étaient toujours masquées | Test d'acceptation (rôdeur niveau 3) | Capacités choisies invisibles (style de combat, ascendance draconique aussi) | `40903f5` (back), `ac15af6` (front) | Fiche recalculée sur le personnage réel : capacités présentes ; pas de test automatisé dédié |
+| 15 | Blocs de la fiche collés (le `fieldset` de lecture seule perdait l'espacement) | Test d'acceptation (capture d'écran) | Mise en page | `ac15af6` (front) | Visuel |
+| 16 | Aperçu des pages bloqué dans Directus (`ERR_BLOCKED_BY_CSP`) | Test d'acceptation (capture d'écran) | Bouton « Voir sur le site » inutilisable | `40903f5` (back) | En-tête vérifié ; cadre du front accepté, autre adresse refusée |
+
+Ce que montre ce tableau :
+- **Les tests d'acceptation de l'utilisateur ont trouvé la majorité des
+  bogues visibles** (7 sur 13) : beaucoup tiennent à l'enchaînement réel
+  des écrans (rechargement, données qui arrivent dans un ordre différent),
+  que les tests unitaires, qui isolent un composant, ne voient pas.
+- **Rejouer les tests E2E a payé immédiatement** (n° 11) alors qu'ils
+  n'avaient pas tourné depuis juillet : c'est l'argument pour les mettre en
+  CI.
+- **Utiliser l'outil comme un rédacteur** a révélé deux bogues que personne
+  n'aurait vus en restant administrateur (n° 9 et 10).
+
+## Bugs identifiés, non corrigés
 
 Pour rester traçable même sur ce qui n'a pas été traité :
 
-- **URL Auth0 en dur** dans `authMiddleware.ts` (au lieu de
-  `process.env.AUTH0_ISSUER`) — repéré, non corrigé (voir
-  [securite.md](./securite.md)).
-- **Duplication des stores `character.ts`/`app.ts`** côté frontend — voir
-  [architecture-logicielle.md](./architecture-logicielle.md). Pas un bug au
-  sens strict (rien n'est cassé), mais une source probable de bugs futurs
-  si les deux stores continuent à diverger.
-- **2 vulnérabilités de dépendances pertinentes en production**
-  (`express-rate-limit`, `path-to-regexp`) — voir
-  [criteres-qualite-performance.md](./criteres-qualite-performance.md).
+- **Vulnérabilités de dépendances de production** (Express et ses
+  dépendances, Vue, Vite) — voir [securite.md](./securite.md). Mise à jour
+  à planifier comme un chantier à part.
+- **Client des campagnes écrit à la main** au lieu du client Orval généré —
+  pas un bogue, une divergence possible avec le contrat d'API.
+- **Fenêtres de dialogue sans piège de focus ni fermeture par `Échap`** —
+  voir [accessibilite.md](./accessibilite.md).
+
+Points de juillet **résolus** depuis : URL Auth0 en dur (n° 12) ;
+duplication des stores `character.ts` / `app.ts` (`app.ts` supprimé, les
+personnages passent par un seul store et les campagnes par l'API).
 
 ## Processus de correction des bogues
 
@@ -124,9 +166,15 @@ réel, tel qu'appliqué dans cette session, est le suivant :
    business — un choix pragmatique pour cette session, pas nécessairement
    généralisable à un contexte d'équipe avec plusieurs parties prenantes.
 
-**Amélioration identifiée pour la suite** : les cas 2 et 3 montrent que les
-bugs trouvés par relecture manuelle, sans test, restent le point faible du
-processus — la prochaine étape logique est d'ajouter les tests
-d'intégration listés comme ⬜/🟡 dans le
-[cahier de recette](./cahier-de-recette.md) (SC-11, SC-12, SC-16, SC-22)
-pour transformer ces vérifications ponctuelles en garde-fous permanents.
+**Ce qui a changé dans le processus en octobre** : chaque itération se
+termine par un test d'acceptation de l'utilisateur, dont les retours
+(souvent une capture d'écran) sont traités en lot ; un correctif
+s'accompagne d'un test quand le bogue s'y prête (n° 13 : test du routeur
+écrit avec le correctif). SC-12 (isolation entre utilisateurs) est
+désormais couvert par des tests automatisés.
+
+**Amélioration identifiée pour la suite** : exécuter les tests E2E en CI,
+ajouter un test pour les capacités accordées par un choix (n° 14), et
+automatiser les scénarios encore ⬜/🟡 du
+[cahier de recette](./cahier-de-recette.md) (SC-11, SC-16, SC-22, parcours
+connectés des campagnes).

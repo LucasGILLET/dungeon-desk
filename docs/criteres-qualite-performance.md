@@ -4,78 +4,103 @@ Comme pour le cahier de recette, ce document distingue ce qui est **mesuré
 automatiquement**, ce qui est **vérifié manuellement**, et ce qui **n'est pas
 mesuré du tout** — pour ne pas donner une image plus rassurante que la réalité.
 
+> **Mise à jour du 2026-10-19** (version en préparation).
+
 ## Tests automatisés
 
 | Dépôt | Framework | Fichiers de test | Nombre de tests | Vérifié |
 |---|---|---|---|---|
-| `dungeon-desk-front` | Vitest + @vue/test-utils | 9 | 49 | ✅ rejoué le 2026-07-07, tous passent |
-| `dungeon-desk-front` (E2E) | Playwright | `e2e/vue.spec.ts` | 5 scénarios | 🟡 non rejoué dans cette session |
-| `dungeon-desk-back` | Vitest + Supertest | 1 (`auth.test.ts`) | 6 | ✅ rejoué le 2026-07-07, tous passent |
+| `dungeon-desk-front` | Vitest + @vue/test-utils | 20 | 93 | ✅ rejoué le 2026-10-19, tous passent |
+| `dungeon-desk-front` (E2E) | Playwright | `e2e/vue.spec.ts` | 5 scénarios | 🟡 rejoués le 2026-10-19 en local (Chrome), tous passent ; pas exécutés par la CI |
+| `dungeon-desk-back` | Vitest + Supertest | 7 | 55 | ✅ rejoué le 2026-10-19, tous passent |
+
+Ce qui est couvert (par fichier) :
+- **Back** : moteur de règles des personnages (`characterRules.test.ts` :
+  personnage complet, choix en attente, multiclassage, niveaux, sorts,
+  améliorations de caractéristiques…), routes des personnages et des PNJ
+  (validation, isolation entre utilisateurs), campagnes (visibilité pour un
+  joueur, 404/403, invitation, difficulté des rencontres), données SRD
+  (classes, races, sorts, guides, règles), import des monstres (analyse des
+  blocs de statistiques).
+- **Front** : étapes Race et Caractéristiques du créateur, fiche de
+  personnage (montée de niveau, ressources, sauvegarde), sorts de la fiche,
+  profil, campagne (onglets selon le rôle), documentation (pages publiées,
+  brouillons), aide-mémoire de combat, routeur (adresses rechargées
+  directement), mise en forme des monstres et rendu Markdown nettoyé,
+  générateur de PNJ, lanceur de dés.
 
 ### Ce qui N'EST PAS mesuré
-- **Aucun rapport de couverture de code** n'est configuré (`vitest.config.ts` ne
-  déclare pas de `coverage.provider` sur les deux dépôts) — pas de `@vitest/coverage-v8`
-  installé, pas de seuil minimum imposé. Le pourcentage de code réellement
-  exécuté par les tests est donc **inconnu**, seulement estimable par lecture.
-- À titre indicatif (comptage manuel, pas un outil) : sur le frontend, les tests
-  couvrent le store `character`, 2 des 9 étapes du créateur de personnage
-  (`StepRace`, `StepAbilities`), le mapping API↔modèle, et le filtrage de la
-  liste des sorts — mais aucune des 7 autres étapes du créateur, aucune vue
-  (`HomeView`, `NPCGenerator`, `CombatCheatSheetView`...) n'a de test dédié.
-- Côté backend, seules les routes `/api/auth/*` sont testées ; les routes
-  `/api/characters/*` et `/api/npcs/*` n'ont aucun test automatisé malgré les
-  corrections de sécurité apportées le 2026-07-07 (voir [securite.md](./securite.md)).
+- **Aucun rapport de couverture de code** n'est configuré (`vitest.config.ts`
+  ne déclare pas de `coverage.provider` sur les deux dépôts) — pas de seuil
+  minimum imposé. Le pourcentage de code réellement exécuté par les tests
+  est donc **inconnu**, seulement estimable par lecture.
+- **Pas de test de bout en bout du créateur complet** (8 étapes puis
+  sauvegarde) ni des parcours connectés (Auth0) : campagnes à deux comptes,
+  sauvegarde d'un personnage — vérifiés manuellement (voir le
+  [cahier de recette](./cahier-de-recette.md)).
+- **Les tests E2E ne tournent pas en CI** : ils supposent un front et une
+  API démarrés ; ils ont été rejoués en local le 2026-10-19 (ce qui a
+  révélé un bogue, voir [plan-correction-bogues.md](./plan-correction-bogues.md)).
+- **Back-office Directus** : sa configuration n'a pas de test automatisé ;
+  elle a été vérifiée en l'utilisant avec un compte rédacteur.
 
 ## Analyse statique / linting
 
-**Aucun linter n'est installé** sur les deux dépôts (vérifié : aucune
-dépendance `eslint*` dans les deux `package.json`). Décision assumée le
-2026-07-07 lors de la mise en place de la CI (voir
-[protocole-cicd.md](./protocole-cicd.md)) : plutôt que d'installer ESLint et
-risquer de découvrir des dizaines de violations préexistantes non budgétées
-dans le temps disponible, la porte qualité repose sur :
+**Aucun linter n'est installé** sur les deux dépôts (aucune dépendance
+`eslint*`). La porte qualité repose sur :
 - **Le type-check strict TypeScript** (`vue-tsc --build` côté front,
-  `tsc --noEmit` côté back), qui bloque déjà le déploiement en cas d'erreur.
+  `tsc --noEmit` côté back), qui bloque le déploiement en cas d'erreur.
 - **Les tests unitaires**, qui bloquent également le déploiement.
 
-C'est une garantie de compilation et de non-régression fonctionnelle, pas une
-garantie de style ou de bonnes pratiques (imports inutilisés, variables
-mortes, complexité excessive... ne sont pas détectés).
+**Audit ponctuel du 2026-10-19** : une passe manuelle du compilateur avec
+`--noUnusedLocals` (variables et imports inutilisés) a relevé 12 cas dans
+le front, corrigés, et aucun dans le back ; une recherche des exports
+jamais importés a fait supprimer 4 fonctions mortes. Cette vérification
+n'est pas dans la CI : sans linter, le code mort peut revenir.
 
 ## Dépendances / vulnérabilités connues
 
-`npm install` dans `dungeon-desk-back` (2026-07-07) a révélé **21
-vulnérabilités** via `npm audit` (1 critique, 11 hautes, 8 modérées, 1 basse) —
-non détectées par l'audit initial du projet, qui s'était limité à inspecter
-les numéros de version dans `package.json` sans lancer l'outil.
+`npm audit --omit=dev` le 2026-10-19 : 12 vulnérabilités dans les
+dépendances de production du back (1 critique, `proxy-addr`, via Express),
+7 dans celles du front (`vue`, `vite`…). DOMPurify, ajouté pour le rendu
+Markdown, a été mis à jour le jour même. Le reste demande des mises à jour
+d'Express, Vue et Vite, à planifier. Détail dans [securite.md](./securite.md).
 
-Analyse (voir détail dans [securite.md](./securite.md)) :
-- La majorité concernent des dépendances de **développement uniquement**
-  (`vite`, `vitest`, `rollup`, `esbuild`... tirées transitivement par Vitest) —
-  non présentes dans l'image Docker de production.
-- Deux sont potentiellement pertinentes en production : `express-rate-limit`
-  (contournement possible de la limite par IP sur réseau dual-stack) et
-  `path-to-regexp` (ReDoS via le routing Express). **Non corrigées** à ce
-  jour — décision reportée avec l'utilisateur du projet.
+Trois dépendances inutilisées ont été retirées du front le 2026-10-19
+(`express-oauth2-jwt-bearer`, `three`, `@types/three`), et deux du back avec
+l'authentification locale (`bcryptjs`, `jsonwebtoken`).
 
 ## Performance
 
-- **Instrumentation en place côté backend** : métriques Prometheus exposées
-  sur `/metrics` (`src/utils/monitoring.ts`), histogramme
-  `http_request_duration_seconds` par méthode/route/code de statut, alimenté
-  par le middleware `response-time` dans `app.ts`. C'est une vraie mesure de
+- **Instrumentation côté backend** : métriques Prometheus exposées sur
+  `/metrics` (`src/utils/monitoring.ts`), histogramme
+  `http_request_duration_seconds` par méthode/route/code de statut,
+  alimenté par le middleware `response-time`. C'est une vraie mesure de
   performance en production, pas un test de charge.
+- **Réponses compressées** (`compression`) et **mises en cache** côté
+  navigateur pour les données de jeu (`Cache-Control: max-age=3600` ; une
+  minute pour les pages de documentation). Le front ne recharge pas deux
+  fois la même ressource dans une session (cache des requêtes dans
+  `dataLoader.ts`).
+- **Pages chargées à la demande** (routeur) : le fichier JavaScript
+  principal est passé de **1,76 Mo à 0,95 Mo** (de 557 à 272 Ko
+  compressés) le 2026-10-19, mesuré sur `npm run build`. Il reste au-dessus
+  du seuil d'avertissement de Vite (500 Ko), à cause des bibliothèques
+  chargées sur toutes les pages (Auth0, particules de l'accueil, dés 3D).
+- **Seed** de la base (données du SRD) : environ 75 secondes sur une base
+  vierge, mesuré le 2026-10-19.
 - **Aucun test de charge** (k6, Artillery...) n'a été réalisé.
-- **Aucun budget de performance frontend** (Lighthouse CI, bundle size limit)
-  n'est configuré dans le pipeline. Le build Vite (`npm run build-only`) ne
-  fait l'objet d'aucune vérification automatique de taille de bundle.
+- **Aucun budget de performance frontend** (Lighthouse CI, limite de taille
+  de bundle) n'est configuré dans le pipeline. Les images de classes
+  (environ 550 Ko chacune) n'ont pas été optimisées.
 
 ## Synthèse
 
 | Axe | Statut |
 |---|---|
-| Tests fonctionnels (CI) | ✅ En place, bloquants, mais couverture partielle et non mesurée en % |
+| Tests fonctionnels (CI) | ✅ En place, bloquants (148 tests), couverture non mesurée en % |
+| Tests E2E | 🟡 5 scénarios, rejoués en local, pas en CI |
 | Type-check (CI) | ✅ En place, bloquant, sur les deux dépôts |
-| Lint / style de code | ⬜ Absent (décision assumée, pas un oubli) |
-| Sécurité des dépendances | 🟡 Auditée (`npm audit`), partiellement corrigée |
-| Performance | 🟡 Instrumentée en production (Prometheus), non testée en charge |
+| Lint / style de code | ⬜ Absent ; audit ponctuel du code mort le 2026-10-19 |
+| Sécurité des dépendances | 🟡 Auditée, DOMPurify corrigé, Express / Vue / Vite à mettre à jour |
+| Performance | 🟡 Instrumentée (Prometheus), bundle réduit de moitié, non testée en charge |
