@@ -6,8 +6,6 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type PostAuthRegisterBody = {
-  username: string;
-  email: string;
-  password: string;
+export type GetSrdMonsterParams = {
+lang?: string;
 };

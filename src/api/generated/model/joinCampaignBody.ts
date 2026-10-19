@@ -6,13 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export interface User {
-  id: number;
+export type JoinCampaignBody = {
   /** @nullable */
-  username?: string | null;
-  email: string;
-  /** @nullable */
-  auth0Id?: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
+  characterId?: number | null;
+};

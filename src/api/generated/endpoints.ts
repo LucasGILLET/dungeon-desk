@@ -34,6 +34,8 @@ import type {
   CharacterCreateInput,
   CharacterPreview,
   CharacterSummary,
+  CreateCampaignBody,
+  CreateCampaignItemBody,
   GetAbilityScoresParams,
   GetCreationRulesParams,
   GetNpcTablesParams,
@@ -44,15 +46,24 @@ import type {
   GetSrdEditionClassesParams,
   GetSrdEquipmentParams,
   GetSrdFeatsParams,
+  GetSrdGuideParams,
+  GetSrdGuidesParams,
+  GetSrdMagicItemParams,
+  GetSrdMagicItemsParams,
+  GetSrdMonsterParams,
+  GetSrdMonstersParams,
   GetSrdRacesParams,
+  GetSrdRuleChaptersParams,
+  GetSrdRuleSectionParams,
   GetSrdSkillsParams,
   GetSrdSpellsParams,
+  JoinCampaignBody,
   MessageResponse,
   Npc,
   NpcInput,
-  PostAuthLoginBody,
-  PostAuthRegisterBody,
-  PreviewCharacterParams
+  PreviewCharacterParams,
+  UpdateCampaignBody,
+  UpdateCampaignItemBody
 } from './model';
 
 import { customFetch } from '../mutator';
@@ -63,55 +74,144 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 /**
- * @summary Register a new user
+ * @summary Campaigns of the user, as game master or as player
  */
-export type postAuthRegisterResponse201 = {
+export type getCampaignsResponse200 = {
   data: void
-  status: 201
-}
-
-export type postAuthRegisterResponse400 = {
-  data: void
-  status: 400
+  status: 200
 }
     
-export type postAuthRegisterResponseSuccess = (postAuthRegisterResponse201) & {
+export type getCampaignsResponseSuccess = (getCampaignsResponse200) & {
   headers: Headers;
 };
-export type postAuthRegisterResponseError = (postAuthRegisterResponse400) & {
-  headers: Headers;
-};
+;
 
-export type postAuthRegisterResponse = (postAuthRegisterResponseSuccess | postAuthRegisterResponseError)
+export type getCampaignsResponse = (getCampaignsResponseSuccess)
 
-export const getPostAuthRegisterUrl = () => {
+export const getGetCampaignsUrl = () => {
 
 
   
 
-  return `/auth/register`
+  return `/campaigns`
 }
 
-export const postAuthRegister = async (postAuthRegisterBody: PostAuthRegisterBody, options?: RequestInit): Promise<postAuthRegisterResponse> => {
+export const getCampaigns = async ( options?: RequestInit): Promise<getCampaignsResponse> => {
   
-  return customFetch<postAuthRegisterResponse>(getPostAuthRegisterUrl(),
+  return customFetch<getCampaignsResponse>(getGetCampaignsUrl(),
   {      
     ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      postAuthRegisterBody,)
+    method: 'GET'
+    
+    
   }
 );}
 
 
 
 
-export const getPostAuthRegisterMutationOptions = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postAuthRegister>>, TError,{data: PostAuthRegisterBody}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof postAuthRegister>>, TError,{data: PostAuthRegisterBody}, TContext> => {
 
-const mutationKey = ['postAuthRegister'];
+export const getGetCampaignsQueryKey = () => {
+    return [
+    'campaigns'
+    ] as const;
+    }
+
+    
+export const getGetCampaignsQueryOptions = <TData = Awaited<ReturnType<typeof getCampaigns>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCampaigns>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  getGetCampaignsQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCampaigns>>> = ({ signal }) => getCampaigns({ signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCampaigns>>, TError, TData> 
+}
+
+export type GetCampaignsQueryResult = NonNullable<Awaited<ReturnType<typeof getCampaigns>>>
+export type GetCampaignsQueryError = unknown
+
+
+/**
+ * @summary Campaigns of the user, as game master or as player
+ */
+
+export function useGetCampaigns<TData = Awaited<ReturnType<typeof getCampaigns>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCampaigns>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetCampaignsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Create a campaign (the user is its game master)
+ */
+export type createCampaignResponse201 = {
+  data: void
+  status: 201
+}
+
+export type createCampaignResponse400 = {
+  data: void
+  status: 400
+}
+    
+export type createCampaignResponseSuccess = (createCampaignResponse201) & {
+  headers: Headers;
+};
+export type createCampaignResponseError = (createCampaignResponse400) & {
+  headers: Headers;
+};
+
+export type createCampaignResponse = (createCampaignResponseSuccess | createCampaignResponseError)
+
+export const getCreateCampaignUrl = () => {
+
+
+  
+
+  return `/campaigns`
+}
+
+export const createCampaign = async (createCampaignBody: CreateCampaignBody, options?: RequestInit): Promise<createCampaignResponse> => {
+  
+  return customFetch<createCampaignResponse>(getCreateCampaignUrl(),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      createCampaignBody,)
+  }
+);}
+
+
+
+
+export const getCreateCampaignMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCampaign>>, TError,{data: CreateCampaignBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCampaign>>, TError,{data: CreateCampaignBody}, TContext> => {
+
+const mutationKey = ['createCampaign'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -121,10 +221,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postAuthRegister>>, {data: PostAuthRegisterBody}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCampaign>>, {data: CreateCampaignBody}> = (props) => {
           const {data} = props ?? {};
 
-          return  postAuthRegister(data,requestOptions)
+          return  createCampaign(data,requestOptions)
         }
 
         
@@ -132,77 +232,174 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type PostAuthRegisterMutationResult = NonNullable<Awaited<ReturnType<typeof postAuthRegister>>>
-    export type PostAuthRegisterMutationBody = PostAuthRegisterBody
-    export type PostAuthRegisterMutationError = void
+    export type CreateCampaignMutationResult = NonNullable<Awaited<ReturnType<typeof createCampaign>>>
+    export type CreateCampaignMutationBody = CreateCampaignBody
+    export type CreateCampaignMutationError = void
 
     /**
- * @summary Register a new user
+ * @summary Create a campaign (the user is its game master)
  */
-export const usePostAuthRegister = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postAuthRegister>>, TError,{data: PostAuthRegisterBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+export const useCreateCampaign = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCampaign>>, TError,{data: CreateCampaignBody}, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationReturnType<
-        Awaited<ReturnType<typeof postAuthRegister>>,
+        Awaited<ReturnType<typeof createCampaign>>,
         TError,
-        {data: PostAuthRegisterBody},
+        {data: CreateCampaignBody},
         TContext
       > => {
 
-      const mutationOptions = getPostAuthRegisterMutationOptions(options);
+      const mutationOptions = getCreateCampaignMutationOptions(options);
 
       return useMutation(mutationOptions, queryClient);
     }
     
 /**
- * @summary Login user
+ * @summary Campaign behind an invitation link
  */
-export type postAuthLoginResponse200 = {
+export type getCampaignInviteResponse200 = {
   data: void
   status: 200
 }
 
-export type postAuthLoginResponse400 = {
+export type getCampaignInviteResponse404 = {
   data: void
-  status: 400
+  status: 404
 }
     
-export type postAuthLoginResponseSuccess = (postAuthLoginResponse200) & {
+export type getCampaignInviteResponseSuccess = (getCampaignInviteResponse200) & {
   headers: Headers;
 };
-export type postAuthLoginResponseError = (postAuthLoginResponse400) & {
+export type getCampaignInviteResponseError = (getCampaignInviteResponse404) & {
   headers: Headers;
 };
 
-export type postAuthLoginResponse = (postAuthLoginResponseSuccess | postAuthLoginResponseError)
+export type getCampaignInviteResponse = (getCampaignInviteResponseSuccess | getCampaignInviteResponseError)
 
-export const getPostAuthLoginUrl = () => {
+export const getGetCampaignInviteUrl = (code: string,) => {
 
 
   
 
-  return `/auth/login`
+  return `/campaigns/invite/${code}`
 }
 
-export const postAuthLogin = async (postAuthLoginBody: PostAuthLoginBody, options?: RequestInit): Promise<postAuthLoginResponse> => {
+export const getCampaignInvite = async (code: string, options?: RequestInit): Promise<getCampaignInviteResponse> => {
   
-  return customFetch<postAuthLoginResponse>(getPostAuthLoginUrl(),
+  return customFetch<getCampaignInviteResponse>(getGetCampaignInviteUrl(code),
   {      
     ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      postAuthLoginBody,)
+    method: 'GET'
+    
+    
   }
 );}
 
 
 
 
-export const getPostAuthLoginMutationOptions = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postAuthLogin>>, TError,{data: PostAuthLoginBody}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof postAuthLogin>>, TError,{data: PostAuthLoginBody}, TContext> => {
 
-const mutationKey = ['postAuthLogin'];
+export const getGetCampaignInviteQueryKey = (code?: MaybeRef<string>,) => {
+    return [
+    'campaigns','invite',code
+    ] as const;
+    }
+
+    
+export const getGetCampaignInviteQueryOptions = <TData = Awaited<ReturnType<typeof getCampaignInvite>>, TError = void>(code: MaybeRef<string>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCampaignInvite>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  getGetCampaignInviteQueryKey(code);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCampaignInvite>>> = ({ signal }) => getCampaignInvite(unref(code), { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: computed(() => !!(unref(code))), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCampaignInvite>>, TError, TData> 
+}
+
+export type GetCampaignInviteQueryResult = NonNullable<Awaited<ReturnType<typeof getCampaignInvite>>>
+export type GetCampaignInviteQueryError = void
+
+
+/**
+ * @summary Campaign behind an invitation link
+ */
+
+export function useGetCampaignInvite<TData = Awaited<ReturnType<typeof getCampaignInvite>>, TError = void>(
+ code: MaybeRef<string>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCampaignInvite>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetCampaignInviteQueryOptions(code,options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Join a campaign with one of the user's characters
+ */
+export type joinCampaignResponse201 = {
+  data: void
+  status: 201
+}
+
+export type joinCampaignResponse404 = {
+  data: void
+  status: 404
+}
+    
+export type joinCampaignResponseSuccess = (joinCampaignResponse201) & {
+  headers: Headers;
+};
+export type joinCampaignResponseError = (joinCampaignResponse404) & {
+  headers: Headers;
+};
+
+export type joinCampaignResponse = (joinCampaignResponseSuccess | joinCampaignResponseError)
+
+export const getJoinCampaignUrl = (code: string,) => {
+
+
+  
+
+  return `/campaigns/invite/${code}/join`
+}
+
+export const joinCampaign = async (code: string,
+    joinCampaignBody: JoinCampaignBody, options?: RequestInit): Promise<joinCampaignResponse> => {
+  
+  return customFetch<joinCampaignResponse>(getJoinCampaignUrl(code),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      joinCampaignBody,)
+  }
+);}
+
+
+
+
+export const getJoinCampaignMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof joinCampaign>>, TError,{code: string;data: JoinCampaignBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof joinCampaign>>, TError,{code: string;data: JoinCampaignBody}, TContext> => {
+
+const mutationKey = ['joinCampaign'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -212,10 +409,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postAuthLogin>>, {data: PostAuthLoginBody}> = (props) => {
-          const {data} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof joinCampaign>>, {code: string;data: JoinCampaignBody}> = (props) => {
+          const {code,data} = props ?? {};
 
-          return  postAuthLogin(data,requestOptions)
+          return  joinCampaign(code,data,requestOptions)
         }
 
         
@@ -223,23 +420,815 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type PostAuthLoginMutationResult = NonNullable<Awaited<ReturnType<typeof postAuthLogin>>>
-    export type PostAuthLoginMutationBody = PostAuthLoginBody
-    export type PostAuthLoginMutationError = void
+    export type JoinCampaignMutationResult = NonNullable<Awaited<ReturnType<typeof joinCampaign>>>
+    export type JoinCampaignMutationBody = JoinCampaignBody
+    export type JoinCampaignMutationError = void
 
     /**
- * @summary Login user
+ * @summary Join a campaign with one of the user's characters
  */
-export const usePostAuthLogin = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postAuthLogin>>, TError,{data: PostAuthLoginBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+export const useJoinCampaign = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof joinCampaign>>, TError,{code: string;data: JoinCampaignBody}, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationReturnType<
-        Awaited<ReturnType<typeof postAuthLogin>>,
+        Awaited<ReturnType<typeof joinCampaign>>,
         TError,
-        {data: PostAuthLoginBody},
+        {code: string;data: JoinCampaignBody},
         TContext
       > => {
 
-      const mutationOptions = getPostAuthLoginMutationOptions(options);
+      const mutationOptions = getJoinCampaignMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Campaign, filtered by role (players do not see GM notes, NPCs, encounters or hidden quests)
+ */
+export type getCampaignResponse200 = {
+  data: void
+  status: 200
+}
+
+export type getCampaignResponse404 = {
+  data: void
+  status: 404
+}
+    
+export type getCampaignResponseSuccess = (getCampaignResponse200) & {
+  headers: Headers;
+};
+export type getCampaignResponseError = (getCampaignResponse404) & {
+  headers: Headers;
+};
+
+export type getCampaignResponse = (getCampaignResponseSuccess | getCampaignResponseError)
+
+export const getGetCampaignUrl = (id: number,) => {
+
+
+  
+
+  return `/campaigns/${id}`
+}
+
+export const getCampaign = async (id: number, options?: RequestInit): Promise<getCampaignResponse> => {
+  
+  return customFetch<getCampaignResponse>(getGetCampaignUrl(id),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getGetCampaignQueryKey = (id?: MaybeRef<number>,) => {
+    return [
+    'campaigns',id
+    ] as const;
+    }
+
+    
+export const getGetCampaignQueryOptions = <TData = Awaited<ReturnType<typeof getCampaign>>, TError = void>(id: MaybeRef<number>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCampaign>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  getGetCampaignQueryKey(id);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCampaign>>> = ({ signal }) => getCampaign(unref(id), { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: computed(() => !!(unref(id))), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCampaign>>, TError, TData> 
+}
+
+export type GetCampaignQueryResult = NonNullable<Awaited<ReturnType<typeof getCampaign>>>
+export type GetCampaignQueryError = void
+
+
+/**
+ * @summary Campaign, filtered by role (players do not see GM notes, NPCs, encounters or hidden quests)
+ */
+
+export function useGetCampaign<TData = Awaited<ReturnType<typeof getCampaign>>, TError = void>(
+ id: MaybeRef<number>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCampaign>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetCampaignQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Update a campaign (game master)
+ */
+export type updateCampaignResponse200 = {
+  data: void
+  status: 200
+}
+
+export type updateCampaignResponse403 = {
+  data: void
+  status: 403
+}
+    
+export type updateCampaignResponseSuccess = (updateCampaignResponse200) & {
+  headers: Headers;
+};
+export type updateCampaignResponseError = (updateCampaignResponse403) & {
+  headers: Headers;
+};
+
+export type updateCampaignResponse = (updateCampaignResponseSuccess | updateCampaignResponseError)
+
+export const getUpdateCampaignUrl = (id: number,) => {
+
+
+  
+
+  return `/campaigns/${id}`
+}
+
+export const updateCampaign = async (id: number,
+    updateCampaignBody: UpdateCampaignBody, options?: RequestInit): Promise<updateCampaignResponse> => {
+  
+  return customFetch<updateCampaignResponse>(getUpdateCampaignUrl(id),
+  {      
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      updateCampaignBody,)
+  }
+);}
+
+
+
+
+export const getUpdateCampaignMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCampaign>>, TError,{id: number;data: UpdateCampaignBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCampaign>>, TError,{id: number;data: UpdateCampaignBody}, TContext> => {
+
+const mutationKey = ['updateCampaign'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCampaign>>, {id: number;data: UpdateCampaignBody}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateCampaign(id,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateCampaignMutationResult = NonNullable<Awaited<ReturnType<typeof updateCampaign>>>
+    export type UpdateCampaignMutationBody = UpdateCampaignBody
+    export type UpdateCampaignMutationError = void
+
+    /**
+ * @summary Update a campaign (game master)
+ */
+export const useUpdateCampaign = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCampaign>>, TError,{id: number;data: UpdateCampaignBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationReturnType<
+        Awaited<ReturnType<typeof updateCampaign>>,
+        TError,
+        {id: number;data: UpdateCampaignBody},
+        TContext
+      > => {
+
+      const mutationOptions = getUpdateCampaignMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Delete a campaign (game master)
+ */
+export type deleteCampaignResponse200 = {
+  data: void
+  status: 200
+}
+
+export type deleteCampaignResponse403 = {
+  data: void
+  status: 403
+}
+    
+export type deleteCampaignResponseSuccess = (deleteCampaignResponse200) & {
+  headers: Headers;
+};
+export type deleteCampaignResponseError = (deleteCampaignResponse403) & {
+  headers: Headers;
+};
+
+export type deleteCampaignResponse = (deleteCampaignResponseSuccess | deleteCampaignResponseError)
+
+export const getDeleteCampaignUrl = (id: number,) => {
+
+
+  
+
+  return `/campaigns/${id}`
+}
+
+export const deleteCampaign = async (id: number, options?: RequestInit): Promise<deleteCampaignResponse> => {
+  
+  return customFetch<deleteCampaignResponse>(getDeleteCampaignUrl(id),
+  {      
+    ...options,
+    method: 'DELETE'
+    
+    
+  }
+);}
+
+
+
+
+export const getDeleteCampaignMutationOptions = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCampaign>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteCampaign>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteCampaign'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteCampaign>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteCampaign(id,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteCampaignMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCampaign>>>
+    
+    export type DeleteCampaignMutationError = void
+
+    /**
+ * @summary Delete a campaign (game master)
+ */
+export const useDeleteCampaign = <TError = void,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCampaign>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationReturnType<
+        Awaited<ReturnType<typeof deleteCampaign>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+
+      const mutationOptions = getDeleteCampaignMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Regenerate the invitation link (the previous one stops working)
+ */
+export type regenerateCampaignInviteResponse200 = {
+  data: void
+  status: 200
+}
+    
+export type regenerateCampaignInviteResponseSuccess = (regenerateCampaignInviteResponse200) & {
+  headers: Headers;
+};
+;
+
+export type regenerateCampaignInviteResponse = (regenerateCampaignInviteResponseSuccess)
+
+export const getRegenerateCampaignInviteUrl = (id: number,) => {
+
+
+  
+
+  return `/campaigns/${id}/invite`
+}
+
+export const regenerateCampaignInvite = async (id: number, options?: RequestInit): Promise<regenerateCampaignInviteResponse> => {
+  
+  return customFetch<regenerateCampaignInviteResponse>(getRegenerateCampaignInviteUrl(id),
+  {      
+    ...options,
+    method: 'POST'
+    
+    
+  }
+);}
+
+
+
+
+export const getRegenerateCampaignInviteMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof regenerateCampaignInvite>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof regenerateCampaignInvite>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['regenerateCampaignInvite'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof regenerateCampaignInvite>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  regenerateCampaignInvite(id,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RegenerateCampaignInviteMutationResult = NonNullable<Awaited<ReturnType<typeof regenerateCampaignInvite>>>
+    
+    export type RegenerateCampaignInviteMutationError = unknown
+
+    /**
+ * @summary Regenerate the invitation link (the previous one stops working)
+ */
+export const useRegenerateCampaignInvite = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof regenerateCampaignInvite>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationReturnType<
+        Awaited<ReturnType<typeof regenerateCampaignInvite>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+
+      const mutationOptions = getRegenerateCampaignInviteMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Change the character the user plays in the campaign
+ */
+export type updateCampaignMembershipResponse200 = {
+  data: void
+  status: 200
+}
+    
+export type updateCampaignMembershipResponseSuccess = (updateCampaignMembershipResponse200) & {
+  headers: Headers;
+};
+;
+
+export type updateCampaignMembershipResponse = (updateCampaignMembershipResponseSuccess)
+
+export const getUpdateCampaignMembershipUrl = (id: number,) => {
+
+
+  
+
+  return `/campaigns/${id}/membership`
+}
+
+export const updateCampaignMembership = async (id: number, options?: RequestInit): Promise<updateCampaignMembershipResponse> => {
+  
+  return customFetch<updateCampaignMembershipResponse>(getUpdateCampaignMembershipUrl(id),
+  {      
+    ...options,
+    method: 'PUT'
+    
+    
+  }
+);}
+
+
+
+
+export const getUpdateCampaignMembershipMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCampaignMembership>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCampaignMembership>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['updateCampaignMembership'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCampaignMembership>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  updateCampaignMembership(id,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateCampaignMembershipMutationResult = NonNullable<Awaited<ReturnType<typeof updateCampaignMembership>>>
+    
+    export type UpdateCampaignMembershipMutationError = unknown
+
+    /**
+ * @summary Change the character the user plays in the campaign
+ */
+export const useUpdateCampaignMembership = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCampaignMembership>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationReturnType<
+        Awaited<ReturnType<typeof updateCampaignMembership>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+
+      const mutationOptions = getUpdateCampaignMembershipMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Remove a player (game master) or leave the campaign (the player)
+ */
+export type removeCampaignMemberResponse200 = {
+  data: void
+  status: 200
+}
+    
+export type removeCampaignMemberResponseSuccess = (removeCampaignMemberResponse200) & {
+  headers: Headers;
+};
+;
+
+export type removeCampaignMemberResponse = (removeCampaignMemberResponseSuccess)
+
+export const getRemoveCampaignMemberUrl = (id: number,
+    userId: number,) => {
+
+
+  
+
+  return `/campaigns/${id}/members/${userId}`
+}
+
+export const removeCampaignMember = async (id: number,
+    userId: number, options?: RequestInit): Promise<removeCampaignMemberResponse> => {
+  
+  return customFetch<removeCampaignMemberResponse>(getRemoveCampaignMemberUrl(id,userId),
+  {      
+    ...options,
+    method: 'DELETE'
+    
+    
+  }
+);}
+
+
+
+
+export const getRemoveCampaignMemberMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeCampaignMember>>, TError,{id: number;userId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof removeCampaignMember>>, TError,{id: number;userId: number}, TContext> => {
+
+const mutationKey = ['removeCampaignMember'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof removeCampaignMember>>, {id: number;userId: number}> = (props) => {
+          const {id,userId} = props ?? {};
+
+          return  removeCampaignMember(id,userId,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RemoveCampaignMemberMutationResult = NonNullable<Awaited<ReturnType<typeof removeCampaignMember>>>
+    
+    export type RemoveCampaignMemberMutationError = unknown
+
+    /**
+ * @summary Remove a player (game master) or leave the campaign (the player)
+ */
+export const useRemoveCampaignMember = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeCampaignMember>>, TError,{id: number;userId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationReturnType<
+        Awaited<ReturnType<typeof removeCampaignMember>>,
+        TError,
+        {id: number;userId: number},
+        TContext
+      > => {
+
+      const mutationOptions = getRemoveCampaignMemberMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Add a session, quest, NPC or encounter (game master)
+ */
+export type createCampaignItemResponse201 = {
+  data: void
+  status: 201
+}
+    
+export type createCampaignItemResponseSuccess = (createCampaignItemResponse201) & {
+  headers: Headers;
+};
+;
+
+export type createCampaignItemResponse = (createCampaignItemResponseSuccess)
+
+export const getCreateCampaignItemUrl = (id: number,
+    collection: 'sessions' | 'quests' | 'npcs' | 'encounters',) => {
+
+
+  
+
+  return `/campaigns/${id}/${collection}`
+}
+
+export const createCampaignItem = async (id: number,
+    collection: 'sessions' | 'quests' | 'npcs' | 'encounters',
+    createCampaignItemBody: CreateCampaignItemBody, options?: RequestInit): Promise<createCampaignItemResponse> => {
+  
+  return customFetch<createCampaignItemResponse>(getCreateCampaignItemUrl(id,collection),
+  {      
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      createCampaignItemBody,)
+  }
+);}
+
+
+
+
+export const getCreateCampaignItemMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCampaignItem>>, TError,{id: number;collection: 'sessions' | 'quests' | 'npcs' | 'encounters';data: CreateCampaignItemBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCampaignItem>>, TError,{id: number;collection: 'sessions' | 'quests' | 'npcs' | 'encounters';data: CreateCampaignItemBody}, TContext> => {
+
+const mutationKey = ['createCampaignItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCampaignItem>>, {id: number;collection: 'sessions' | 'quests' | 'npcs' | 'encounters';data: CreateCampaignItemBody}> = (props) => {
+          const {id,collection,data} = props ?? {};
+
+          return  createCampaignItem(id,collection,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCampaignItemMutationResult = NonNullable<Awaited<ReturnType<typeof createCampaignItem>>>
+    export type CreateCampaignItemMutationBody = CreateCampaignItemBody
+    export type CreateCampaignItemMutationError = unknown
+
+    /**
+ * @summary Add a session, quest, NPC or encounter (game master)
+ */
+export const useCreateCampaignItem = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCampaignItem>>, TError,{id: number;collection: 'sessions' | 'quests' | 'npcs' | 'encounters';data: CreateCampaignItemBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationReturnType<
+        Awaited<ReturnType<typeof createCampaignItem>>,
+        TError,
+        {id: number;collection: 'sessions' | 'quests' | 'npcs' | 'encounters';data: CreateCampaignItemBody},
+        TContext
+      > => {
+
+      const mutationOptions = getCreateCampaignItemMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Update a session, quest, NPC or encounter (game master)
+ */
+export type updateCampaignItemResponse200 = {
+  data: void
+  status: 200
+}
+    
+export type updateCampaignItemResponseSuccess = (updateCampaignItemResponse200) & {
+  headers: Headers;
+};
+;
+
+export type updateCampaignItemResponse = (updateCampaignItemResponseSuccess)
+
+export const getUpdateCampaignItemUrl = (id: number,
+    collection: 'sessions' | 'quests' | 'npcs' | 'encounters',
+    childId: number,) => {
+
+
+  
+
+  return `/campaigns/${id}/${collection}/${childId}`
+}
+
+export const updateCampaignItem = async (id: number,
+    collection: 'sessions' | 'quests' | 'npcs' | 'encounters',
+    childId: number,
+    updateCampaignItemBody: UpdateCampaignItemBody, options?: RequestInit): Promise<updateCampaignItemResponse> => {
+  
+  return customFetch<updateCampaignItemResponse>(getUpdateCampaignItemUrl(id,collection,childId),
+  {      
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      updateCampaignItemBody,)
+  }
+);}
+
+
+
+
+export const getUpdateCampaignItemMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCampaignItem>>, TError,{id: number;collection: 'sessions' | 'quests' | 'npcs' | 'encounters';childId: number;data: UpdateCampaignItemBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCampaignItem>>, TError,{id: number;collection: 'sessions' | 'quests' | 'npcs' | 'encounters';childId: number;data: UpdateCampaignItemBody}, TContext> => {
+
+const mutationKey = ['updateCampaignItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCampaignItem>>, {id: number;collection: 'sessions' | 'quests' | 'npcs' | 'encounters';childId: number;data: UpdateCampaignItemBody}> = (props) => {
+          const {id,collection,childId,data} = props ?? {};
+
+          return  updateCampaignItem(id,collection,childId,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateCampaignItemMutationResult = NonNullable<Awaited<ReturnType<typeof updateCampaignItem>>>
+    export type UpdateCampaignItemMutationBody = UpdateCampaignItemBody
+    export type UpdateCampaignItemMutationError = unknown
+
+    /**
+ * @summary Update a session, quest, NPC or encounter (game master)
+ */
+export const useUpdateCampaignItem = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCampaignItem>>, TError,{id: number;collection: 'sessions' | 'quests' | 'npcs' | 'encounters';childId: number;data: UpdateCampaignItemBody}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationReturnType<
+        Awaited<ReturnType<typeof updateCampaignItem>>,
+        TError,
+        {id: number;collection: 'sessions' | 'quests' | 'npcs' | 'encounters';childId: number;data: UpdateCampaignItemBody},
+        TContext
+      > => {
+
+      const mutationOptions = getUpdateCampaignItemMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Delete a session, quest, NPC or encounter (game master)
+ */
+export type deleteCampaignItemResponse200 = {
+  data: void
+  status: 200
+}
+    
+export type deleteCampaignItemResponseSuccess = (deleteCampaignItemResponse200) & {
+  headers: Headers;
+};
+;
+
+export type deleteCampaignItemResponse = (deleteCampaignItemResponseSuccess)
+
+export const getDeleteCampaignItemUrl = (id: number,
+    collection: 'sessions' | 'quests' | 'npcs' | 'encounters',
+    childId: number,) => {
+
+
+  
+
+  return `/campaigns/${id}/${collection}/${childId}`
+}
+
+export const deleteCampaignItem = async (id: number,
+    collection: 'sessions' | 'quests' | 'npcs' | 'encounters',
+    childId: number, options?: RequestInit): Promise<deleteCampaignItemResponse> => {
+  
+  return customFetch<deleteCampaignItemResponse>(getDeleteCampaignItemUrl(id,collection,childId),
+  {      
+    ...options,
+    method: 'DELETE'
+    
+    
+  }
+);}
+
+
+
+
+export const getDeleteCampaignItemMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCampaignItem>>, TError,{id: number;collection: 'sessions' | 'quests' | 'npcs' | 'encounters';childId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteCampaignItem>>, TError,{id: number;collection: 'sessions' | 'quests' | 'npcs' | 'encounters';childId: number}, TContext> => {
+
+const mutationKey = ['deleteCampaignItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteCampaignItem>>, {id: number;collection: 'sessions' | 'quests' | 'npcs' | 'encounters';childId: number}> = (props) => {
+          const {id,collection,childId} = props ?? {};
+
+          return  deleteCampaignItem(id,collection,childId,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteCampaignItemMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCampaignItem>>>
+    
+    export type DeleteCampaignItemMutationError = unknown
+
+    /**
+ * @summary Delete a session, quest, NPC or encounter (game master)
+ */
+export const useDeleteCampaignItem = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCampaignItem>>, TError,{id: number;collection: 'sessions' | 'quests' | 'npcs' | 'encounters';childId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationReturnType<
+        Awaited<ReturnType<typeof deleteCampaignItem>>,
+        TError,
+        {id: number;collection: 'sessions' | 'quests' | 'npcs' | 'encounters';childId: number},
+        TContext
+      > => {
+
+      const mutationOptions = getDeleteCampaignItemMutationOptions(options);
 
       return useMutation(mutationOptions, queryClient);
     }
@@ -2544,6 +3533,862 @@ export function useGetSrdAlignments<TData = Awaited<ReturnType<typeof getSrdAlig
  ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetSrdAlignmentsQueryOptions(edition,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Monsters, summary for search and filters (translated)
+ */
+export type getSrdMonstersResponse200 = {
+  data: void
+  status: 200
+}
+    
+export type getSrdMonstersResponseSuccess = (getSrdMonstersResponse200) & {
+  headers: Headers;
+};
+;
+
+export type getSrdMonstersResponse = (getSrdMonstersResponseSuccess)
+
+export const getGetSrdMonstersUrl = (edition: string,
+    params?: GetSrdMonstersParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/srd/${edition}/monsters?${stringifiedParams}` : `/srd/${edition}/monsters`
+}
+
+export const getSrdMonsters = async (edition: string,
+    params?: GetSrdMonstersParams, options?: RequestInit): Promise<getSrdMonstersResponse> => {
+  
+  return customFetch<getSrdMonstersResponse>(getGetSrdMonstersUrl(edition,params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getGetSrdMonstersQueryKey = (edition?: MaybeRef<string>,
+    params?: MaybeRef<GetSrdMonstersParams>,) => {
+    return [
+    'srd',edition,'monsters', ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetSrdMonstersQueryOptions = <TData = Awaited<ReturnType<typeof getSrdMonsters>>, TError = unknown>(edition: MaybeRef<string>,
+    params?: MaybeRef<GetSrdMonstersParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdMonsters>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  getGetSrdMonstersQueryKey(edition,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSrdMonsters>>> = ({ signal }) => getSrdMonsters(unref(edition),unref(params), { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: computed(() => !!(unref(edition))), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSrdMonsters>>, TError, TData> 
+}
+
+export type GetSrdMonstersQueryResult = NonNullable<Awaited<ReturnType<typeof getSrdMonsters>>>
+export type GetSrdMonstersQueryError = unknown
+
+
+/**
+ * @summary Monsters, summary for search and filters (translated)
+ */
+
+export function useGetSrdMonsters<TData = Awaited<ReturnType<typeof getSrdMonsters>>, TError = unknown>(
+ edition: MaybeRef<string>,
+    params?: MaybeRef<GetSrdMonstersParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdMonsters>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSrdMonstersQueryOptions(edition,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Monster stat block (structured fields, distances in feet)
+ */
+export type getSrdMonsterResponse200 = {
+  data: void
+  status: 200
+}
+
+export type getSrdMonsterResponse404 = {
+  data: void
+  status: 404
+}
+    
+export type getSrdMonsterResponseSuccess = (getSrdMonsterResponse200) & {
+  headers: Headers;
+};
+export type getSrdMonsterResponseError = (getSrdMonsterResponse404) & {
+  headers: Headers;
+};
+
+export type getSrdMonsterResponse = (getSrdMonsterResponseSuccess | getSrdMonsterResponseError)
+
+export const getGetSrdMonsterUrl = (edition: string,
+    index: string,
+    params?: GetSrdMonsterParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/srd/${edition}/monsters/${index}?${stringifiedParams}` : `/srd/${edition}/monsters/${index}`
+}
+
+export const getSrdMonster = async (edition: string,
+    index: string,
+    params?: GetSrdMonsterParams, options?: RequestInit): Promise<getSrdMonsterResponse> => {
+  
+  return customFetch<getSrdMonsterResponse>(getGetSrdMonsterUrl(edition,index,params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getGetSrdMonsterQueryKey = (edition?: MaybeRef<string>,
+    index?: MaybeRef<string>,
+    params?: MaybeRef<GetSrdMonsterParams>,) => {
+    return [
+    'srd',edition,'monsters',index, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetSrdMonsterQueryOptions = <TData = Awaited<ReturnType<typeof getSrdMonster>>, TError = void>(edition: MaybeRef<string>,
+    index: MaybeRef<string>,
+    params?: MaybeRef<GetSrdMonsterParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdMonster>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  getGetSrdMonsterQueryKey(edition,index,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSrdMonster>>> = ({ signal }) => getSrdMonster(unref(edition),unref(index),unref(params), { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: computed(() => !!(unref(edition) && unref(index))), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSrdMonster>>, TError, TData> 
+}
+
+export type GetSrdMonsterQueryResult = NonNullable<Awaited<ReturnType<typeof getSrdMonster>>>
+export type GetSrdMonsterQueryError = void
+
+
+/**
+ * @summary Monster stat block (structured fields, distances in feet)
+ */
+
+export function useGetSrdMonster<TData = Awaited<ReturnType<typeof getSrdMonster>>, TError = void>(
+ edition: MaybeRef<string>,
+    index: MaybeRef<string>,
+    params?: MaybeRef<GetSrdMonsterParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdMonster>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSrdMonsterQueryOptions(edition,index,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Magic items, without description (translated)
+ */
+export type getSrdMagicItemsResponse200 = {
+  data: void
+  status: 200
+}
+    
+export type getSrdMagicItemsResponseSuccess = (getSrdMagicItemsResponse200) & {
+  headers: Headers;
+};
+;
+
+export type getSrdMagicItemsResponse = (getSrdMagicItemsResponseSuccess)
+
+export const getGetSrdMagicItemsUrl = (edition: string,
+    params?: GetSrdMagicItemsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/srd/${edition}/magic-items?${stringifiedParams}` : `/srd/${edition}/magic-items`
+}
+
+export const getSrdMagicItems = async (edition: string,
+    params?: GetSrdMagicItemsParams, options?: RequestInit): Promise<getSrdMagicItemsResponse> => {
+  
+  return customFetch<getSrdMagicItemsResponse>(getGetSrdMagicItemsUrl(edition,params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getGetSrdMagicItemsQueryKey = (edition?: MaybeRef<string>,
+    params?: MaybeRef<GetSrdMagicItemsParams>,) => {
+    return [
+    'srd',edition,'magic-items', ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetSrdMagicItemsQueryOptions = <TData = Awaited<ReturnType<typeof getSrdMagicItems>>, TError = unknown>(edition: MaybeRef<string>,
+    params?: MaybeRef<GetSrdMagicItemsParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdMagicItems>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  getGetSrdMagicItemsQueryKey(edition,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSrdMagicItems>>> = ({ signal }) => getSrdMagicItems(unref(edition),unref(params), { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: computed(() => !!(unref(edition))), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSrdMagicItems>>, TError, TData> 
+}
+
+export type GetSrdMagicItemsQueryResult = NonNullable<Awaited<ReturnType<typeof getSrdMagicItems>>>
+export type GetSrdMagicItemsQueryError = unknown
+
+
+/**
+ * @summary Magic items, without description (translated)
+ */
+
+export function useGetSrdMagicItems<TData = Awaited<ReturnType<typeof getSrdMagicItems>>, TError = unknown>(
+ edition: MaybeRef<string>,
+    params?: MaybeRef<GetSrdMagicItemsParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdMagicItems>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSrdMagicItemsQueryOptions(edition,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Magic item with its description and variants
+ */
+export type getSrdMagicItemResponse200 = {
+  data: void
+  status: 200
+}
+
+export type getSrdMagicItemResponse404 = {
+  data: void
+  status: 404
+}
+    
+export type getSrdMagicItemResponseSuccess = (getSrdMagicItemResponse200) & {
+  headers: Headers;
+};
+export type getSrdMagicItemResponseError = (getSrdMagicItemResponse404) & {
+  headers: Headers;
+};
+
+export type getSrdMagicItemResponse = (getSrdMagicItemResponseSuccess | getSrdMagicItemResponseError)
+
+export const getGetSrdMagicItemUrl = (edition: string,
+    index: string,
+    params?: GetSrdMagicItemParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/srd/${edition}/magic-items/${index}?${stringifiedParams}` : `/srd/${edition}/magic-items/${index}`
+}
+
+export const getSrdMagicItem = async (edition: string,
+    index: string,
+    params?: GetSrdMagicItemParams, options?: RequestInit): Promise<getSrdMagicItemResponse> => {
+  
+  return customFetch<getSrdMagicItemResponse>(getGetSrdMagicItemUrl(edition,index,params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getGetSrdMagicItemQueryKey = (edition?: MaybeRef<string>,
+    index?: MaybeRef<string>,
+    params?: MaybeRef<GetSrdMagicItemParams>,) => {
+    return [
+    'srd',edition,'magic-items',index, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetSrdMagicItemQueryOptions = <TData = Awaited<ReturnType<typeof getSrdMagicItem>>, TError = void>(edition: MaybeRef<string>,
+    index: MaybeRef<string>,
+    params?: MaybeRef<GetSrdMagicItemParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdMagicItem>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  getGetSrdMagicItemQueryKey(edition,index,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSrdMagicItem>>> = ({ signal }) => getSrdMagicItem(unref(edition),unref(index),unref(params), { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: computed(() => !!(unref(edition) && unref(index))), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSrdMagicItem>>, TError, TData> 
+}
+
+export type GetSrdMagicItemQueryResult = NonNullable<Awaited<ReturnType<typeof getSrdMagicItem>>>
+export type GetSrdMagicItemQueryError = void
+
+
+/**
+ * @summary Magic item with its description and variants
+ */
+
+export function useGetSrdMagicItem<TData = Awaited<ReturnType<typeof getSrdMagicItem>>, TError = void>(
+ edition: MaybeRef<string>,
+    index: MaybeRef<string>,
+    params?: MaybeRef<GetSrdMagicItemParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdMagicItem>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSrdMagicItemQueryOptions(edition,index,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary SRD rules table of contents (chapters and section names)
+ */
+export type getSrdRuleChaptersResponse200 = {
+  data: void
+  status: 200
+}
+    
+export type getSrdRuleChaptersResponseSuccess = (getSrdRuleChaptersResponse200) & {
+  headers: Headers;
+};
+;
+
+export type getSrdRuleChaptersResponse = (getSrdRuleChaptersResponseSuccess)
+
+export const getGetSrdRuleChaptersUrl = (edition: string,
+    params?: GetSrdRuleChaptersParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/srd/${edition}/rule-chapters?${stringifiedParams}` : `/srd/${edition}/rule-chapters`
+}
+
+export const getSrdRuleChapters = async (edition: string,
+    params?: GetSrdRuleChaptersParams, options?: RequestInit): Promise<getSrdRuleChaptersResponse> => {
+  
+  return customFetch<getSrdRuleChaptersResponse>(getGetSrdRuleChaptersUrl(edition,params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getGetSrdRuleChaptersQueryKey = (edition?: MaybeRef<string>,
+    params?: MaybeRef<GetSrdRuleChaptersParams>,) => {
+    return [
+    'srd',edition,'rule-chapters', ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetSrdRuleChaptersQueryOptions = <TData = Awaited<ReturnType<typeof getSrdRuleChapters>>, TError = unknown>(edition: MaybeRef<string>,
+    params?: MaybeRef<GetSrdRuleChaptersParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdRuleChapters>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  getGetSrdRuleChaptersQueryKey(edition,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSrdRuleChapters>>> = ({ signal }) => getSrdRuleChapters(unref(edition),unref(params), { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: computed(() => !!(unref(edition))), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSrdRuleChapters>>, TError, TData> 
+}
+
+export type GetSrdRuleChaptersQueryResult = NonNullable<Awaited<ReturnType<typeof getSrdRuleChapters>>>
+export type GetSrdRuleChaptersQueryError = unknown
+
+
+/**
+ * @summary SRD rules table of contents (chapters and section names)
+ */
+
+export function useGetSrdRuleChapters<TData = Awaited<ReturnType<typeof getSrdRuleChapters>>, TError = unknown>(
+ edition: MaybeRef<string>,
+    params?: MaybeRef<GetSrdRuleChaptersParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdRuleChapters>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSrdRuleChaptersQueryOptions(edition,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary SRD rule section (Markdown)
+ */
+export type getSrdRuleSectionResponse200 = {
+  data: void
+  status: 200
+}
+
+export type getSrdRuleSectionResponse404 = {
+  data: void
+  status: 404
+}
+    
+export type getSrdRuleSectionResponseSuccess = (getSrdRuleSectionResponse200) & {
+  headers: Headers;
+};
+export type getSrdRuleSectionResponseError = (getSrdRuleSectionResponse404) & {
+  headers: Headers;
+};
+
+export type getSrdRuleSectionResponse = (getSrdRuleSectionResponseSuccess | getSrdRuleSectionResponseError)
+
+export const getGetSrdRuleSectionUrl = (edition: string,
+    index: string,
+    params?: GetSrdRuleSectionParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/srd/${edition}/rule-sections/${index}?${stringifiedParams}` : `/srd/${edition}/rule-sections/${index}`
+}
+
+export const getSrdRuleSection = async (edition: string,
+    index: string,
+    params?: GetSrdRuleSectionParams, options?: RequestInit): Promise<getSrdRuleSectionResponse> => {
+  
+  return customFetch<getSrdRuleSectionResponse>(getGetSrdRuleSectionUrl(edition,index,params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getGetSrdRuleSectionQueryKey = (edition?: MaybeRef<string>,
+    index?: MaybeRef<string>,
+    params?: MaybeRef<GetSrdRuleSectionParams>,) => {
+    return [
+    'srd',edition,'rule-sections',index, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetSrdRuleSectionQueryOptions = <TData = Awaited<ReturnType<typeof getSrdRuleSection>>, TError = void>(edition: MaybeRef<string>,
+    index: MaybeRef<string>,
+    params?: MaybeRef<GetSrdRuleSectionParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdRuleSection>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  getGetSrdRuleSectionQueryKey(edition,index,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSrdRuleSection>>> = ({ signal }) => getSrdRuleSection(unref(edition),unref(index),unref(params), { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: computed(() => !!(unref(edition) && unref(index))), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSrdRuleSection>>, TError, TData> 
+}
+
+export type GetSrdRuleSectionQueryResult = NonNullable<Awaited<ReturnType<typeof getSrdRuleSection>>>
+export type GetSrdRuleSectionQueryError = void
+
+
+/**
+ * @summary SRD rule section (Markdown)
+ */
+
+export function useGetSrdRuleSection<TData = Awaited<ReturnType<typeof getSrdRuleSection>>, TError = void>(
+ edition: MaybeRef<string>,
+    index: MaybeRef<string>,
+    params?: MaybeRef<GetSrdRuleSectionParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdRuleSection>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSrdRuleSectionQueryOptions(edition,index,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Published guide pages of the application
+ */
+export type getSrdGuidesResponse200 = {
+  data: void
+  status: 200
+}
+    
+export type getSrdGuidesResponseSuccess = (getSrdGuidesResponse200) & {
+  headers: Headers;
+};
+;
+
+export type getSrdGuidesResponse = (getSrdGuidesResponseSuccess)
+
+export const getGetSrdGuidesUrl = (edition: string,
+    params?: GetSrdGuidesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/srd/${edition}/guides?${stringifiedParams}` : `/srd/${edition}/guides`
+}
+
+export const getSrdGuides = async (edition: string,
+    params?: GetSrdGuidesParams, options?: RequestInit): Promise<getSrdGuidesResponse> => {
+  
+  return customFetch<getSrdGuidesResponse>(getGetSrdGuidesUrl(edition,params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getGetSrdGuidesQueryKey = (edition?: MaybeRef<string>,
+    params?: MaybeRef<GetSrdGuidesParams>,) => {
+    return [
+    'srd',edition,'guides', ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetSrdGuidesQueryOptions = <TData = Awaited<ReturnType<typeof getSrdGuides>>, TError = unknown>(edition: MaybeRef<string>,
+    params?: MaybeRef<GetSrdGuidesParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdGuides>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  getGetSrdGuidesQueryKey(edition,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSrdGuides>>> = ({ signal }) => getSrdGuides(unref(edition),unref(params), { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: computed(() => !!(unref(edition))), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSrdGuides>>, TError, TData> 
+}
+
+export type GetSrdGuidesQueryResult = NonNullable<Awaited<ReturnType<typeof getSrdGuides>>>
+export type GetSrdGuidesQueryError = unknown
+
+
+/**
+ * @summary Published guide pages of the application
+ */
+
+export function useGetSrdGuides<TData = Awaited<ReturnType<typeof getSrdGuides>>, TError = unknown>(
+ edition: MaybeRef<string>,
+    params?: MaybeRef<GetSrdGuidesParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdGuides>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSrdGuidesQueryOptions(edition,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary Guide page with its sections and cards
+ */
+export type getSrdGuideResponse200 = {
+  data: void
+  status: 200
+}
+
+export type getSrdGuideResponse404 = {
+  data: void
+  status: 404
+}
+    
+export type getSrdGuideResponseSuccess = (getSrdGuideResponse200) & {
+  headers: Headers;
+};
+export type getSrdGuideResponseError = (getSrdGuideResponse404) & {
+  headers: Headers;
+};
+
+export type getSrdGuideResponse = (getSrdGuideResponseSuccess | getSrdGuideResponseError)
+
+export const getGetSrdGuideUrl = (edition: string,
+    index: string,
+    params?: GetSrdGuideParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/srd/${edition}/guides/${index}?${stringifiedParams}` : `/srd/${edition}/guides/${index}`
+}
+
+export const getSrdGuide = async (edition: string,
+    index: string,
+    params?: GetSrdGuideParams, options?: RequestInit): Promise<getSrdGuideResponse> => {
+  
+  return customFetch<getSrdGuideResponse>(getGetSrdGuideUrl(edition,index,params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getGetSrdGuideQueryKey = (edition?: MaybeRef<string>,
+    index?: MaybeRef<string>,
+    params?: MaybeRef<GetSrdGuideParams>,) => {
+    return [
+    'srd',edition,'guides',index, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetSrdGuideQueryOptions = <TData = Awaited<ReturnType<typeof getSrdGuide>>, TError = void>(edition: MaybeRef<string>,
+    index: MaybeRef<string>,
+    params?: MaybeRef<GetSrdGuideParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdGuide>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  getGetSrdGuideQueryKey(edition,index,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSrdGuide>>> = ({ signal }) => getSrdGuide(unref(edition),unref(index),unref(params), { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: computed(() => !!(unref(edition) && unref(index))), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSrdGuide>>, TError, TData> 
+}
+
+export type GetSrdGuideQueryResult = NonNullable<Awaited<ReturnType<typeof getSrdGuide>>>
+export type GetSrdGuideQueryError = void
+
+
+/**
+ * @summary Guide page with its sections and cards
+ */
+
+export function useGetSrdGuide<TData = Awaited<ReturnType<typeof getSrdGuide>>, TError = void>(
+ edition: MaybeRef<string>,
+    index: MaybeRef<string>,
+    params?: MaybeRef<GetSrdGuideParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdGuide>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSrdGuideQueryOptions(edition,index,params,options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

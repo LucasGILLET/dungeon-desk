@@ -7,6 +7,7 @@
  */
 import type { CharacterSheetAbilityScores } from './characterSheetAbilityScores';
 import type { CharacterSheetPending } from './characterSheetPending';
+import type { CharacterSheetGrantedTraitDetailsItem } from './characterSheetGrantedTraitDetailsItem';
 import type { CharacterSheetProficienciesItem } from './characterSheetProficienciesItem';
 import type { CharacterSheetExpertiseItem } from './characterSheetExpertiseItem';
 import type { CharacterSheetLanguagesItem } from './characterSheetLanguagesItem';
@@ -26,6 +27,11 @@ export interface CharacterSheet {
   abilityScores: CharacterSheetAbilityScores;
   /** Ce qui reste à choisir */
   pending: CharacterSheetPending;
+  /** Capacités accordées par une option choisie (index), ex. colossus-slayer */
+  grantedFeatures?: string[];
+  /** Traits raciaux accordés par une option choisie (index) */
+  grantedTraits?: string[];
+  grantedTraitDetails?: CharacterSheetGrantedTraitDetailsItem[];
   proficiencies: CharacterSheetProficienciesItem[];
   expertise: CharacterSheetExpertiseItem[];
   languages: CharacterSheetLanguagesItem[];

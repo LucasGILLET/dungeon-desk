@@ -6,7 +6,4 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type PostAuthLoginBody = {
-  email: string;
-  password: string;
-};
+export type UpdateCampaignBody = { [key: string]: unknown };
