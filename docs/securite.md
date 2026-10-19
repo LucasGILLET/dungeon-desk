@@ -129,19 +129,35 @@ traces ou de détails de requête.
 
 ## Dépendances
 
-`npm audit --omit=dev` (dépendances de production seulement), le
-2026-10-19 :
+`npm audit --omit=dev` (dépendances de production seulement) :
 
-| Dépôt | Vulnérabilités | Dont |
+| Dépôt | Audit du 2026-10-19 | Après mise à jour (2026-10-19) |
 |---|---|---|
-| `dungeon-desk-back` | 12 (1 critique, 7 hautes, 4 modérées) | `proxy-addr` (critique), `express-rate-limit`, `path-to-regexp`, `compression`, `body-parser`, `qs` — presque toutes tirées par Express |
-| `dungeon-desk-front` | 7 (6 hautes, 1 basse) | `vue`, `vite`, `postcss`, `nanoid` |
+| `dungeon-desk-back` | 12 (1 critique, 7 hautes, 4 modérées) : `proxy-addr` (critique), `express-rate-limit`, `ip-address`, `path-to-regexp`, `compression`, `js-yaml`, `minimatch`, `brace-expansion`, `body-parser`, `express`, `morgan`, `qs` | **0** |
+| `dungeon-desk-front` | 7 (6 hautes, 1 basse) : `vue`, `@vue/server-renderer`, `vite`, `postcss`, `nanoid`, `source-map-js`, `esbuild` | **0** |
 
-Corrigé : `dompurify` (voir plus haut). **Non corrigé** : le reste demande
-de mettre à jour Express, Vue et Vite (versions majeures ou mineures avec
-changements), à planifier comme un chantier à part, tests à l'appui, plutôt
-qu'au détour d'une mise en production. Les vulnérabilités `express-rate-limit`
-et `path-to-regexp` relevées en juillet sont toujours ouvertes.
+Toutes ont été corrigées par des versions correctives ou mineures, **sans
+changement de version majeure** : Express reste en 4 (4.22.1 → 4.22.3, qui
+tire `proxy-addr` 2.0.8, `path-to-regexp` 0.1.13, `body-parser` 1.20.8 et
+`qs` 6.16), `express-rate-limit` 8.2.1 → 8.7.0 (avec `ip-address` 10.7.3),
+`compression` 1.8.2, `morgan` 1.12.1 ; côté front, Vue 3.5.32 → 3.5.43 et
+Vite 7.3.2 → 7.3.6 (avec `esbuild` 0.28.2, `postcss` 8.5.28, `nanoid`
+3.3.19, `source-map-js` 1.2.2). Seules des versions publiées depuis au
+moins deux semaines ont été retenues (`npm install --before=<date>`), pour
+laisser le temps à une version compromise d'être repérée et retirée.
+Vérifié : compilation, tests du back (55) et du front (93), build du front,
+et API reconstruite dans Docker (routes protégées en 401 sans jeton, SRD en
+200, en-têtes `RateLimit-*` présents). DOMPurify avait été corrigé plus tôt
+le même jour (voir plus haut).
+
+Reste ouvert : des vulnérabilités dans les **outils de développement**
+(non embarqués en production) : 8 hautes dans le back, tirées par `prisma`
+(`deepmerge-ts`, `effect`) et `nodemon` (`chokidar`, `braces`,
+`picomatch`). `effect` et `picomatch` se corrigent par des versions
+correctives (Prisma 6.19.3, `picomatch` 2.3.2) ; `deepmerge-ts` demande
+Prisma 7 et `braces` une autre version majeure de `nodemon`. Prisma
+servant aussi aux migrations de la CI, à traiter à part. Le front n'en a
+plus aucune.
 
 ## Synthèse
 
@@ -159,5 +175,5 @@ et `path-to-regexp` relevées en juillet sont toujours ouvertes.
 | Rate limiting | ✅ Limite générale (1000 / 15 min) |
 | En-têtes de sécurité HTTP | ✅ helmet (CSP de l'API désactivée) |
 | Journalisation | ✅ Structurée, sans fuite d'objets bruts |
-| Dépendances à jour | 🟡 Auditées le 2026-10-19 ; DOMPurify corrigé, Express / Vue / Vite à mettre à jour |
+| Dépendances à jour | ✅ Production : 0 vulnérabilité après mise à jour du 2026-10-19 ; 🟡 outils de développement à mettre à jour |
 | URL Auth0 en dur | ✅ Corrigée le 2026-10-19 |

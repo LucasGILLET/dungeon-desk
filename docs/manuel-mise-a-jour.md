@@ -21,19 +21,40 @@ Ces mêmes commandes sont rejouées par la CI (voir
 [protocole-cicd.md](./protocole-cicd.md)) — un échec local est un échec en
 CI, autant le détecter avant de pousser.
 
-### Vulnérabilités connues (état au 2026-10-19)
-`npm audit --omit=dev` signale 12 vulnérabilités dans les dépendances de
-production du back (dont `proxy-addr`, critique, et `express-rate-limit`,
-`path-to-regexp`, via Express) et 7 dans celles du front (`vue`, `vite`…).
-DOMPurify a été corrigé le 2026-10-19 ; le reste demande de mettre à jour
-Express, Vue et Vite (voir [securite.md](./securite.md)). Avant de les
-mettre à jour :
+### Corriger une vulnérabilité signalée par `npm audit`
+Méthode suivie le 2026-10-19 (19 vulnérabilités de production corrigées,
+voir [securite.md](./securite.md)) :
 ```bash
-npm audit                 # revoir l'état actuel, les correctifs disponibles évoluent
-npm ls express-rate-limit  # vérifier si une mise à jour directe suffit ou si c'est transitif
+npm audit --omit=dev            # dépendances de production seulement
+npm ls <paquet>                 # dépendance directe ou transitive ? tirée par qui ?
+npm view <paquet> time --json   # dates de publication des versions
+npm install <paquet>@^<version> --before=<date-il-y-a-2-semaines>
+npm audit fix --before=<date-il-y-a-2-semaines>   # transitives, sans --force
+npm update <paquet> --before=<date-il-y-a-2-semaines>  # transitive restée en arrière
 ```
-Tester `npm test` + un test manuel du rate limiting après mise à jour (voir
-scénario SC-22 du [cahier de recette](./cahier-de-recette.md), non automatisé).
+- Chercher d'abord la plus petite version qui corrige (corrective, puis
+  mineure) ; une majeure (Express 5…) seulement si rien d'autre ne corrige.
+- `--before` écarte les versions de moins de deux semaines : une version
+  compromise publiée sur npm est en général repérée et retirée dans ce délai.
+- Ne pas lancer `npm audit fix --force` : il installe des versions majeures
+  sans prévenir.
+- `npm audit fix` corrige aussi les outils de développement (Vitest,
+  Babel…) : relire le diff du `package-lock.json`.
+
+Vérifier ensuite : compilation et tests (ci-dessus), `npm run build` côté
+front, et pour le back une API reconstruite dans Docker
+(`docker compose up -d --build api` : routes protégées en 401 sans jeton,
+`/api/srd/2014/classes` en 200, en-têtes `RateLimit-*` présents ; voir
+scénario SC-22 du [cahier de recette](./cahier-de-recette.md) pour le rate
+limiting).
+
+### Vulnérabilités connues (état au 2026-10-19)
+**Aucune** dans les dépendances de production des deux dépôts après la mise
+à jour du 2026-10-19. Il en reste 8 dans les outils de développement du
+back, non déployés : via `prisma` (`deepmerge-ts`, qui demande Prisma 7 ;
+`effect`, corrigé par Prisma 6.19.3) et via `nodemon` (`picomatch`, corrigé
+en 2.3.2 ; `braces`, qui demande une autre majeure de `nodemon`). Prisma
+pilotant les migrations de la CI, sa mise à jour se fait à part.
 
 ## Créer une migration Prisma
 

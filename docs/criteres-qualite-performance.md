@@ -62,9 +62,13 @@ n'est pas dans la CI : sans linter, le code mort peut revenir.
 
 `npm audit --omit=dev` le 2026-10-19 : 12 vulnérabilités dans les
 dépendances de production du back (1 critique, `proxy-addr`, via Express),
-7 dans celles du front (`vue`, `vite`…). DOMPurify, ajouté pour le rendu
-Markdown, a été mis à jour le jour même. Le reste demande des mises à jour
-d'Express, Vue et Vite, à planifier. Détail dans [securite.md](./securite.md).
+7 dans celles du front (`vue`, `vite`…). Toutes corrigées le jour même par
+des mises à jour correctives ou mineures (Express 4.22.3,
+`express-rate-limit` 8.7.0, Vue 3.5.43, Vite 7.3.6, DOMPurify 3.4.16…),
+sans version majeure : **0 vulnérabilité en production** dans les deux
+dépôts. Restent des vulnérabilités dans les outils de développement
+(`prisma`, `nodemon`…), qui ne sont pas déployés. Détail dans
+[securite.md](./securite.md).
 
 Trois dépendances inutilisées ont été retirées du front le 2026-10-19
 (`express-oauth2-jwt-bearer`, `three`, `@types/three`), et deux du back avec
@@ -102,5 +106,5 @@ l'authentification locale (`bcryptjs`, `jsonwebtoken`).
 | Tests E2E | 🟡 5 scénarios, rejoués en local, pas en CI |
 | Type-check (CI) | ✅ En place, bloquant, sur les deux dépôts |
 | Lint / style de code | ⬜ Absent ; audit ponctuel du code mort le 2026-10-19 |
-| Sécurité des dépendances | 🟡 Auditée, DOMPurify corrigé, Express / Vue / Vite à mettre à jour |
+| Sécurité des dépendances | ✅ Production : 0 vulnérabilité (2026-10-19) ; 🟡 outils de développement à mettre à jour |
 | Performance | 🟡 Instrumentée (Prometheus), bundle réduit de moitié, non testée en charge |

@@ -36,6 +36,11 @@ Données de jeu lues depuis l'API (branche `feat/srd-database`).
 ### Sécurité
 - DOMPurify 3.2.6 → 3.4.16 (contournements connus jusqu'à 3.4.15, signalés
   par `npm audit`).
+- Vue 3.5.32 → 3.5.43 et Vite 7.3.2 → 7.3.6 (avec `esbuild` 0.28.2,
+  `postcss` 8.5.28, `nanoid` 3.3.19, `source-map-js` 1.2.2) : corrige les
+  7 vulnérabilités de production signalées par `npm audit` (XSS du rendu
+  serveur de Vue, contournement de `server.fs.deny` de Vite sous Windows…),
+  sans changement de version majeure.
 
 ### Documentation
 - Dossier `docs/` mis à jour pour cette version : architecture, frameworks,
