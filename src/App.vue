@@ -10,7 +10,7 @@ import { closeGlobalMenuDrawer, toggleGlobalMenuDrawer, useGlobalMenuDrawer } fr
 import { mobileNavigationLinks } from '@/config/navigation'
 
 const authStore = useAuthStore()
-const { isAuthenticated, user } = storeToRefs(authStore)
+const { isAuthenticated } = storeToRefs(authStore)
 const { isOpen: isMobileMenuOpen } = useGlobalMenuDrawer()
 
 function closeMobileMenu() {

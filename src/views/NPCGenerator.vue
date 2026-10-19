@@ -50,11 +50,13 @@
 
           <!-- Generate Button -->
           <div class="flex items-end">
-            <button 
-              @click="generateNPC" 
-              class="w-full bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:shadow-emerald-900/20 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+            <!-- Désactivé tant que les tables du générateur ne sont pas chargées -->
+            <button
+              @click="generateNPC"
+              :disabled="loading || !races.length"
+              class="w-full bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:shadow-emerald-900/20 transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-wait disabled:opacity-50"
             >
-              Générer
+              {{ loading ? 'Chargement…' : 'Générer' }}
             </button>
           </div>
         </div>

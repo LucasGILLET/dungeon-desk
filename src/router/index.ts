@@ -1,23 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { authGuard } from '@auth0/auth0-vue';
 import HomeView from '@/views/HomeView.vue'
-import GMDashboard from '@/views/GMDashboard.vue'
-import CharacterCreator from '@/views/CharacterCreator.vue'
-import NPCGenerator from '@/views/NPCGenerator.vue'
-import CombatCheatSheetView from '@/views/CombatCheatSheetView.vue'
-import DocumentationView from '@/views/DocumentationView.vue'
-import LoginView from '@/views/LoginView.vue'
-import RegisterView from '@/views/RegisterView.vue'
-import ProfileView from '@/views/ProfileView.vue'
-import SortView from '@/views/SortView.vue'
-import SortsListView from '@/views/SortsListView.vue'
-import BestiaryView from '@/views/BestiaryView.vue'
-import MonsterView from '@/views/MonsterView.vue'
-import MagicItemsView from '@/views/MagicItemsView.vue'
-import MagicItemView from '@/views/MagicItemView.vue'
-import RulesView from '@/views/RulesView.vue'
-import CampaignView from '@/views/CampaignView.vue'
-import JoinCampaignView from '@/views/JoinCampaignView.vue'
+
+// Pages chargées à la demande (une par fichier JS), sauf l'accueil
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -35,77 +19,77 @@ const router = createRouter({
     {
       path: '/profile',
       name: 'profile',
-      component: ProfileView
+      component: () => import('@/views/ProfileView.vue')
     },
     {
       path: '/sorts',
       name: 'sorts-list',
-      component: SortsListView
+      component: () => import('@/views/SortsListView.vue')
     },
     {
       path: '/sort/:index',
       name: 'sort-view',
-      component: SortView
+      component: () => import('@/views/SortView.vue')
     },
     {
       path: '/bestiaire',
       name: 'bestiary',
-      component: BestiaryView
+      component: () => import('@/views/BestiaryView.vue')
     },
     {
       path: '/bestiaire/:index',
       name: 'monster-view',
-      component: MonsterView
+      component: () => import('@/views/MonsterView.vue')
     },
     {
       path: '/objets-magiques',
       name: 'magic-items',
-      component: MagicItemsView
+      component: () => import('@/views/MagicItemsView.vue')
     },
     {
       path: '/objets-magiques/:index',
       name: 'magic-item-view',
-      component: MagicItemView
+      component: () => import('@/views/MagicItemView.vue')
     },
     {
       path: '/regles',
       name: 'rules',
-      component: RulesView
+      component: () => import('@/views/RulesView.vue')
     },
     {
       path: '/documentation',
       name: 'documentation',
-      component: DocumentationView
+      component: () => import('@/views/DocumentationView.vue')
     },
     {
       path: '/login',
       name: 'login',
-      component: LoginView
+      component: () => import('@/views/LoginView.vue')
     },
     {
       path: '/register',
       name: 'register',
-      component: RegisterView
+      component: () => import('@/views/RegisterView.vue')
     },
     {
       path: '/gm-dashboard',
       name: 'gm-dashboard',
-      component: GMDashboard
+      component: () => import('@/views/GMDashboard.vue')
     },
     {
       path: '/campagnes/rejoindre/:code',
       name: 'join-campaign',
-      component: JoinCampaignView
+      component: () => import('@/views/JoinCampaignView.vue')
     },
     {
       path: '/campagnes/:id(\d+)',
       name: 'campaign',
-      component: CampaignView
+      component: () => import('@/views/CampaignView.vue')
     },
     {
       path: '/character-creator',
       name: 'character-creator',
-      component: CharacterCreator
+      component: () => import('@/views/CharacterCreator.vue')
     },
     {
       path: '/character/:id',
@@ -115,16 +99,16 @@ const router = createRouter({
     {
       path: '/character/:id/edit',
       name: 'character-edit',
-      component: CharacterCreator
+      component: () => import('@/views/CharacterCreator.vue')
     },
     {
       path: '/npc-generator',
       name: 'npc-generator',
-      component: NPCGenerator
+      component: () => import('@/views/NPCGenerator.vue')
     },    {
       path: '/combat-cheat-sheet',
       name: 'combat-cheat-sheet',
-      component: CombatCheatSheetView
+      component: () => import('@/views/CombatCheatSheetView.vue')
     },  
   ],
 })

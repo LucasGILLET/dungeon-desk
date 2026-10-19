@@ -158,17 +158,6 @@ function levelBadgeClass(level: number | string) {
   return palette[normalized] ?? 'border-amber-400/30 bg-amber-400/12'
 }
 
-const activeFilterCount = computed(() => {
-  let count = 0
-  if (q.value.trim()) count += 1
-  if (levelFilter.value !== -1) count += 1
-  if (schoolFilter.value) count += 1
-  if (classFilter.value) count += 1
-  return count
-})
-
-const hasActiveFilters = computed(() => activeFilterCount.value > 0)
-
 const levels = computed(() => {
   const set = new Set<number>()
   for (const s of spells.value) set.add(Number(s.level))

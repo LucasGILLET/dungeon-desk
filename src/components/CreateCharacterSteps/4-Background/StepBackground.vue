@@ -101,7 +101,7 @@
                    <div class="mt-auto">
                       <div class="flex flex-wrap gap-1">
                         <span 
-                          v-for="(skill, idx) in getBackgroundSkills(background).slice(0, 3)" 
+                          v-for="skill in getBackgroundSkills(background).slice(0, 3)" 
                           :key="skill" 
                           class="bg-zinc-800 border border-zinc-700 text-zinc-400 px-1.5 py-0.5 rounded-[4px] text-[10px] font-medium whitespace-nowrap group-hover:border-zinc-600 transition-colors"
                         >

@@ -1,4 +1,3 @@
-import { loadSubraces } from './dataLoader'
 import type { SRDRace } from '@/types/srd'
 
 export function getRaceDescription(race: SRDRace): string {

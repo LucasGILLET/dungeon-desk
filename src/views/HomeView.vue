@@ -4,7 +4,6 @@
       <vue-particles
         id="tsparticles"
         :options="particlesOptions"
-        @particles-loaded="particlesLoaded"
       />
 
     <!-- Hero Section -->
@@ -99,9 +98,6 @@
             <div class="relative px-6 py-8 flex flex-col items-center gap-6 text-center">
               <div class="shrink-0 w-20 h-20 rounded-full bg-yellow-900/30 border border-yellow-500/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-[0_0_15px_rgba(234,179,8,0.3)]">
                 <!-- Icon: Axe -->
-                 <!-- <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-yellow-200">
-                  <path d="m14 12-8.5 8.5a2.12 2.12 0 0 1-3-3L11 9"/><path d="M15 13 9 7l4-4 6 6h3a8 8 0 0 1-7 7z"/>
-                </svg> -->
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-yellow-200">
                   <polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" y1="19" x2="19" y2="13"/><line x1="16" y1="16" x2="20" y2="20"/><line x1="19" y1="21" x2="21" y2="19"/>
                 </svg>
@@ -191,38 +187,6 @@
       </div>
     </div>
 
-    <!-- Features Section (Transparent for particles) -->
-    <!-- <div class="relative bg-transparent overflow-hidden border-t border-white/5 z-10 min-h-screen flex items-center">
-      <div class="absolute inset-0 pointer-events-none"></div>
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 relative z-10 w-full">
-        <div class="text-center mb-16">
-          <h2 class="text-4xl font-bold text-amber-50 mb-4 font-serif">
-            L'Arsenal du Rôliste
-          </h2>
-          <div class="w-24 h-1 bg-linear-to-r from-transparent via-amber-600 to-transparent mx-auto rounded-full mb-6"></div>
-          <p class="text-xl text-zinc-400 max-w-2xl mx-auto">
-            Une suite d'outils arcaniques conçus pour vous aider avant et pendant vos parties.
-          </p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div v-for="(feature, index) in features" :key="index" 
-            class="group relative p-1 rounded-2xl bg-gradient-to-b from-white/5 to-transparent hover:from-amber-500/20 transition-all duration-500">
-            <div class="relative h-full bg-zinc-950 rounded-xl p-8 border border-white/5 hover:border-amber-500/30 transition-colors shadow-lg">
-              <div class="text-4xl mb-6 bg-zinc-900 w-16 h-16 rounded-2xl flex items-center justify-center border border-white/5 group-hover:border-amber-500/30 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.15)] transition-all duration-300">
-                <component :is="feature.icon" class="w-8 h-8 text-zinc-400 group-hover:text-amber-400 transition-colors" />
-              </div>
-              <h3 class="text-xl font-bold text-zinc-100 mb-3 font-serif group-hover:text-amber-200 transition-colors">
-                {{ feature.title }}
-              </h3>
-              <p class="text-zinc-500 leading-relaxed text-sm group-hover:text-zinc-400 transition-colors">
-                {{ feature.description }}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div> -->
 
     <!-- Footer -->
     <footer class="bg-black border-t border-white/10 relative overflow-hidden">
@@ -247,9 +211,6 @@
 import { h } from 'vue'
 
 // Particles Configuration (Golden Threads)
-const particlesLoaded = async (container: any) => {
-  console.log("Particles loaded", container);
-};
 
 const particlesOptions = {
   fullScreen: { enable: true, zIndex: 0 },
@@ -334,11 +295,6 @@ const particlesOptions = {
 }
 
 // Simple Icon Components as functional components
-const IconMap = () => h('svg', { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, [
-  h('polygon', { points: "3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" }),
-  h('line', { x1: "9", y1: "3", x2: "9", y2: "21" }),
-  h('line', { x1: "15", y1: "6", x2: "15", y2: "21" })
-])
 
 const IconSparkles = () => h('svg', { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, [
   h('path', { d: "m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" }),
@@ -348,69 +304,10 @@ const IconSparkles = () => h('svg', { xmlns: "http://www.w3.org/2000/svg", viewB
   h('path', { d: "M20 3l-3 3" }),
 ])
 
-const IconBook = () => h('svg', { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, [
-  h('path', { d: "M4 19.5A2.5 2.5 0 0 1 6.5 17H20" }),
-  h('path', { d: "M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" })
-])
 
-const IconScroll = () => h('svg', { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, [
-  h('path', { d: "M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2Z" }),
-  h('path', { d: "M15 2v4h4" }),
-  h('path', { d: "M8 10h8" }),
-  h('path', { d: "M8 14h8" })
-])
 
-const IconCrystalBall = () => h('svg', { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, [
-  h('circle', { cx: "12", cy: "12", r: "8" }),
-  h('line', { x1: "12", y1: "2", x2: "12", y2: "4" }),
-  h('line', { x1: "12", y1: "20", x2: "12", y2: "22" }),
-  h('line', { x1: "4.93", y1: "4.93", x2: "6.34", y2: "6.34" }),
-  h('line', { x1: "17.66", y1: "17.66", x2: "19.07", y2: "19.07" }),
-  h('line', { x1: "2", y1: "12", x2: "4", y2: "12" }),
-  h('line', { x1: "20", y1: "12", x2: "22", y2: "12" }),
-  h('line', { x1: "4.93", y1: "19.07", x2: "6.34", y2: "17.66" }),
-  h('line', { x1: "17.66", y1: "6.34", x2: "19.07", y2: "4.93" })
-])
 
-const IconSwords = () => h('svg', { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, [
-  h('polyline', { points: "14.5 17.5 3 6 3 3 6 3 17.5 14.5" }),
-  h('line', { x1: "13", y1: "19", x2: "19", y2: "13" }),
-  h('line', { x1: "16", y1: "16", x2: "20", y2: "20" }),
-  h('line', { x1: "19", y1: "21", x2: "21", y2: "19" })
-])
 
-const features = [
-  {
-    icon: IconMap,
-    title: 'Codex de Campagne',
-    description: "Organisez vos mondes avec une précision cartographique. PNJ, lieux et intrigues interconnectés dans une toile vivante."
-  },
-  {
-    icon: IconSparkles,
-    title: 'Forge d\'Âmes',
-    description: "Un créateur de personnage intuitif qui guide vos choix, des origines humbles aux destinées épiques."
-  },
-  {
-    icon: IconBook,
-    title: 'Grimoire de Règles',
-    description: "Accès instantané aux sorts, monstres et règles du SRD 5e. Ne brisez plus l'immersion pour chercher un point de règle."
-  },
-  {
-    icon: IconScroll,
-    title: 'Parchemins Partagés',
-    description: "Invitez vos compagnons. Partagez des aides de jeu secrètes ou publiques en temps réel."
-  },
-  {
-    icon: IconCrystalBall,
-    title: 'Oracles Intelligents',
-    description: "Générateurs procéduraux de butin, de tavernes et de rencontres pour combler les vides de l'improvisation."
-  },
-  {
-    icon: IconSwords,
-    title: 'Gestion de Combat',
-    description: "Suivi d'initiative et de points de vie fluide pour que chaque affrontement reste intense et rapide."
-  }
-]
 </script>
 
 <style scoped>

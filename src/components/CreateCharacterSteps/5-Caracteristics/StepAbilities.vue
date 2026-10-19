@@ -377,15 +377,6 @@ const remainingPoints = computed(() => {
 function getRacialBonus(abilityName: string): number {
   let totalBonus = 0
 
-  const abilityIndexMap: Record<string, string> = {
-    'Force': 'str',
-    'Dextérité': 'dex',
-    'Constitution': 'con',
-    'Intelligence': 'int',
-    'Sagesse': 'wis',
-    'Charisme': 'cha'
-  }
-
   const targetIndex = getAbilityIndex(abilityName)
   if (!targetIndex) return 0
 

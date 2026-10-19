@@ -1,4 +1,4 @@
-import type { SRDBackground, SRDRace } from '@/types/srd'
+import type { SRDBackground } from '@/types/srd'
 
 export function getBackgroundSkills(background: SRDBackground): string[] {
   // Noms traduits par l'API : "Compétence : Religion" → "Religion"

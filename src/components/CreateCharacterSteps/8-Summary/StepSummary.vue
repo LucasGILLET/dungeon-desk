@@ -294,7 +294,6 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import TutorialGuide from '@/components/TutorialGuide.vue'
 import { useTutorial } from '@/composables/useTutorial'
@@ -303,7 +302,7 @@ import { loadTraits } from '@/utils/dataLoader'
 import StepNavigation from '../StepNavigation.vue'
 import ProficiencyBadge from './ProficiencyBadge.vue'
 import type { SRDRace, SRDTrait } from '@/types/srd'
-import type { Character, CharacterProficiency } from '@/types/character'
+import type { Character } from '@/types/character'
 import type { Subrace } from '@/utils/subrace'
 import { usePdfExport } from '@/composables/usePdfExport'
 import type { PDFCharacterData } from '@/types/pdfExport'
@@ -361,7 +360,6 @@ function hasSavingThrow(character: Character, aliases: string[]): boolean {
       ...normalizedProficiencies.tools.map(tool => tool.name),
     ].join(', ')
 
-    console.log('Mapping character to PDF data:', character, "Mapped abilities for PDF:", abilities)
     return {
       name: character.name,
       characterClass: character.class?.name || '',
@@ -459,17 +457,13 @@ const {
 } = useTutorial('summary', tutorialSteps)
 /* --- End Tutorial Logic --- */
 
-const router = useRouter()
 const authStore = useAuthStore()
-const loading = ref(false)
 
 type CharacterTrait = {
   index: string
   name: string
   desc?: string[]
 }
-
-type CharacterProficienciesMap = Record<string, CharacterProficiency[]>
 
 const srdTraits = ref<SRDTrait[]>([])
 

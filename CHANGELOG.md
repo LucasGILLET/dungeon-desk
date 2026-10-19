@@ -9,6 +9,35 @@ et ce projet suit le [Semantic Versioning](https://semver.org/lang/fr/).
 > de l'historique Git (aucun tag n'existait avant juillet 2026) afin de
 > documenter l'évolution du projet pour le dossier de certification.
 
+## [Non publié]
+
+Données de jeu lues depuis l'API (branche `feat/srd-database`).
+
+### Ajouté
+- Bestiaire et objets magiques (listes filtrables, fiches complètes).
+- Règles du SRD (`/regles`), documentation et aide-mémoire de combat lus
+  depuis la base, rendu Markdown nettoyé par DOMPurify.
+- Fiche de personnage dédiée : montée de niveau, inventaire, sorts,
+  compteurs de ressources ; lecture seule pour le MJ d'une campagne.
+- Tableau de bord MJ et pages de campagne (séances, quêtes, PNJ,
+  rencontres), invitation des joueurs par lien.
+- Profil : onglet Campagnes, détail et notes des PNJ, suppression des
+  personnages, recherche.
+- `.env.example`.
+
+### Modifié
+- Créateur de personnage piloté par l'API (choix, aperçu calculé par le
+  back).
+- Pages chargées à la demande : le fichier JS principal passe de 1,76 Mo à
+  0,95 Mo.
+- Le bouton « Générer » du générateur de PNJ attend le chargement des
+  tables (il ne faisait rien si on cliquait trop tôt).
+
+### Supprimé
+- `public/data` (8 Mo de JSON du SRD), données et descriptions codées en
+  dur, `stores/app.ts`, code et dépendances inutilisés
+  (`express-oauth2-jwt-bearer`, `three`, `@types/three`).
+
 ## [1.0.0] - 2026-07-07
 
 Version de référence pour la certification RNCP39583 : accessibilité du
