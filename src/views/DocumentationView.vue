@@ -15,13 +15,15 @@ const sections = ref<ApiGuideSummary[]>([])
 const page = ref<ApiGuidePage | null>(null)
 const error = ref<string | null>(null)
 
+// Une page non publiée s'ouvre quand même par son lien : c'est l'aperçu de Directus
 const currentSectionKey = computed(() => {
   const wanted = String(route.query.section ?? '')
-  return sections.value.find((s) => s.index === wanted)?.index ?? sections.value[0]?.index ?? null
+  return wanted && !OWN_PAGES.has(wanted) ? wanted : sections.value[0]?.index ?? null
 })
 
 watch(currentSectionKey, async (key) => {
   if (!key) return
+  if (page.value?.index === key) return
   try {
     page.value = await loadGuide(key)
     error.value = null
@@ -32,7 +34,7 @@ watch(currentSectionKey, async (key) => {
   const el = document.getElementById('documentation-content')
   if (el && typeof el.scrollTo === 'function') el.scrollTo({ top: 0, behavior: 'smooth' })
   else window.scrollTo({ top: 0, behavior: 'smooth' })
-})
+}, { immediate: true })
 
 function selectSection(key: string) {
   router.replace({ query: { ...route.query, section: key } })
@@ -101,7 +103,12 @@ onMounted(async () => {
 
         <main id="documentation-content" class="space-y-6 lg:col-start-2">
           <p v-if="error" class="text-red-300">{{ error }}</p>
-          <GuidePageContent v-else-if="page" :page="page" />
+          <template v-else-if="page">
+            <p v-if="!page.published" class="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+              Brouillon : cette page n'est pas publiée, seuls ceux qui ont le lien la voient.
+            </p>
+            <GuidePageContent :page="page" />
+          </template>
           <p v-else class="text-zinc-400">Chargement…</p>
         </main>
       </div>
