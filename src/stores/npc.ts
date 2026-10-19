@@ -5,8 +5,10 @@ import { useMutation, useQueryClient } from '@tanstack/vue-query';
 import {
     getNpcs,
     getGetNpcsQueryKey,
+    updateNpc as updateNpcRequest,
     usePostNpcs,
 } from '@/api/generated/endpoints';
+import type { NpcInput } from '@/api/generated/model/npcInput';
 import { authenticatedFetch, buildApiUrl } from '@/utils/api';
 
 export const useNpcStore = defineStore('npc', () => {
@@ -103,5 +105,15 @@ export const useNpcStore = defineStore('npc', () => {
         }
     };
 
-    return { npcs, loading, error, fetchNpcs, saveNpc, deleteNpc };
+    // Modification d'un PNJ enregistré (notes du MJ…) : l'API attend le PNJ complet
+    const updateNpc = async (npc: any, changes: Partial<NpcInput>) => {
+        const { id, names: _names, createdAt: _c, updatedAt: _u, ...input } = npc;
+        // Erreur de l'API : levée par customFetch
+        const response = await updateNpcRequest(String(id), { ...input, ...changes } as NpcInput);
+        upsertNpc(response.data);
+        await queryClient.invalidateQueries({ queryKey: getGetNpcsQueryKey() });
+        return response.data;
+    };
+
+    return { npcs, loading, error, fetchNpcs, saveNpc, deleteNpc, updateNpc };
 });

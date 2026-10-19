@@ -17,6 +17,8 @@ export interface CampaignSummary {
   gm: string
   memberCount: number
   sessionCount: number
+  // Personnage joué par l'utilisateur (joueur seulement)
+  myCharacter: { id: number; name: string } | null
   updatedAt: string
 }
 

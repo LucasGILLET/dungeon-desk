@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { useQueryClient } from '@tanstack/vue-query';
 import {
+    deleteCharacter as deleteCharacterRequest,
     getCharacter,
     getCharacters,
     getGetCharactersQueryKey,
@@ -131,5 +132,12 @@ export const useCharacterStore = defineStore('character', () => {
         return saved;
     };
 
-    return { characters, loading, error, fetchCharacters, fetchCharacter, saveCharacter, updateCharacter, saveInput };
+    // Suppression définitive ; le personnage quitte aussi les campagnes où il jouait
+    const deleteCharacter = async (id: number) => {
+        await deleteCharacterRequest(String(id));
+        characters.value = characters.value.filter((c) => c.id !== id);
+        await queryClient.invalidateQueries({ queryKey: getGetCharactersQueryKey() });
+    };
+
+    return { characters, loading, error, fetchCharacters, fetchCharacter, saveCharacter, updateCharacter, saveInput, deleteCharacter };
 });
