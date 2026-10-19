@@ -58,6 +58,10 @@ export interface PreviewChoice {
 
 export interface CharacterSheetValues {
   level: number;
+  // Capacités et traits accordés par une option choisie (index) : « Tueur de colosses »
+  grantedFeatures?: string[];
+  grantedTraits?: string[];
+  grantedTraitDetails?: { index: string; name: string; description: string }[];
   proficiencyBonus: number;
   maxHitPoints: number;
   abilityScores: Record<string, { base: number; bonus: number; total: number; modifier: number }>;

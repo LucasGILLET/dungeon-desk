@@ -19,7 +19,7 @@ vi.mock('@/utils/dataLoader', () => ({
 async function mountAt(query: Record<string, string>) {
   const router = createRouter({
     history: createMemoryHistory(),
-    routes: [{ path: '/documentation', component: DocumentationView }, { path: '/regles', name: 'rules', component: { template: '<div />' } }],
+    routes: [{ path: '/documentation', component: DocumentationView }, { path: '/rules', name: 'rules', component: { template: '<div />' } }],
   })
   router.push({ path: '/documentation', query })
   await router.isReady()

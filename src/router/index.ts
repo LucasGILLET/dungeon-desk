@@ -32,30 +32,36 @@ const router = createRouter({
       component: () => import('@/views/SortView.vue')
     },
     {
-      path: '/bestiaire',
+      path: '/bestiary',
       name: 'bestiary',
       component: () => import('@/views/BestiaryView.vue')
     },
     {
-      path: '/bestiaire/:index',
+      path: '/bestiary/:index',
       name: 'monster-view',
       component: () => import('@/views/MonsterView.vue')
     },
     {
-      path: '/objets-magiques',
+      path: '/magic-items',
       name: 'magic-items',
       component: () => import('@/views/MagicItemsView.vue')
     },
     {
-      path: '/objets-magiques/:index',
+      path: '/magic-items/:index',
       name: 'magic-item-view',
       component: () => import('@/views/MagicItemView.vue')
     },
     {
-      path: '/regles',
+      path: '/rules',
       name: 'rules',
       component: () => import('@/views/RulesView.vue')
     },
+    // Anciennes adresses en français, gardées pour les liens déjà partagés
+    { path: '/bestiaire/:index?', redirect: (to) => (to.params.index ? `/bestiary/${to.params.index}` : '/bestiary') },
+    { path: '/objets-magiques/:index?', redirect: (to) => (to.params.index ? `/magic-items/${to.params.index}` : '/magic-items') },
+    { path: '/regles', redirect: (to) => ({ path: '/rules', query: to.query }) },
+    { path: '/campagnes/rejoindre/:code', redirect: (to) => `/campaigns/join/${to.params.code}` },
+    { path: '/campagnes/:id', redirect: (to) => ({ path: `/campaigns/${to.params.id}`, query: to.query }) },
     {
       path: '/documentation',
       name: 'documentation',
@@ -77,12 +83,13 @@ const router = createRouter({
       component: () => import('@/views/GMDashboard.vue')
     },
     {
-      path: '/campagnes/rejoindre/:code',
+      path: '/campaigns/join/:code',
       name: 'join-campaign',
       component: () => import('@/views/JoinCampaignView.vue')
     },
     {
-      path: '/campagnes/:id(\d+)',
+      // \\d dans la chaîne : « \d » seul y deviendrait « d » (aucun id ne correspondrait)
+      path: '/campaigns/:id(\\d+)',
       name: 'campaign',
       component: () => import('@/views/CampaignView.vue')
     },

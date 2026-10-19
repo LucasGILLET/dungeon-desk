@@ -158,7 +158,7 @@ export const campaignsApi = {
 }
 
 // Lien d'invitation à partager
-export const inviteUrl = (code: string) => `${window.location.origin}/campagnes/rejoindre/${code}`
+export const inviteUrl = (code: string) => `${window.location.origin}/campaigns/join/${code}`
 
 export const CAMPAIGN_STATUS_LABELS: Record<CampaignStatus, string> = {
   PREPARATION: 'En préparation', ACTIVE: 'En cours', PAUSED: 'En pause', FINISHED: 'Terminée',

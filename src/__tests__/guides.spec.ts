@@ -53,7 +53,7 @@ describe('CombatCheatSheetView', () => {
   })
 
   it('shows the tiles from the guide and opens a detail section from a card', async () => {
-    const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/', component: CombatCheatSheetView }, { path: '/regles', name: 'rules', component: { template: '<div />' } }] })
+    const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/', component: CombatCheatSheetView }, { path: '/rules', name: 'rules', component: { template: '<div />' } }] })
     router.push('/')
     await router.isReady()
     const wrapper = mount(CombatCheatSheetView, { global: { plugins: [router] } })

@@ -24,7 +24,7 @@ export const desktopNavigationGroups: NavigationGroup[] = [
       },
       {
         label: 'Règles du SRD',
-        to: '/regles'
+        to: '/rules'
       }
     ]
   },
@@ -58,11 +58,11 @@ export const desktopNavigationGroups: NavigationGroup[] = [
       },
       {
         label: 'Bestiaire',
-        to: '/bestiaire'
+        to: '/bestiary'
       },
       {
         label: 'Objets magiques',
-        to: '/objets-magiques'
+        to: '/magic-items'
       }
     ]
   }
@@ -75,7 +75,7 @@ export const mobileNavigationLinks: NavigationLink[] = [
   },
   {
     label: 'Règles du SRD',
-    to: '/regles'
+    to: '/rules'
   },
   {
     label: 'Création de PJ',
@@ -99,10 +99,10 @@ export const mobileNavigationLinks: NavigationLink[] = [
   },
   {
     label: 'Bestiaire',
-    to: '/bestiaire'
+    to: '/bestiary'
   },
   {
     label: 'Objets magiques',
-    to: '/objets-magiques'
+    to: '/magic-items'
   }
 ]

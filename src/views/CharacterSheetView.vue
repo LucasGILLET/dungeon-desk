@@ -46,7 +46,8 @@
       </div>
 
       <!-- Lecture seule (MJ) : tous les boutons et champs de la fiche désactivés -->
-      <fieldset :disabled="readOnly" class="contents">
+      <!-- Un fieldset en display: contents perd l'espacement (space-y) du parent : il porte le sien -->
+      <fieldset :disabled="readOnly" class="m-0 min-w-0 space-y-6 border-0 p-0">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Colonne 1 : caractéristiques, sauvegardes, compétences -->
         <div class="space-y-6">
@@ -450,16 +451,26 @@ const speed = computed(() => (speedFeet.value != null ? feetToMeters(speedFeet.v
 
 const features = computed(() => {
   const list: { key: string; name: string; description: string; source: string }[] = []
+  // Options choisies (« Tueur de colosses » sous « Proie du chasseur ») : les sous-capacités
+  // ne s'affichent que si le personnage les a prises
+  const granted = new Set(saved.value?.sheet?.grantedFeatures ?? [])
   for (const c of input.value?.classes ?? []) {
     const cls = classes.value.find((k) => k.index === c.class)
     if (!cls) continue
     const level = c.levels.length
     for (const f of cls.features) {
-      if (f.parent || f.level > level || (f.subclass && f.subclass !== c.subclass)) continue
-      list.push({ key: `${cls.index}-${f.index}`, name: f.name, description: f.description, source: `${cls.name} ${f.level}` })
+      const chosen = granted.has(f.index)
+      if (!chosen && (f.parent || f.level > level || (f.subclass && f.subclass !== c.subclass))) continue
+      const parent = f.parent ? cls.features.find((p) => p.index === f.parent) : null
+      list.push({ key: `${cls.index}-${f.index}`, name: f.name, description: f.description, source: parent ? `${cls.name} ${f.level} · ${parent.name}` : `${cls.name} ${f.level}` })
     }
   }
-  return [...list, ...raceTraits.value, ...(backgroundFeature.value ? [backgroundFeature.value] : [])]
+  const raceKeys = new Set(raceTraits.value.map((t) => t.key))
+  // Traits accordés par un choix (ascendance draconique), décrits par l'API
+  const grantedTraits = (saved.value?.sheet?.grantedTraitDetails ?? [])
+    .filter((t) => !raceKeys.has(`trait-${t.index}`))
+    .map((t) => ({ key: `trait-${t.index}`, name: t.name, description: t.description, source: 'Choix racial' }))
+  return [...list, ...raceTraits.value, ...grantedTraits, ...(backgroundFeature.value ? [backgroundFeature.value] : [])]
 })
 
 const alwaysPrepared = computed(() => (input.value?.classes ?? []).flatMap((c) => {

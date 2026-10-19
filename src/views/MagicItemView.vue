@@ -19,14 +19,7 @@
               <span v-if="item.requiresAttunement" class="rounded-full border border-fuchsia-400/30 bg-fuchsia-400/10 px-3 py-1 text-fuchsia-200">Nécessite un lien</span>
             </div>
           </div>
-          <img
-            v-if="item.imageUrl && showImage"
-            :src="item.imageUrl"
-            :alt="item.name"
-            loading="lazy"
-            class="h-32 w-32 shrink-0 rounded-2xl border border-white/10 bg-zinc-900 object-contain"
-            @error="showImage = false"
-          />
+          <LoadingImage v-if="item.imageUrl" :src="item.imageUrl" :alt="item.name" size-class="h-32 w-32" />
         </header>
 
         <section class="mt-6 text-zinc-300">
@@ -57,6 +50,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import LoadingImage from '@/components/LoadingImage.vue'
 import RichText from '@/components/RichText.vue'
 import { loadMagicItem, type ApiMagicItem } from '@/utils/dataLoader'
 import { RARITY_CLASSES, RARITY_LABELS } from '@/utils/monsterFormat'
@@ -66,7 +60,6 @@ const router = useRouter()
 const item = ref<ApiMagicItem | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
-const showImage = ref(true)
 
 function goBack() {
   if (window.history.state?.back) router.back()
@@ -78,7 +71,6 @@ watch(() => route.params.index, async (index) => {
   if (!index) return
   loading.value = true
   error.value = null
-  showImage.value = true
   try {
     item.value = await loadMagicItem(String(index))
   } catch {

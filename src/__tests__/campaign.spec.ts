@@ -29,12 +29,12 @@ async function mountAs(role: 'GM' | 'PLAYER', tab?: string) {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
-      { path: '/campagnes/:id', name: 'campaign', component: CampaignView },
+      { path: '/campaigns/:id', name: 'campaign', component: CampaignView },
       { path: '/gm', name: 'gm-dashboard', component: { template: '<div />' } },
       { path: '/npc', name: 'npc-generator', component: { template: '<div />' } },
     ],
   })
-  router.push({ path: '/campagnes/5', query: tab ? { tab } : {} })
+  router.push({ path: '/campaigns/5', query: tab ? { tab } : {} })
   await router.isReady()
   const wrapper = mount(CampaignView, { global: { plugins: [router] } })
   await flushPromises()
@@ -49,7 +49,7 @@ describe('CampaignView', () => {
     const tabs = wrapper.findAll('nav button').map((b) => b.text().replace(/\d+$/, ''))
     expect(tabs).toEqual(['Présentation', 'Séances', 'Quêtes', 'PNJ', 'Rencontres'])
     expect(wrapper.text()).toContain('Vous êtes le MJ')
-    expect((wrapper.find('input[aria-label="Lien d\'invitation"]').element as HTMLInputElement).value).toContain('/campagnes/rejoindre/abc123')
+    expect((wrapper.find('input[aria-label="Lien d\'invitation"]').element as HTMLInputElement).value).toContain('/campaigns/join/abc123')
   })
 
   it('hides NPCs, encounters and GM notes from a player', async () => {

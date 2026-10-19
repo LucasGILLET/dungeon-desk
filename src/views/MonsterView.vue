@@ -14,14 +14,7 @@
             <h1 class="text-4xl font-bold text-amber-300">{{ monster.name }}</h1>
             <p class="mt-1 italic text-zinc-400">{{ formatTypeLine(monster) }}</p>
           </div>
-          <img
-            v-if="monster.imageUrl && showImage"
-            :src="monster.imageUrl"
-            :alt="monster.name"
-            loading="lazy"
-            class="h-40 w-40 shrink-0 rounded-2xl border border-white/10 bg-zinc-900 object-contain"
-            @error="showImage = false"
-          />
+          <LoadingImage v-if="monster.imageUrl" :src="monster.imageUrl" :alt="monster.name" size-class="h-40 w-40" />
         </header>
 
         <hr class="my-5 border-red-400/30" />
@@ -82,6 +75,7 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import MonsterActionBlock from '@/components/bestiary/MonsterActionBlock.vue'
+import LoadingImage from '@/components/LoadingImage.vue'
 import RichText from '@/components/RichText.vue'
 import { loadMonster, type ApiMonster } from '@/utils/dataLoader'
 import {
@@ -93,7 +87,6 @@ const router = useRouter()
 const monster = ref<ApiMonster | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
-const showImage = ref(true)
 
 const abilities = [
   { key: 'str', label: 'For' }, { key: 'dex', label: 'Dex' }, { key: 'con', label: 'Con' },
@@ -145,7 +138,6 @@ watch(() => route.params.index, async (index) => {
   if (!index) return
   loading.value = true
   error.value = null
-  showImage.value = true
   try {
     monster.value = await loadMonster(String(index))
   } catch {

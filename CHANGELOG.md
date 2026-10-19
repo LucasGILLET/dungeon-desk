@@ -15,7 +15,7 @@ Données de jeu lues depuis l'API (branche `feat/srd-database`).
 
 ### Ajouté
 - Bestiaire et objets magiques (listes filtrables, fiches complètes).
-- Règles du SRD (`/regles`), documentation et aide-mémoire de combat lus
+- Règles du SRD (`/rules`), documentation et aide-mémoire de combat lus
   depuis la base, rendu Markdown nettoyé par DOMPurify.
 - Fiche de personnage dédiée : montée de niveau, inventaire, sorts,
   compteurs de ressources ; lecture seule pour le MJ d'une campagne.

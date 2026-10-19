@@ -39,7 +39,7 @@ async function mountAt(query: Record<string, string> = {}) {
     routes: [
       { path: '/profile', component: ProfileView },
       { path: '/character/:id', component: stub },
-      { path: '/campagnes/:id', name: 'campaign', component: stub },
+      { path: '/campaigns/:id', name: 'campaign', component: stub },
       { path: '/gm', name: 'gm-dashboard', component: stub },
       { path: '/character-creator', component: stub },
       { path: '/npc-generator', component: stub },
