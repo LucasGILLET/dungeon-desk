@@ -60,7 +60,7 @@ export interface Encounter {
   description: string | null
   status: 'PLANNED' | 'DONE'
   sessionId: number | null
-  monsters: { index: string; name: string; count: number; xp: number; challengeRating: number }[]
+  monsters: { index: string; name: string; count: number; xp: number; challengeRating: number; homebrew?: boolean }[]
   evaluation: {
     totalXp: number
     adjustedXp: number

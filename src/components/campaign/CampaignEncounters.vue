@@ -42,7 +42,8 @@
           <ul v-if="matches.length" class="absolute z-10 mt-1 max-h-64 w-full overflow-y-auto rounded-xl border border-white/10 bg-zinc-900 shadow-xl">
             <li v-for="m in matches" :key="m.index">
               <button type="button" class="flex w-full justify-between px-3 py-2 text-left text-sm hover:bg-white/10" @click="addMonster(m.index)">
-                <span>{{ m.name }}</span><span class="text-zinc-500">FP {{ formatChallenge(m.challengeRating) }}</span>
+                <span>{{ m.name }}<span v-if="m.source === 'HOMEBREW'" class="ml-2 text-xs text-violet-300">maison</span></span>
+                <span class="text-zinc-500">FP {{ formatChallenge(m.challengeRating) }}</span>
               </button>
             </li>
           </ul>
@@ -72,7 +73,7 @@
       </header>
       <ul class="mt-3 flex flex-wrap gap-2 text-sm">
         <li v-for="m in e.monsters" :key="m.index">
-          <router-link :to="{ name: 'monster-view', params: { index: m.index } }" class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-zinc-200 hover:border-amber-500/40">
+          <router-link :to="{ name: m.homebrew ? 'homebrew-monster' : 'monster-view', params: { index: m.index } }" class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-zinc-200 hover:border-amber-500/40">
             {{ m.count }} × {{ m.name }} <span class="text-zinc-500">(FP {{ formatChallenge(m.challengeRating) }})</span>
           </router-link>
         </li>
@@ -95,6 +96,7 @@ import MarkdownText from '@/components/MarkdownText.vue'
 import FormActions from '@/components/campaign/FormActions.vue'
 import { useCampaignItemForm } from '@/composables/useCampaignItemForm'
 import { ENCOUNTER_DIFFICULTY_LABELS, type Campaign, type Encounter, type EncounterDifficulty } from '@/api/campaigns'
+import { monstersApi } from '@/api/monsters'
 import { loadMonsters, type ApiMonsterSummary } from '@/utils/dataLoader'
 import { formatChallenge } from '@/utils/monsterFormat'
 
@@ -145,6 +147,8 @@ const save = () => submit({
 })
 
 onMounted(async () => {
-  monsters.value = await loadMonsters()
+  // Monstres maison du MJ d'abord, puis le bestiaire du SRD
+  const [mine, srd] = await Promise.all([monstersApi.list().catch(() => []), loadMonsters()])
+  monsters.value = [...mine, ...srd]
 })
 </script>

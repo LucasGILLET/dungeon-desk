@@ -6,9 +6,14 @@
     </div>
 
     <div class="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-      <header class="mb-8">
-        <h1 class="text-4xl font-bold tracking-tight text-amber-100 sm:text-5xl">Bestiaire</h1>
-        <p class="mt-2 text-zinc-400">{{ monsters.length }} créatures du SRD 5.1</p>
+      <header class="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 class="text-4xl font-bold tracking-tight text-amber-100 sm:text-5xl">Bestiaire</h1>
+          <p class="mt-2 text-zinc-400">
+            {{ srdCount }} créatures du SRD 5.1<template v-if="mine.length"> · {{ mine.length }} monstre{{ mine.length > 1 ? 's' : '' }} maison</template>
+          </p>
+        </div>
+        <router-link v-if="authStore.isAuthenticated" :to="{ name: 'homebrew-monster-new' }" class="ui-btn-primary">Créer un monstre</router-link>
       </header>
 
       <section class="mb-8 rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-md sm:p-6">
@@ -55,6 +60,14 @@
               <option value="cr">facteur de puissance</option>
             </select>
           </label>
+          <label v-if="mine.length" class="flex items-center gap-2">
+            Source
+            <select v-model="sourceFilter" class="rounded-xl border border-white/10 bg-zinc-950/70 px-3 py-1.5 text-zinc-100">
+              <option value="">tous</option>
+              <option value="srd">SRD</option>
+              <option value="mine">mes monstres</option>
+            </select>
+          </label>
           <button v-if="hasFilters" type="button" class="ml-auto text-zinc-400 hover:text-amber-200" @click="resetFilters">Réinitialiser les filtres</button>
         </div>
       </section>
@@ -71,7 +84,7 @@
           <router-link
             v-for="m in paginated"
             :key="m.index"
-            :to="{ name: 'monster-view', params: { index: m.index } }"
+            :to="{ name: m.source === 'HOMEBREW' ? 'homebrew-monster' : 'monster-view', params: { index: m.index } }"
             class="group rounded-3xl border border-white/10 bg-white/[0.03] p-5 transition-all duration-200 hover:-translate-y-1 hover:border-amber-500/40 hover:bg-white/[0.05]"
           >
             <div class="flex items-start justify-between gap-4">
@@ -88,6 +101,7 @@
               <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1">CA {{ m.armorClass }}</span>
               <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1">PV {{ m.hitPoints }}</span>
               <span v-if="m.legendary" class="rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-amber-200">Légendaire</span>
+              <span v-if="m.source === 'HOMEBREW'" class="rounded-full border border-violet-400/30 bg-violet-400/10 px-3 py-1 text-violet-200">Maison</span>
             </div>
           </router-link>
         </section>
@@ -112,6 +126,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { monstersApi } from '@/api/monsters'
+import { useAuthStore } from '@/stores/auth'
 import { loadMonsters, type ApiMonsterSummary, type Size } from '@/utils/dataLoader'
 import { formatChallenge, formatTypeLine, SIZE_LABELS, SIZES } from '@/utils/monsterFormat'
 
@@ -121,7 +137,12 @@ const PAGE_SIZE = 24
 
 const route = useRoute()
 const router = useRouter()
-const monsters = ref<ApiMonsterSummary[]>([])
+const authStore = useAuthStore()
+const srd = ref<ApiMonsterSummary[]>([])
+// Monstres maison de l'utilisateur connecté, en tête de liste
+const mine = ref<ApiMonsterSummary[]>([])
+const monsters = computed(() => [...mine.value, ...srd.value])
+const srdCount = computed(() => srd.value.length)
 const loading = ref(true)
 const error = ref<string | null>(null)
 
@@ -132,6 +153,7 @@ const sizeFilter = ref<Size | ''>('')
 const crMin = ref(0)
 const crMax = ref(30)
 const legendaryOnly = ref(false)
+const sourceFilter = ref<'' | 'srd' | 'mine'>('')
 const sortBy = ref<'name' | 'cr'>('name')
 const page = ref(1)
 
@@ -149,13 +171,14 @@ const filtered = computed(() => {
       && (!typeFilter.value || m.type.index === typeFilter.value)
       && (!sizeFilter.value || m.size === sizeFilter.value)
       && m.challengeRating >= crMin.value && m.challengeRating <= crMax.value
-      && (!legendaryOnly.value || m.legendary))
+      && (!legendaryOnly.value || m.legendary)
+      && (!sourceFilter.value || (sourceFilter.value === 'mine') === (m.source === 'HOMEBREW')))
     .sort((a, b) => (sortBy.value === 'cr' ? a.challengeRating - b.challengeRating : 0) || a.name.localeCompare(b.name))
 })
 const totalPages = computed(() => Math.max(1, Math.ceil(filtered.value.length / PAGE_SIZE)))
 const paginated = computed(() => filtered.value.slice((page.value - 1) * PAGE_SIZE, page.value * PAGE_SIZE))
 const maxChallenge = computed(() => challenges.value.at(-1) ?? 30)
-const hasFilters = computed(() => !!(q.value || typeFilter.value || sizeFilter.value || legendaryOnly.value || crMin.value > 0 || crMax.value < maxChallenge.value))
+const hasFilters = computed(() => !!(q.value || sourceFilter.value || typeFilter.value || sizeFilter.value || legendaryOnly.value || crMin.value > 0 || crMax.value < maxChallenge.value))
 
 function resetFilters() {
   q.value = ''
@@ -164,10 +187,11 @@ function resetFilters() {
   crMin.value = 0
   crMax.value = maxChallenge.value
   legendaryOnly.value = false
+  sourceFilter.value = ''
 }
 
-watch([q, typeFilter, sizeFilter, crMin, crMax, legendaryOnly, sortBy], () => { page.value = 1 })
-watch([q, typeFilter, sizeFilter, crMin, crMax, legendaryOnly, sortBy, page], () => {
+watch([q, typeFilter, sizeFilter, crMin, crMax, legendaryOnly, sourceFilter, sortBy], () => { page.value = 1 })
+watch([q, typeFilter, sizeFilter, crMin, crMax, legendaryOnly, sourceFilter, sortBy, page], () => {
   const query: Record<string, string> = {}
   if (q.value.trim()) query.q = q.value.trim()
   if (typeFilter.value) query.type = typeFilter.value
@@ -175,6 +199,7 @@ watch([q, typeFilter, sizeFilter, crMin, crMax, legendaryOnly, sortBy, page], ()
   if (crMin.value > 0) query.crMin = String(crMin.value)
   if (crMax.value < maxChallenge.value) query.crMax = String(crMax.value)
   if (legendaryOnly.value) query.legendary = '1'
+  if (sourceFilter.value) query.source = sourceFilter.value
   if (sortBy.value !== 'name') query.sort = sortBy.value
   if (page.value > 1) query.page = String(page.value)
   router.replace({ name: 'bestiary', query }).catch(() => {})
@@ -182,7 +207,13 @@ watch([q, typeFilter, sizeFilter, crMin, crMax, legendaryOnly, sortBy, page], ()
 
 onMounted(async () => {
   try {
-    monsters.value = await loadMonsters()
+    // Sans connexion (ou en cas d'erreur), le bestiaire du SRD seul
+    const [srdRows, mineRows] = await Promise.all([
+      loadMonsters(),
+      authStore.isAuthenticated ? monstersApi.list().catch(() => []) : Promise.resolve([]),
+    ])
+    srd.value = srdRows
+    mine.value = mineRows
     const qry = route.query
     q.value = qry.q ? String(qry.q) : ''
     typeFilter.value = qry.type ? String(qry.type) : ''
@@ -190,6 +221,7 @@ onMounted(async () => {
     crMin.value = qry.crMin ? Number(qry.crMin) : 0
     crMax.value = qry.crMax ? Number(qry.crMax) : maxChallenge.value
     legendaryOnly.value = qry.legendary === '1'
+    sourceFilter.value = qry.source === 'mine' || qry.source === 'srd' ? qry.source : ''
     sortBy.value = qry.sort === 'cr' ? 'cr' : 'name'
     // Après le watcher qui remet la page à 1 quand un filtre change
     const wanted = Math.max(1, Number(qry.page) || 1)

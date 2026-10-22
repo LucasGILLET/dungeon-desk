@@ -13,6 +13,16 @@
           <div class="min-w-0">
             <h1 class="text-4xl font-bold text-amber-300">{{ monster.name }}</h1>
             <p class="mt-1 italic text-zinc-400">{{ formatTypeLine(monster) }}</p>
+            <!-- Monstre maison : modifier, supprimer ; monstre du SRD : en faire une copie à adapter -->
+            <div v-if="homebrew" class="mt-3 flex flex-wrap items-center gap-2">
+              <span class="rounded-full border border-violet-400/30 bg-violet-400/10 px-3 py-1 text-xs text-violet-200">Monstre maison</span>
+              <router-link :to="{ name: 'homebrew-monster-edit', params: { index: monster.index } }" class="ui-btn">Modifier</router-link>
+              <button type="button" class="ui-btn-danger" :disabled="deleting" @click="removeMonster">Supprimer</button>
+            </div>
+            <router-link v-else-if="authStore.isAuthenticated" :to="{ name: 'homebrew-monster-new', query: { from: monster.index } }" class="ui-btn mt-3 inline-block">
+              Copier dans mes monstres
+            </router-link>
+            <p v-if="deleteError" class="mt-2 text-sm text-red-300">{{ deleteError }}</p>
           </div>
           <LoadingImage v-if="monster.imageUrl" :src="monster.imageUrl" :alt="monster.name" size-class="h-40 w-40" />
         </header>
@@ -77,6 +87,8 @@ import { useRoute, useRouter } from 'vue-router'
 import MonsterActionBlock from '@/components/bestiary/MonsterActionBlock.vue'
 import LoadingImage from '@/components/LoadingImage.vue'
 import RichText from '@/components/RichText.vue'
+import { MonsterApiError, monstersApi } from '@/api/monsters'
+import { useAuthStore } from '@/stores/auth'
 import { loadMonster, type ApiMonster } from '@/utils/dataLoader'
 import {
   abilityModifier, formatArmorClass, formatChallengeLine, formatDamageModifiers, formatHitPoints, formatSenses, formatSpeeds, formatTypeLine, meters, signed,
@@ -84,7 +96,12 @@ import {
 
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
+// /my-monsters/:index : monstre maison de l'utilisateur, sinon bestiaire du SRD
+const homebrew = computed(() => route.name === 'homebrew-monster')
 const monster = ref<ApiMonster | null>(null)
+const deleting = ref(false)
+const deleteError = ref<string | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
 
@@ -128,6 +145,22 @@ const actionGroups = computed(() => {
   ].filter((g) => g.actions.length)
 })
 
+async function removeMonster() {
+  if (!monster.value || !window.confirm(`Supprimer définitivement « ${monster.value.name} » ?`)) return
+  deleting.value = true
+  deleteError.value = null
+  try {
+    await monstersApi.remove(monster.value.index)
+    router.push({ name: 'bestiary', query: { source: 'mine' } })
+  } catch (e) {
+    deleteError.value = e instanceof MonsterApiError && e.status === 409
+      ? "Ce monstre est utilisé dans une rencontre : retirez-le d'abord de la rencontre."
+      : 'Suppression impossible.'
+  } finally {
+    deleting.value = false
+  }
+}
+
 function goBack() {
   if (window.history.state?.back) router.back()
   else router.push({ name: 'bestiary' })
@@ -139,7 +172,7 @@ watch(() => route.params.index, async (index) => {
   loading.value = true
   error.value = null
   try {
-    monster.value = await loadMonster(String(index))
+    monster.value = homebrew.value ? await monstersApi.get(String(index)) : await loadMonster(String(index))
   } catch {
     monster.value = null
     error.value = 'Créature introuvable.'

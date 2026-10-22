@@ -41,6 +41,22 @@ const router = createRouter({
       name: 'monster-view',
       component: () => import('@/views/MonsterView.vue')
     },
+    // Monstres maison (connecté) : fiche, création (copie d'un monstre du SRD avec ?from=), modification
+    {
+      path: '/my-monsters/new',
+      name: 'homebrew-monster-new',
+      component: () => import('@/views/MonsterFormView.vue')
+    },
+    {
+      path: '/my-monsters/:index',
+      name: 'homebrew-monster',
+      component: () => import('@/views/MonsterView.vue')
+    },
+    {
+      path: '/my-monsters/:index/edit',
+      name: 'homebrew-monster-edit',
+      component: () => import('@/views/MonsterFormView.vue')
+    },
     {
       path: '/magic-items',
       name: 'magic-items',
