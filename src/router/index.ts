@@ -116,6 +116,12 @@ const router = createRouter({
       component: () => import('@/views/CombatTrackerView.vue')
     },
     {
+      // Fiche de personnage partagée par son propriétaire (sans connexion)
+      path: '/shared/:code',
+      name: 'shared-character',
+      component: () => import('@/views/SharedCharacterView.vue')
+    },
+    {
       // Vue des joueurs d'un combat (lien partagé par le MJ, sans connexion)
       path: '/combat/:code',
       name: 'combat-view',

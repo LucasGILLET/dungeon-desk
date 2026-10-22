@@ -44,6 +44,14 @@ vi.mock('@/utils/dataLoader', () => ({
   })),
   loadMagicItem: vi.fn(),
 }))
+vi.mock('@/stores/auth', () => ({ useAuthStore: () => ({ isAuthenticated: true, login: vi.fn() }) }))
+const { mockShared, mockCopy } = vi.hoisted(() => ({ mockShared: vi.fn(), mockCopy: vi.fn() }))
+vi.mock('@/api/characterShare', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/api/characterShare')>()),
+  fetchSharedCharacter: mockShared,
+  copySharedCharacter: mockCopy,
+  shareCharacter: vi.fn(async () => ({ shareCode: 'abc123' })),
+}))
 vi.mock('@/utils/subclasses', () => ({
   loadSubclassesForClass: vi.fn(async () => [{ id: 'champion', index: 'champion', name: 'Champion', className: 'fighter', source: 'SRD', description: 'Un guerrier accompli.' }]),
 }))
@@ -82,18 +90,21 @@ const saved = (levels: number) => ({
   sheet: sheetValues(levels), warnings: [], createdAt: '', updatedAt: '',
 })
 
-async function mountSheet() {
+async function mountSheet(path = '/character/7') {
   const { default: CharacterSheetView } = await import('@/views/CharacterSheetView.vue')
   const router = createRouter({ history: createMemoryHistory(), routes: [
     { path: '/character/:id', component: CharacterSheetView },
+    { path: '/shared/:code', name: 'shared-character', component: (await import('@/views/SharedCharacterView.vue')).default },
+    { path: '/', component: { template: '<div />' } },
     { path: '/character/:id/edit', component: { template: '<div />' } },
     { path: '/profile', component: { template: '<div />' } },
   ] })
-  router.push('/character/7')
+  router.push(path)
   await router.isReady()
-  const wrapper = mount(CharacterSheetView, { global: { plugins: [router, createPinia(), VueQueryPlugin] } })
+  // Comme dans l'application : la vue de la route courante
+  const wrapper = mount({ template: '<router-view />' }, { global: { plugins: [router, createPinia(), VueQueryPlugin] } })
   await flushPromises()
-  return wrapper
+  return Object.assign(wrapper, { router })
 }
 
 beforeEach(() => {
@@ -250,5 +261,23 @@ describe('CharacterSheetView', () => {
 
     expect(mockUpdate.mock.calls.at(-1)![0].data.state.featureUsage).toEqual([{ feature: 'second-wind', trait: null, used: 1 }])
   })
-})
 
+  it('shows a shared sheet read-only, and copies it into the characters of the user', async () => {
+    mockShared.mockResolvedValue({ ...saved(2), access: 'SHARED', sharedBy: 'Lucas', shareCode: null })
+    mockCopy.mockResolvedValue({ id: 42 })
+    const wrapper = await mountSheet('/shared/xyz')
+
+    expect(wrapper.text()).toContain('Fiche partagée par Lucas : lecture seule')
+    expect(wrapper.find('fieldset').attributes('disabled')).toBeDefined()
+    expect(wrapper.findAll('button').some((b) => b.text() === 'Monter de niveau')).toBe(false)
+
+    await wrapper.findAll('button').find((b) => b.text() === 'Copier dans mes personnages')!.trigger('click')
+    await flushPromises()
+    expect(mockCopy).toHaveBeenCalledWith('xyz')
+    expect(wrapper.router.currentRoute.value.fullPath).toBe('/character/42')
+    // La copie est chargée comme une fiche ordinaire
+    await flushPromises()
+    expect(mockGetCharacter.mock.calls.at(-1)![0]).toBe('42')
+    expect(wrapper.text()).not.toContain('Fiche partagée par')
+  })
+})

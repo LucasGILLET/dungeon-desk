@@ -13,7 +13,8 @@
       <!-- En-tête -->
       <header class="flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-zinc-800 pb-5">
         <div>
-          <router-link v-if="readOnly" :to="{ name: 'gm-dashboard' }" class="text-xs text-zinc-500 hover:text-zinc-300">← Mes campagnes</router-link>
+          <router-link v-if="shared" to="/" class="text-xs text-zinc-500 hover:text-zinc-300">← Dungeon Desk</router-link>
+          <router-link v-else-if="readOnly" :to="{ name: 'gm-dashboard' }" class="text-xs text-zinc-500 hover:text-zinc-300">← Mes campagnes</router-link>
           <router-link v-else to="/profile" class="text-xs text-zinc-500 hover:text-zinc-300">← Mes personnages</router-link>
           <h1 class="text-3xl sm:text-4xl font-bold font-serif text-white mt-1">{{ input.name }}</h1>
           <p class="text-zinc-400 mt-1">
@@ -24,8 +25,12 @@
         </div>
         <div v-if="readOnly" class="flex flex-wrap items-center gap-2">
           <p class="rounded-full border border-sky-500/30 bg-sky-500/10 px-3 py-1 text-xs text-sky-200">
-            Fiche d'un joueur de votre campagne : lecture seule
+            {{ shared ? `Fiche partagée par ${saved.sharedBy} : lecture seule` : "Fiche d'un joueur de votre campagne : lecture seule" }}
           </p>
+          <template v-if="shared">
+            <button v-if="authStore.isAuthenticated" class="btn-primary" :disabled="copying" @click="copyToMine">{{ copying ? 'Copie…' : 'Copier dans mes personnages' }}</button>
+            <button v-else class="btn-secondary" @click="authStore.login()">Se connecter pour la copier</button>
+          </template>
           <button class="btn-secondary" :disabled="exporting" @click="exportPdf">{{ exporting ? 'Préparation…' : 'Télécharger le PDF' }}</button>
         </div>
         <div v-else class="flex flex-wrap items-center gap-2">
@@ -35,8 +40,27 @@
           <button class="btn-secondary" :disabled="sheet.level <= 1 || removingLevel" @click="removeLevel">{{ removingLevel ? 'Retrait…' : 'Retirer un niveau' }}</button>
           <router-link :to="`/character/${saved.id}/edit`" class="btn-secondary">Modifier la création</router-link>
           <button class="btn-secondary" :disabled="exporting" @click="exportPdf">{{ exporting ? 'Préparation…' : 'Télécharger le PDF' }}</button>
+          <button class="btn-secondary" :aria-expanded="shareOpen" @click="shareOpen = !shareOpen">Partager</button>
         </div>
       </header>
+      <!-- Partage par lien (propriétaire) -->
+      <div v-if="shareOpen && !readOnly" class="p-4 rounded-xl border border-zinc-800 bg-zinc-900/60 text-sm">
+        <p class="text-zinc-400 mb-3">
+          Toute personne qui a le lien voit cette fiche, sans pouvoir la modifier, et peut la copier dans ses personnages.
+          Un nouveau lien remplace l'ancien.
+        </p>
+        <template v-if="saved.shareCode">
+          <div class="flex gap-2">
+            <input :value="characterShareUrl(saved.shareCode)" readonly class="flex-1 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-1.5 font-mono text-xs text-zinc-100" aria-label="Lien de partage" @focus="($event.target as HTMLInputElement).select()" />
+            <button class="btn-secondary" @click="copyShareLink">{{ linkCopied ? 'Copié' : 'Copier' }}</button>
+          </div>
+          <div class="mt-2 flex gap-3 text-xs">
+            <button class="text-zinc-400 underline hover:text-zinc-200" @click="setShared(true)">Nouveau lien</button>
+            <button class="text-zinc-400 underline hover:text-zinc-200" @click="setShared(false)">Ne plus partager</button>
+          </div>
+        </template>
+        <button v-else class="btn-primary" @click="setShared(true)">Créer le lien</button>
+      </div>
       <div v-if="exportError" class="p-4 rounded-xl border border-red-900/50 bg-red-950/30 text-sm text-red-300">
         {{ exportError }}
       </div>
@@ -337,7 +361,9 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { characterShareUrl, copySharedCharacter, fetchSharedCharacter, shareCharacter } from '@/api/characterShare'
+import { useAuthStore } from '@/stores/auth'
 import { useCharacterStore, getErrorMessage } from '@/stores/character'
 import { stripSaved, type CharacterPreview, type SavedCharacter } from '@/types/character'
 import { previewCharacter } from '@/api/generated/endpoints'
@@ -372,8 +398,12 @@ const NOTE_FIELDS = [
 const TOOL_TYPES = new Set(['ARTISAN_TOOL', 'MUSICAL_INSTRUMENT', 'GAMING_SET', 'VEHICLE', 'OTHER'])
 
 const route = useRoute()
+const router = useRouter()
 const store = useCharacterStore()
 const id = Number(route.params.id)
+// /shared/:code : fiche partagée par lien, lue sans connexion
+const shared = computed(() => route.name === 'shared-character')
+const authStore = useAuthStore()
 
 const saved = ref<SavedCharacter | null>(null)
 const input = ref<Input | null>(null)
@@ -413,7 +443,11 @@ async function loadReferences(character: SavedCharacter) {
 
 onMounted(async () => {
   try {
-    const character = await store.fetchCharacter(id)
+    const character = shared.value ? await fetchSharedCharacter(String(route.params.code)) : await store.fetchCharacter(id)
+    if (!character) {
+      loadError.value = "ce lien de partage n'existe pas ou plus"
+      return
+    }
     saved.value = character
     input.value = stripSaved(character)
     await loadReferences(character)
@@ -430,7 +464,8 @@ const saveError = ref<string | null>(null)
 let timer: ReturnType<typeof setTimeout> | undefined
 
 // Personnage d'un joueur consulté par le MJ de sa campagne : rien n'est modifiable
-const readOnly = computed(() => saved.value?.access === 'GAME_MASTER')
+// … ou fiche partagée par lien
+const readOnly = computed(() => saved.value?.access === 'GAME_MASTER' || saved.value?.access === 'SHARED')
 
 function update(next: Input) {
   if (readOnly.value) return
@@ -544,6 +579,33 @@ const pendingSummary = computed(() => {
     ...(p.choices.length ? [`${p.choices.length} choix`] : []),
   ].join(', ')
 })
+
+// --- Partage par lien -------------------------------------------------------------------
+
+const shareOpen = ref(false)
+const linkCopied = ref(false)
+const copying = ref(false)
+
+async function setShared(on: boolean) {
+  const { shareCode } = await shareCharacter(id, on)
+  saved.value = { ...saved.value!, shareCode }
+}
+async function copyShareLink() {
+  await navigator.clipboard?.writeText(characterShareUrl(saved.value!.shareCode!))
+  linkCopied.value = true
+  setTimeout(() => (linkCopied.value = false), 2000)
+}
+async function copyToMine() {
+  copying.value = true
+  try {
+    const { id: copyId } = await copySharedCharacter(String(route.params.code))
+    router.push(`/character/${copyId}`)
+  } catch (e) {
+    exportError.value = `Copie impossible : ${getErrorMessage(e, 'erreur inconnue')}`
+  } finally {
+    copying.value = false
+  }
+}
 
 // --- Retour en arrière -------------------------------------------------------------------
 
