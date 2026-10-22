@@ -110,6 +110,18 @@ const router = createRouter({
       component: () => import('@/views/CampaignView.vue')
     },
     {
+      // Gestionnaire de combat du MJ
+      path: '/campaigns/:id(\\d+)/combats/:combatId(\\d+)',
+      name: 'combat-tracker',
+      component: () => import('@/views/CombatTrackerView.vue')
+    },
+    {
+      // Vue des joueurs d'un combat (lien partagé par le MJ, sans connexion)
+      path: '/combat/:code',
+      name: 'combat-view',
+      component: () => import('@/views/CombatPlayerView.vue')
+    },
+    {
       path: '/character-creator',
       name: 'character-creator',
       component: () => import('@/views/CharacterCreator.vue')

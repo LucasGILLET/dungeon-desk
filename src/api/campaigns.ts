@@ -120,6 +120,69 @@ export interface EncounterInput {
   monsters: { monster: string; count: number }[]
 }
 
+// --- Gestionnaire de combat ------------------------------------------------------
+
+export type CombatantKind = 'CHARACTER' | 'MONSTER' | 'OTHER'
+export interface Combatant {
+  id?: number
+  kind: CombatantKind
+  character: { id: number; name: string } | null
+  monster: { index: string; name: string; homebrew: boolean } | null
+  name: string
+  initiative: number | null
+  initiativeBonus: number
+  armorClass: number | null
+  maxHitPoints: number | null
+  hitPoints: number | null
+  tempHitPoints: number
+  conditions: string[]
+  note: string | null
+  hidden: boolean
+}
+export interface Combat {
+  id: number
+  name: string
+  encounterId: number | null
+  round: number
+  turn: number
+  finished: boolean
+  shareCode: string | null
+  updatedAt: string
+  combatants: Combatant[]
+}
+export interface CombatSummary { id: number; name: string; round: number; finished: boolean; encounterId: number | null; updatedAt: string; combatantCount: number }
+
+// État envoyé à l'API : liens par id de personnage et index de monstre
+export const combatState = (c: Combat) => ({
+  name: c.name, round: c.round, turn: c.turn, finished: c.finished,
+  combatants: c.combatants.map((x) => ({
+    kind: x.kind, characterId: x.character?.id ?? null, monster: x.monster?.index ?? null, name: x.name,
+    initiative: x.initiative, initiativeBonus: x.initiativeBonus, armorClass: x.armorClass, maxHitPoints: x.maxHitPoints,
+    hitPoints: x.hitPoints, tempHitPoints: x.tempHitPoints, conditions: x.conditions, note: x.note, hidden: x.hidden,
+  })),
+})
+
+// Vue censurée des joueurs (publique, par le lien du MJ)
+export type HealthLabel = 'UNHURT' | 'HURT' | 'BLOODIED' | 'DOWN'
+export interface CombatView {
+  name: string
+  campaign: string
+  round: number
+  finished: boolean
+  currentId: number | null
+  combatants: { id: number; name: string; kind: CombatantKind; initiative: number | null; conditions: string[]; hitPoints: number | null; maxHitPoints: number | null; tempHitPoints: number | null; health: HealthLabel | null }[]
+  updatedAt: string
+}
+export const HEALTH_LABELS: Record<HealthLabel, string> = { UNHURT: 'Indemne', HURT: 'Blessé', BLOODIED: 'En sang', DOWN: 'Hors de combat' }
+
+export async function fetchCombatView(code: string): Promise<CombatView | null> {
+  const response = await fetch(buildApiUrl(`combat-view/${encodeURIComponent(code)}`))
+  if (response.status === 404) return null
+  if (!response.ok) throw new Error(`Erreur ${response.status}`)
+  return response.json()
+}
+export const combatViewUrl = (code: string) => `${window.location.origin}/combat/${code}`
+
 export type CampaignCollection = 'sessions' | 'quests' | 'npcs' | 'encounters'
 
 // Erreur de l'API avec ses messages de validation
@@ -155,6 +218,13 @@ export const campaignsApi = {
   removeMember: (id: number, userId: number) => call<{ message: string }>(`/${id}/members/${userId}`, { method: 'DELETE' }),
   addGmCharacter: (id: number, characterId: number) => call<{ campaignId: number }>(`/${id}/gm-characters`, { method: 'POST', body: { characterId } }),
   removeGmCharacter: (id: number, characterId: number) => call<{ message: string }>(`/${id}/gm-characters/${characterId}`, { method: 'DELETE' }),
+  combats: (id: number) => call<CombatSummary[]>(`/${id}/combats`),
+  combat: (id: number, combatId: number) => call<Combat>(`/${id}/combats/${combatId}?lang=fr`),
+  startCombat: (id: number, body: { encounterId?: number | null; name?: string }) => call<{ id: number }>(`/${id}/combats?lang=fr`, { method: 'POST', body }),
+  saveCombat: (id: number, combat: Combat) => call<Combat>(`/${id}/combats/${combat.id}?lang=fr`, { method: 'PUT', body: combatState(combat) }),
+  removeCombat: (id: number, combatId: number) => call<{ message: string }>(`/${id}/combats/${combatId}`, { method: 'DELETE' }),
+  shareCombat: (id: number, combatId: number, share: boolean) =>
+    call<{ shareCode: string | null }>(`/${id}/combats/${combatId}/share`, { method: share ? 'POST' : 'DELETE' }),
   // Séances, quêtes, PNJ, rencontres : création si childId absent, sinon modification
   save: (id: number, collection: CampaignCollection, body: SessionInput | QuestInput | CampaignNpcInput | EncounterInput, childId?: number) =>
     call<{ id: number }>(`/${id}/${collection}${childId ? `/${childId}` : ''}`, { method: childId ? 'PUT' : 'POST', body }),

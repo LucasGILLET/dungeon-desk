@@ -10,6 +10,26 @@
       Non visible des joueurs.
     </p>
 
+    <!-- Combats : en cours d'abord, reprise ou combat improvisé avec le groupe seul -->
+    <section class="ui-panel">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <h3 class="font-semibold text-zinc-100">Combats</h3>
+        <button type="button" class="ui-btn" :disabled="starting" @click="startCombat(null)">Combat improvisé</button>
+      </div>
+      <p v-if="!combats.length" class="mt-2 text-sm text-zinc-500">Aucun combat : lancez-en un depuis une rencontre, ou improvisez avec le groupe seul.</p>
+      <ul v-else class="mt-3 grid gap-2">
+        <li v-for="c in combats" :key="c.id">
+          <router-link :to="{ name: 'combat-tracker', params: { id: campaign.id, combatId: c.id } }" class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm hover:border-amber-500/40">
+            <span class="text-zinc-100">{{ c.name }}</span>
+            <span class="text-xs" :class="c.finished ? 'text-zinc-500' : 'text-amber-300'">
+              {{ c.finished ? 'Terminé' : `En cours · round ${c.round}` }} · {{ c.combatantCount }} combattants
+            </span>
+          </router-link>
+        </li>
+      </ul>
+      <p v-if="combatError" class="mt-2 text-sm text-red-300">{{ combatError }}</p>
+    </section>
+
     <form v-if="editing !== null" class="ui-panel grid gap-4" @submit.prevent="save">
       <h3 class="font-semibold text-zinc-100">{{ editing === 'new' ? 'Nouvelle rencontre' : 'Modifier la rencontre' }}</h3>
       <div class="grid gap-4 sm:grid-cols-[minmax(0,1fr)_12rem_12rem]">
@@ -68,6 +88,7 @@
           <span v-if="e.evaluation.difficulty" class="rounded-full border px-3 py-1 text-xs font-semibold" :class="DIFFICULTY_CLASSES[e.evaluation.difficulty]">
             {{ ENCOUNTER_DIFFICULTY_LABELS[e.evaluation.difficulty] }}
           </span>
+          <button type="button" class="ui-btn-primary" :disabled="starting" @click="startCombat(e.id)">Lancer le combat</button>
           <button type="button" class="ui-btn" @click="edit(e)">Modifier</button>
         </div>
       </header>
@@ -95,7 +116,8 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import MarkdownText from '@/components/MarkdownText.vue'
 import FormActions from '@/components/campaign/FormActions.vue'
 import { useCampaignItemForm } from '@/composables/useCampaignItemForm'
-import { ENCOUNTER_DIFFICULTY_LABELS, type Campaign, type Encounter, type EncounterDifficulty } from '@/api/campaigns'
+import { campaignsApi, ENCOUNTER_DIFFICULTY_LABELS, type Campaign, type CombatSummary, type Encounter, type EncounterDifficulty } from '@/api/campaigns'
+import { useRouter } from 'vue-router'
 import { monstersApi } from '@/api/monsters'
 import { loadMonsters, type ApiMonsterSummary } from '@/utils/dataLoader'
 import { formatChallenge } from '@/utils/monsterFormat'
@@ -111,7 +133,25 @@ const DIFFICULTY_CLASSES: Record<EncounterDifficulty, string> = {
   DEADLY: 'border-red-500/30 bg-red-500/10 text-red-200',
 }
 
+const router = useRouter()
 const monsters = ref<ApiMonsterSummary[]>([])
+const combats = ref<CombatSummary[]>([])
+const starting = ref(false)
+const combatError = ref<string | null>(null)
+
+// Nouveau combat : le groupe, et les monstres de la rencontre s'il y en a une
+async function startCombat(encounterId: number | null) {
+  starting.value = true
+  combatError.value = null
+  try {
+    const { id } = await campaignsApi.startCombat(props.campaign.id, encounterId ? { encounterId } : { name: 'Combat improvisé' })
+    router.push({ name: 'combat-tracker', params: { id: props.campaign.id, combatId: id } })
+  } catch (e) {
+    combatError.value = `Impossible de lancer le combat : ${e instanceof Error ? e.message : String(e)}`
+  } finally {
+    starting.value = false
+  }
+}
 const search = ref('')
 const form = reactive({ name: '', description: '', status: 'PLANNED' as 'PLANNED' | 'DONE', sessionId: null as number | null, monsters: [] as { monster: string; count: number }[] })
 const { editing, busy, error, open, submit, remove } = useCampaignItemForm(() => props.campaign.id, 'encounters', () => emit('changed'), 'Supprimer cette rencontre ?')
@@ -148,6 +188,7 @@ const save = () => submit({
 
 onMounted(async () => {
   // Monstres maison du MJ d'abord, puis le bestiaire du SRD
+  campaignsApi.combats(props.campaign.id).then((rows) => (combats.value = rows)).catch(() => {})
   const [mine, srd] = await Promise.all([monstersApi.list().catch(() => []), loadMonsters()])
   monsters.value = [...mine, ...srd]
 })
