@@ -96,7 +96,7 @@ npm run dev
 2026-10-19 : `FRONTEND_URL`, `AUTH0_AUDIENCE`, `AUTH0_ISSUER`). Le front a
 son propre `.env.example` (`VITE_API_URL`, `VITE_AUTH0_*`).
 
-## Back-office — Directus (nouveau)
+## Back-office — Directus
 
 En local :
 ```bash
@@ -109,14 +109,155 @@ de chiffrement, compte administrateur, jeton d'API, licence. La licence
 l'instance (`PUBLIC_URL`) : chaque nouvelle adresse consomme une
 activation.
 
-En production (**à mettre en place**) : un service Cloud Run sur la même
-base Neon, avec :
-- `PUBLIC_URL` = son adresse définitive (avant d'activer la licence) ;
-- `CONTENT_SECURITY_POLICY_DIRECTIVES__FRAME_SRC` incluant l'adresse du
-  front (sinon l'aperçu des pages est bloqué) ;
-- `DIRECTUS_PREVIEW_URL` = l'adresse du front, pour le lien « Voir sur le
-  site » ;
-- puis `npm run directus:config` contre cette instance.
+### Production (Cloud Run)
+
+En service depuis le 2026-10-20 (licence active, compte rédacteur et
+aperçu des pages testés).
+
+| Élément | Valeur |
+|---|---|
+| Service Cloud Run | `dungeon-desk-directus` (europe-west9), image `directus/directus:12.4.1` tirée de Docker Hub |
+| Adresse (`PUBLIC_URL`) | https://dungeon-desk-directus-657109760065.europe-west9.run.app |
+| Base | Neon de prod, point d'accès **direct** (sans `-pooler`), tables système dans le schéma `directus` |
+| Fichiers | bucket `dungeon-desk-directus-files` (europe-west9, privé) |
+| Compte de service | `directus-run@dungeon-desk-486622.iam.gserviceaccount.com` |
+| Variables | `dungeon-desk-back/directus.cloudrun.env.yaml` (versionné, sans secret) |
+| Secrets (Secret Manager) | `directus-secret`, `directus-admin-email`, `directus-admin-password`, `directus-admin-token`, `directus-license-key`, `directus-db-url` |
+
+Pourquoi ces choix :
+- **Adresse en `run.app`** : elle est connue avant le déploiement (nom du
+  service + numéro du projet), donc la licence s'active une seule fois sur
+  la bonne adresse. Changer d'adresse plus tard (domaine personnalisé)
+  consomme une activation : désactiver d'abord la licence dans Paramètres →
+  Licence de l'ancienne adresse.
+- **Point d'accès direct** : le pooler de Neon (mode transaction) ne garde
+  pas le `search_path` d'une requête à l'autre ; Directus chercherait ses
+  tables au mauvais endroit.
+- **Une seule instance au plus, zéro au repos** (`--max-instances 1`,
+  `--min-instances 0`) : Directus garde cache et tâches planifiées en
+  mémoire ; au repos, ni Cloud Run ni Neon ne tournent. Premier affichage
+  après une pause : 10 à 20 s.
+- **Bucket** : le disque d'un conteneur Cloud Run est effacé à chaque
+  redémarrage ; les images insérées dans les guides vont dans le bucket.
+- Directus ne crée ni ne modifie de table dans `public` : Prisma ne voit
+  rien (vérifié par `prisma migrate diff`, étape 6).
+
+#### Mise en place (une seule fois)
+
+Commandes à lancer dans Git Bash, depuis `dungeon-desk-back`. Aucune ne
+fait apparaître de secret à l'écran.
+
+**1. Se reconnecter à Google Cloud**
+```bash
+gcloud auth login
+```
+Une page de connexion Google s'ouvre : choisir le compte du projet, puis
+« Autoriser ». Le terminal affiche `You are now logged in as …`.
+```bash
+gcloud config set project dungeon-desk-486622
+```
+
+**2. Créer le schéma `directus` sur Neon**
+1. Ouvrir https://console.neon.tech et cliquer sur le projet.
+2. Dans le menu de gauche, cliquer sur **SQL Editor**.
+3. En haut de l'éditeur, vérifier que la branche est **Primary** et la
+   base **neondb**.
+4. Coller `CREATE SCHEMA IF NOT EXISTS directus;` puis cliquer sur **Run**.
+5. Résultat attendu : un message de succès, sans erreur.
+
+**3. Ranger l'adresse de la base dans Secret Manager**
+1. Sur Neon, menu de gauche **Dashboard**, puis bouton **Connect**.
+2. Dans la fenêtre : branche **Primary**, base **neondb**, et **désactiver**
+   l'interrupteur **Connection pooling** (l'adresse ne doit plus contenir
+   `-pooler`).
+3. Cliquer sur **Show password**, puis sur l'icône de copie de la chaîne.
+4. Ouvrir https://console.cloud.google.com/security/secret-manager?project=dungeon-desk-486622
+5. Cliquer sur **+ Créer un secret**.
+6. **Nom** : `directus-db-url`. **Valeur du secret** : coller la chaîne.
+   Ne rien changer d'autre, cliquer sur **Créer le secret**.
+
+**4. Créer les autres secrets, le bucket et le compte de service**
+```bash
+gcloud services enable run.googleapis.com secretmanager.googleapis.com storage.googleapis.com
+```
+```bash
+for s in directus-secret directus-admin-password directus-admin-token; do node -e "process.stdout.write(require('crypto').randomBytes(32).toString('hex'))" | gcloud secrets create $s --data-file=- --replication-policy=automatic; done
+```
+```bash
+grep '^LICENSE_KEY=' .env.directus | cut -d= -f2- | tr -d '\r\n' | gcloud secrets create directus-license-key --data-file=- --replication-policy=automatic
+```
+```bash
+printf '%s' "ADRESSE_EMAIL_DE_L_ADMIN" | gcloud secrets create directus-admin-email --data-file=- --replication-policy=automatic
+```
+(remplacer `ADRESSE_EMAIL_DE_L_ADMIN` par l'e-mail du compte administrateur.)
+```bash
+gcloud iam service-accounts create directus-run --display-name="Directus (Cloud Run)"
+```
+```bash
+for s in directus-secret directus-admin-email directus-admin-password directus-admin-token directus-license-key directus-db-url; do gcloud secrets add-iam-policy-binding $s --member=serviceAccount:directus-run@dungeon-desk-486622.iam.gserviceaccount.com --role=roles/secretmanager.secretAccessor --quiet > /dev/null; done
+```
+```bash
+gcloud storage buckets create gs://dungeon-desk-directus-files --location=europe-west9 --uniform-bucket-level-access --public-access-prevention
+```
+```bash
+gcloud storage buckets add-iam-policy-binding gs://dungeon-desk-directus-files --member=serviceAccount:directus-run@dungeon-desk-486622.iam.gserviceaccount.com --role=roles/storage.objectAdmin
+```
+
+**5. Déployer**
+```bash
+gcloud run deploy dungeon-desk-directus --image docker.io/directus/directus:12.4.1 --region europe-west9 --service-account directus-run@dungeon-desk-486622.iam.gserviceaccount.com --allow-unauthenticated --memory 1Gi --cpu 1 --cpu-boost --min-instances 0 --max-instances 1 --env-vars-file directus.cloudrun.env.yaml --set-secrets "SECRET=directus-secret:latest,ADMIN_EMAIL=directus-admin-email:latest,ADMIN_PASSWORD=directus-admin-password:latest,ADMIN_TOKEN=directus-admin-token:latest,LICENSE_KEY=directus-license-key:latest,DB_CONNECTION_STRING=directus-db-url:latest"
+```
+Le premier démarrage crée les tables système (`directus_*`) dans le schéma
+`directus` et le compte administrateur ; il prend une à deux minutes. Le
+terminal finit par `Service URL: https://dungeon-desk-directus-657109760065.europe-west9.run.app`.
+Si l'adresse affichée est différente, **s'arrêter** : corriger `PUBLIC_URL`
+dans `directus.cloudrun.env.yaml` et redéployer avant toute connexion.
+
+Vérifier :
+1. Ouvrir l'adresse du service : la page de connexion Directus s'affiche.
+2. Mot de passe administrateur : dans Secret Manager, cliquer sur
+   `directus-admin-password`, puis sur la version **1**, menu **⋮** →
+   **Afficher la valeur du secret**.
+3. Se connecter, puis **Paramètres** (roue dentée, en bas à gauche) →
+   **Licence** : la licence doit apparaître comme active.
+
+**6. Vérifier que Prisma ne voit aucune dérive**
+```bash
+NEON_URL="$(gcloud secrets versions access latest --secret=directus-db-url)" && npx prisma migrate diff --from-url "$NEON_URL" --to-schema-datamodel prisma/schema --exit-code; unset NEON_URL
+```
+Attendu : `No difference detected.` (Prisma ne lit que `public`).
+
+**7. Configurer l'interface (menus, formulaires, rôles, aperçu)**
+```bash
+DIRECTUS_URL=https://dungeon-desk-directus-657109760065.europe-west9.run.app DIRECTUS_PREVIEW_URL=https://www.dungeon-desk.com DIRECTUS_TOKEN="$(gcloud secrets versions access latest --secret=directus-admin-token)" npm run directus:config
+```
+Attendu : une ligne `[directus] … collections, … champs, … 3 rôles ; … s`,
+après environ 12 minutes (chaque appel attend la base Neon ; le terminal
+reste muet jusqu'à la fin).
+`DIRECTUS_PREVIEW_URL` sert au lien d'aperçu des pages de documentation :
+le relancer avec cette valeur à chaque nouvelle configuration de la prod
+(sinon l'aperçu pointe vers `http://localhost:5173`).
+
+**8. Créer le compte du rédacteur et tester l'aperçu**
+1. Dans Directus (connecté en administrateur), cliquer sur l'icône
+   **Annuaire des utilisateurs** (silhouettes) dans la barre de gauche.
+2. Cliquer sur **+** en haut à droite.
+3. Remplir **Prénom**, **E-mail**, **Mot de passe** ; **Rôle** :
+   *Rédacteur de la documentation* ; **Statut** : *Actif*. Cliquer sur ✓.
+4. Se déconnecter (icône en bas à gauche), se reconnecter avec ce compte.
+5. **Contenu** → **Pages de la documentation** → ouvrir une page, puis
+   cliquer sur l'icône **Aperçu** (œil) en haut à droite : la page du site
+   s'affiche dans le cadre. Une modification apparaît dans l'aperçu au plus
+   une minute après l'enregistrement (cache de l'API).
+
+#### Mises à jour
+
+- Après une migration Prisma : relancer l'étape 7.
+- Nouvelle version de Directus : changer le numéro d'image dans la commande
+  de l'étape 5 et la relancer (les migrations de Directus s'appliquent au
+  démarrage) ; mettre aussi à jour `docker-compose.directus.yml`.
+- Changer une variable : modifier `directus.cloudrun.env.yaml` et relancer
+  l'étape 5.
 
 ## Mise en production de la version en préparation
 
