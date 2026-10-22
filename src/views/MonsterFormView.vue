@@ -61,39 +61,58 @@
             </label>
           </div>
 
-          <div class="mt-5 grid gap-4 sm:grid-cols-2">
-            <div>
-              <p class="mb-2 text-sm text-zinc-400">Jets de sauvegarde</p>
-              <div v-for="(s, i) in form.savingThrows" :key="i" class="mb-2 flex gap-2">
-                <select v-model="s.ability" class="ui-input flex-1"><option v-for="a in options.abilities" :key="a.index" :value="a.index">{{ a.name }}</option></select>
-                <input v-model.number="s.bonus" type="number" class="ui-input w-20" aria-label="Bonus" />
-                <button type="button" class="ui-btn-danger" @click="form.savingThrows.splice(i, 1)">✕</button>
-              </div>
-              <button type="button" class="text-xs text-zinc-400 underline hover:text-zinc-200" @click="addSave">+ Ajouter une sauvegarde</button>
-            </div>
-            <div>
-              <p class="mb-2 text-sm text-zinc-400">Compétences</p>
-              <div v-for="(s, i) in form.skills" :key="i" class="mb-2 flex gap-2">
-                <select v-model="s.skill" class="ui-input flex-1"><option v-for="k in options.skills" :key="k.index" :value="k.index">{{ k.name }}</option></select>
-                <input v-model.number="s.bonus" type="number" class="ui-input w-20" aria-label="Bonus" />
-                <button type="button" class="ui-btn-danger" @click="form.skills.splice(i, 1)">✕</button>
-              </div>
-              <button type="button" class="text-xs text-zinc-400 underline hover:text-zinc-200" @click="addSkill">+ Ajouter une compétence</button>
+          <!-- Jets de sauvegarde : tous affichés, la maîtrise ajoute le bonus de maîtrise -->
+          <p class="mt-5 mb-2 text-sm text-zinc-400">Jets de sauvegarde</p>
+          <div class="grid grid-cols-2 gap-2 sm:grid-cols-6">
+            <label v-for="a in ABILITIES" :key="a.key" :class="['flex items-center gap-2 rounded-xl border px-2 py-1.5 text-sm', saveOf(a.index) ? 'border-amber-500/40 bg-amber-500/10' : 'border-white/10']">
+              <input type="checkbox" class="accent-amber-500" :checked="!!saveOf(a.index)" :aria-label="`Maîtrise des sauvegardes de ${a.label}`" @change="toggleSave(a.index)" />
+              <span class="w-8 font-semibold text-zinc-300">{{ a.label }}</span>
+              <input
+                v-if="saveOf(a.index)" v-model.number="saveOf(a.index)!.bonus" type="number" class="w-14 rounded-lg border border-white/10 bg-zinc-950 px-1 text-center text-zinc-100"
+                :aria-label="`Bonus de sauvegarde de ${a.label}`"
+              />
+              <span v-else class="w-14 text-center text-zinc-500">{{ signed(abilityModifier(form.abilityScores[a.key])) }}</span>
+            </label>
+          </div>
+
+          <!-- Compétences : toutes affichées ; maîtrise ou expertise (deux fois le bonus) -->
+          <p class="mt-5 mb-2 text-sm text-zinc-400">Compétences</p>
+          <div class="grid gap-x-4 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
+            <div v-for="k in options.skills" :key="k.index" :class="['flex items-center gap-2 rounded-lg px-2 py-1 text-sm', skillOf(k.index) ? 'bg-amber-500/10' : '']">
+              <span class="flex-1" :class="skillOf(k.index) ? 'text-zinc-100' : 'text-zinc-400'">{{ k.name }} <span class="text-xs text-zinc-600">({{ abilityLabel(k.ability) }})</span></span>
+              <select :value="skillLevel(k)" class="rounded-lg border border-white/10 bg-zinc-950 px-1 py-0.5 text-xs text-zinc-300" :aria-label="`Maîtrise de ${k.name}`" @change="setSkillLevel(k, ($event.target as HTMLSelectElement).value)">
+                <option value="">—</option><option value="P">maîtrise</option><option value="E">expertise</option>
+              </select>
+              <input
+                v-if="skillOf(k.index)" v-model.number="skillOf(k.index)!.bonus" type="number" class="w-14 rounded-lg border border-white/10 bg-zinc-950 px-1 text-center text-zinc-100"
+                :aria-label="`Bonus de ${k.name}`"
+              />
+              <span v-else class="w-14 text-center text-zinc-500">{{ signed(modOf(k.ability)) }}</span>
             </div>
           </div>
-          <p class="mt-2 text-xs text-zinc-500">Bonus de maîtrise au FP {{ formatChallenge(form.challengeRating) }} : {{ signed(proficiency) }} (proposé à l'ajout).</p>
+          <p class="mt-2 text-xs text-zinc-500">
+            Bonus de maîtrise au FP {{ formatChallenge(form.challengeRating) }} : {{ signed(proficiency) }}. Les bonus calculés suivent les caractéristiques et le FP ; ceux modifiés à la main restent tels quels.
+          </p>
         </section>
 
         <!-- Résistances, immunités, sens, langues -->
         <section class="ui-panel grid gap-4">
+          <p class="text-xs text-zinc-500">
+            Contondant, perforant et tranchant : un clic pour « tous », un deuxième pour « d'attaques non magiques » seulement, un troisième pour retirer.
+          </p>
           <div v-for="g in DAMAGE_GROUPS" :key="g.key">
-            <p class="mb-2 text-sm text-zinc-400">{{ g.label }}</p>
+            <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <p class="text-sm text-zinc-400">{{ g.label }}</p>
+              <button v-if="g.key !== 'damageVulnerabilities'" type="button" class="text-xs text-zinc-400 underline hover:text-zinc-200" @click="setPhysicalNonMagical(g.key)">
+                Contondant, perforant et tranchant d'attaques non magiques
+              </button>
+            </div>
             <div class="flex flex-wrap gap-2">
               <button
                 v-for="t in options.damageTypes" :key="t.index" type="button"
-                :class="['rounded-full border px-3 py-1 text-xs', form[g.key].includes(t.index) ? 'border-amber-500/50 bg-amber-500/15 text-amber-100' : 'border-white/10 text-zinc-400 hover:text-zinc-200']"
-                :aria-pressed="form[g.key].includes(t.index)" @click="toggle(form[g.key], t.index)"
-              >{{ t.name }}</button>
+                :class="['rounded-full border px-3 py-1 text-xs', damageState(form[g.key], t.index) === 'off' ? 'border-white/10 text-zinc-400 hover:text-zinc-200' : damageState(form[g.key], t.index) === 'nonMagical' ? 'border-sky-400/50 bg-sky-400/15 text-sky-100' : 'border-amber-500/50 bg-amber-500/15 text-amber-100']"
+                :aria-pressed="damageState(form[g.key], t.index) !== 'off'" @click="cycleDamage(form[g.key], t.index)"
+              >{{ t.name }}<template v-if="damageState(form[g.key], t.index) === 'nonMagical'"> (non magique)</template></button>
             </div>
           </div>
           <div>
@@ -119,6 +138,11 @@
         <MonsterActionEditor v-model="form.actions" title="Actions" empty="Aucune action." :options="options" />
         <MonsterActionEditor v-model="form.bonusActions" title="Actions bonus" empty="Aucune action bonus." :options="options" />
         <MonsterActionEditor v-model="form.reactions" title="Réactions" empty="Aucune réaction." :options="options" />
+        <MonsterActionEditor
+          v-model="form.lairActions" title="Actions de repaire"
+          empty="Aucune action de repaire. Dans son antre, à l'initiative 20 (en perdant les égalités), la créature en utilise une."
+          :options="options"
+        />
         <MonsterActionEditor v-model="form.legendaryActions" title="Actions légendaires" empty="Aucune action légendaire." :options="options" legendary>
           <label v-if="form.legendaryActions.length" class="ui-label mb-2 w-48">Actions par round
             <input v-model.number="form.legendaryActionsPerRound" type="number" min="1" max="5" class="ui-input" placeholder="3" />
@@ -136,10 +160,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import MonsterActionEditor from '@/components/bestiary/MonsterActionEditor.vue'
-import { emptyMonster, monstersApi, toMonsterInput, type MonsterInput, type MonsterOptions } from '@/api/monsters'
+import { emptyMonster, monstersApi, toMonsterInput, type DamageModifierInput, type MonsterInput, type MonsterOptions } from '@/api/monsters'
 import { loadMonster } from '@/utils/dataLoader'
 import { abilityModifier, formatChallenge, signed, SIZE_LABELS, SIZES } from '@/utils/monsterFormat'
 
@@ -193,19 +217,87 @@ function setDistance<T extends string>(target: Partial<Record<T, number>>, key: 
   if (value === '') delete target[key]
   else target[key] = Math.round(Number(value) / 0.3 / 5) * 5
 }
+// --- Sauvegardes et compétences ---------------------------------------------------------
+
+const abilityKey = (ability: string) => ABILITIES.find((a) => a.index === ability)?.key ?? 'str'
+const modOf = (ability: string) => abilityModifier(form.value!.abilityScores[abilityKey(ability)])
+const abilityLabel = (ability: string) => ABILITIES.find((a) => a.index === ability)?.label ?? ability
+const saveOf = (ability: string) => form.value!.savingThrows.find((s) => s.ability === ability)
+const skillOf = (skill: string) => form.value!.skills.find((s) => s.skill === skill)
+
+function toggleSave(ability: string) {
+  const list = form.value!.savingThrows
+  const i = list.findIndex((s) => s.ability === ability)
+  if (i >= 0) list.splice(i, 1)
+  else list.push({ ability, bonus: modOf(ability) + proficiency.value })
+}
+// Expertise : deux fois le bonus de maîtrise
+function skillLevel(k: { index: string; ability: string }) {
+  const entry = skillOf(k.index)
+  if (!entry) return ''
+  return entry.bonus >= modOf(k.ability) + 2 * proficiency.value ? 'E' : 'P'
+}
+function setSkillLevel(k: { index: string; ability: string }, level: string) {
+  const list = form.value!.skills
+  const i = list.findIndex((s) => s.skill === k.index)
+  if (!level) {
+    if (i >= 0) list.splice(i, 1)
+    return
+  }
+  const bonus = modOf(k.ability) + (level === 'E' ? 2 : 1) * proficiency.value
+  if (i >= 0) list[i]!.bonus = bonus
+  else list.push({ skill: k.index, bonus })
+}
+
+// Caractéristiques ou FP modifiés : les bonus restés à leur valeur calculée suivent
+watch(
+  () => form.value && { scores: { ...form.value.abilityScores }, pb: proficiency.value },
+  (now, before) => {
+    if (!now || !before || !options.value) return
+    const mod = (scores: MonsterInput['abilityScores'], ability: string) => abilityModifier(scores[abilityKey(ability)])
+    for (const s of form.value!.savingThrows) {
+      if (s.bonus === mod(before.scores, s.ability) + before.pb) s.bonus = mod(now.scores, s.ability) + now.pb
+    }
+    for (const s of form.value!.skills) {
+      const ability = options.value.skills.find((k) => k.index === s.skill)?.ability ?? 'str'
+      for (const times of [1, 2]) {
+        if (s.bonus === mod(before.scores, ability) + times * before.pb) {
+          s.bonus = mod(now.scores, ability) + times * now.pb
+          break
+        }
+      }
+    }
+  },
+)
+
+// --- Résistances : tous les dégâts du type, ou seulement d'attaques non magiques ---------
+
+const PHYSICAL = ['bludgeoning', 'piercing', 'slashing']
+const damageState = (list: DamageModifierInput[], type: string) => {
+  const entry = list.find((d) => d.damageType === type)
+  return !entry ? 'off' : entry.nonMagicalOnly ? 'nonMagical' : 'all'
+}
+// off → tous → (contondant, perforant, tranchant) non magiques → off
+function cycleDamage(list: DamageModifierInput[], type: string) {
+  const i = list.findIndex((d) => d.damageType === type)
+  if (i < 0) list.push({ damageType: type, nonMagicalOnly: false })
+  else if (!list[i]!.nonMagicalOnly && PHYSICAL.includes(type)) list[i]!.nonMagicalOnly = true
+  else list.splice(i, 1)
+}
+function setPhysicalNonMagical(key: 'damageResistances' | 'damageImmunities') {
+  const list = form.value![key]
+  for (const type of PHYSICAL) {
+    const entry = list.find((d) => d.damageType === type)
+    if (entry) entry.nonMagicalOnly = true
+    else list.push({ damageType: type, nonMagicalOnly: true })
+  }
+}
+
 function toggle(list: string[], index: string) {
   const i = list.indexOf(index)
   if (i >= 0) list.splice(i, 1)
   else list.push(index)
 }
-function addSave() {
-  const free = ABILITIES.find((a) => !form.value!.savingThrows.some((s) => s.ability === a.index)) ?? ABILITIES[0]
-  form.value!.savingThrows.push({ ability: free.index, bonus: abilityModifier(form.value!.abilityScores[free.key]) + proficiency.value })
-}
-function addSkill() {
-  form.value!.skills.push({ skill: options.value!.skills[0]!.index, bonus: proficiency.value })
-}
-
 async function save() {
   saving.value = true
   saveError.value = null

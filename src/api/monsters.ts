@@ -15,6 +15,9 @@ export interface MonsterActionInput {
   legendaryCost?: number | null
 }
 
+// nonMagicalOnly : seulement contre les attaques non magiques
+export interface DamageModifierInput { damageType: string; nonMagicalOnly: boolean }
+
 export interface MonsterInput {
   name: string
   description: string | null
@@ -28,9 +31,9 @@ export interface MonsterInput {
   abilityScores: Record<'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha', number>
   savingThrows: { ability: string; bonus: number }[]
   skills: { skill: string; bonus: number }[]
-  damageVulnerabilities: string[]
-  damageResistances: string[]
-  damageImmunities: string[]
+  damageVulnerabilities: DamageModifierInput[]
+  damageResistances: DamageModifierInput[]
+  damageImmunities: DamageModifierInput[]
   conditionImmunities: string[]
   senses: Partial<Record<'darkvision' | 'blindsight' | 'truesight' | 'tremorsense', number>>
   passivePerception: number | null
@@ -42,13 +45,14 @@ export interface MonsterInput {
   bonusActions: MonsterActionInput[]
   reactions: MonsterActionInput[]
   legendaryActions: MonsterActionInput[]
+  lairActions: MonsterActionInput[]
 }
 
 export interface MonsterOptions {
   creatureTypes: Ref[]
   alignments: Ref[]
   abilities: Ref[]
-  skills: Ref[]
+  skills: (Ref & { ability: string })[]
   damageTypes: Ref[]
   conditions: Ref[]
   challengeRatings: { value: number; xp: number }[]
@@ -92,7 +96,7 @@ export const emptyMonster = (): MonsterInput => ({
   speeds: { walk: 30 }, abilityScores: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
   savingThrows: [], skills: [], damageVulnerabilities: [], damageResistances: [], damageImmunities: [], conditionImmunities: [],
   senses: {}, passivePerception: null, languages: null, challengeRating: 1, legendaryActionsPerRound: null,
-  traits: [], actions: [], bonusActions: [], reactions: [], legendaryActions: [],
+  traits: [], actions: [], bonusActions: [], reactions: [], legendaryActions: [], lairActions: [],
 })
 
 const ATTACK_TYPES = new Set<string>(['MELEE_WEAPON', 'RANGED_WEAPON', 'MELEE_OR_RANGED_WEAPON', 'MELEE_SPELL', 'RANGED_SPELL'])
@@ -108,7 +112,9 @@ const actionInput = (a: ApiMonsterAction): MonsterActionInput => ({
     .map((d) => ({ dice: d.dice.replace(/\s/g, ''), damageType: d.damageType.index })),
   legendaryCost: a.legendaryCost,
 })
-const typed = (list: { damageType: Ref | null }[]) => list.flatMap((d) => (d.damageType ? [d.damageType.index] : []))
+// Modificateurs sans type de dégâts (« dégâts des sorts ») : non repris
+const typed = (list: { damageType: Ref | null; nonMagicalOnly: boolean }[]) =>
+  list.flatMap((d) => (d.damageType ? [{ damageType: d.damageType.index, nonMagicalOnly: d.nonMagicalOnly }] : []))
 
 // Fiche du bestiaire (SRD ou maison) → saisie du formulaire : copier un monstre
 // du SRD, ou modifier un monstre maison. Les attaques multiples, sorts et
@@ -143,5 +149,6 @@ export function toMonsterInput(m: ApiMonster): MonsterInput {
     bonusActions: m.bonusActions.map(actionInput),
     reactions: m.reactions.map(actionInput),
     legendaryActions: m.legendaryActions.map(actionInput),
+    lairActions: m.lairActions.map(actionInput),
   }
 }
