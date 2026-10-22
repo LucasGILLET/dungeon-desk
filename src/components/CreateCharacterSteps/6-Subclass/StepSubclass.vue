@@ -89,7 +89,7 @@
                 <!-- Content -->
                 <div class="p-6 flex-1 flex flex-col">
                    <p class="text-zinc-400 text-sm leading-relaxed mb-6 italic">
-                     {{ subclass.description }}
+                     {{ plainText(subclass.description) }}
                    </p>
 
                    <!-- Features / Progression -->
@@ -168,6 +168,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { plainText } from '@/utils/richText'
 import { getLevel1SubclassClassIds, getSubclassEmoji, loadSubclassesForClass, type SubclassData } from '@/utils/subclasses'
 import StepNavigation from '../StepNavigation.vue'
 import TutorialGuide from '@/components/TutorialGuide.vue'

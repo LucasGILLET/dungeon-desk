@@ -1,6 +1,8 @@
 export interface PDFCharacterData {
   name: string
   characterClass: string
+  // Texte de la case « Classe et niveau » (multiclassé), sinon « classe niveau »
+  classLevel?: string
   level: number
   background: string
   playerName: string

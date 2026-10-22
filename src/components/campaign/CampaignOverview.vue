@@ -72,6 +72,32 @@
         </ul>
       </section>
 
+      <!-- Personnages joués par le MJ (compagnon, partie en solo…) -->
+      <section v-if="isGm || campaign.gmCharacters.length" class="ui-panel">
+        <h2 class="mb-3 font-serif text-xl font-bold text-amber-200">Personnages du MJ</h2>
+        <p v-if="!campaign.gmCharacters.length" class="mb-3 text-sm text-zinc-500">Ajoutez vos propres personnages au groupe : ils comptent dans la difficulté des rencontres.</p>
+        <ul class="grid gap-3">
+          <li v-for="c in campaign.gmCharacters" :key="c.id" class="flex items-start justify-between gap-2 rounded-2xl border border-white/10 bg-black/20 p-3">
+            <div class="min-w-0">
+              <router-link v-if="isGm" :to="`/character/${c.id}`" class="text-sm text-sky-300 hover:underline">{{ c.name }}</router-link>
+              <span v-else class="text-sm text-zinc-300">{{ c.name }}</span>
+              <p class="text-xs text-zinc-500">{{ c.race }} · {{ c.classes.map((k) => `${k.name} ${k.level}`).join(' / ') }}</p>
+            </div>
+            <button v-if="isGm" type="button" class="ui-btn-danger shrink-0" :disabled="busy" @click="removeGmCharacter(c)">Retirer</button>
+          </li>
+        </ul>
+        <label v-if="isGm && addableCharacters.length" class="ui-label mt-3">
+          Ajouter un de mes personnages
+          <select class="ui-input" value="" :disabled="busy" @change="addGmCharacter($event.target as HTMLSelectElement)">
+            <option value="" disabled>Choisir…</option>
+            <option v-for="c in addableCharacters" :key="c.id" :value="c.id">{{ c.name }} (niveau {{ c.level }})</option>
+          </select>
+        </label>
+        <p v-else-if="isGm && !campaign.gmCharacters.length" class="text-xs text-zinc-500">
+          Vous n'avez pas encore de personnage : <router-link to="/character-creator" class="underline">en créer un</router-link>.
+        </p>
+      </section>
+
       <section v-if="isGm && campaign.inviteCode" class="ui-panel">
         <h2 class="mb-2 font-serif text-xl font-bold text-amber-200">Inviter des joueurs</h2>
         <p class="mb-3 text-xs text-zinc-400">Partagez ce lien : un joueur connecté rejoint la campagne et y rattache un de ses personnages. Vous pourrez consulter sa fiche.</p>
@@ -89,7 +115,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import MarkdownText from '@/components/MarkdownText.vue'
-import { CAMPAIGN_STATUS_LABELS, campaignsApi, inviteUrl, type Campaign, type CampaignMember } from '@/api/campaigns'
+import { CAMPAIGN_STATUS_LABELS, campaignsApi, inviteUrl, type Campaign, type CampaignCharacter, type CampaignMember } from '@/api/campaigns'
 import { useCharacterStore } from '@/stores/character'
 import type { CharacterSummary } from '@/types/character'
 
@@ -148,6 +174,18 @@ async function removeMember(m: CampaignMember) {
   else emit('changed')
 }
 
+// Personnages du MJ pas encore dans le groupe
+const addableCharacters = computed(() => myCharacters.value.filter((c) => !props.campaign.gmCharacters.some((g) => g.id === c.id)))
+function addGmCharacter(select: HTMLSelectElement) {
+  const characterId = Number(select.value)
+  select.value = ''
+  if (characterId) run(() => campaignsApi.addGmCharacter(props.campaign.id, characterId))
+}
+async function removeGmCharacter(c: CampaignCharacter) {
+  if (!window.confirm(`Retirer ${c.name} du groupe ?`)) return
+  await run(() => campaignsApi.removeGmCharacter(props.campaign.id, c.id))
+}
+
 const setCharacter = (value: string) => run(() => campaignsApi.setCharacter(props.campaign.id, value ? Number(value) : null))
 const regenerate = () => run(() => campaignsApi.regenerateInvite(props.campaign.id))
 
@@ -158,6 +196,6 @@ async function copy() {
 }
 
 onMounted(async () => {
-  if (props.campaign.members.some((m) => m.isMe)) myCharacters.value = await characterStore.fetchCharacters()
+  if (isGm.value || props.campaign.members.some((m) => m.isMe)) myCharacters.value = await characterStore.fetchCharacters()
 })
 </script>

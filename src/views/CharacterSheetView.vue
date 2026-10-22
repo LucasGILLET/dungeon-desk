@@ -22,16 +22,23 @@
             <span v-if="saved.names.background"> · {{ saved.names.background }}</span>
           </p>
         </div>
-        <p v-if="readOnly" class="rounded-full border border-sky-500/30 bg-sky-500/10 px-3 py-1 text-xs text-sky-200">
-          Fiche d'un joueur de votre campagne : lecture seule
-        </p>
+        <div v-if="readOnly" class="flex flex-wrap items-center gap-2">
+          <p class="rounded-full border border-sky-500/30 bg-sky-500/10 px-3 py-1 text-xs text-sky-200">
+            Fiche d'un joueur de votre campagne : lecture seule
+          </p>
+          <button class="btn-secondary" :disabled="exporting" @click="exportPdf">{{ exporting ? 'Préparation…' : 'Télécharger le PDF' }}</button>
+        </div>
         <div v-else class="flex flex-wrap items-center gap-2">
           <span class="text-xs mr-2" :class="saveStatusClass">{{ saveStatusLabel }}</span>
           <button class="btn-secondary" @click="levelUpMode = 'complete'" v-if="hasPending">Compléter</button>
           <button class="btn-primary" :disabled="sheet.level >= 20" @click="levelUpMode = 'level'">Monter de niveau</button>
           <router-link :to="`/character/${saved.id}/edit`" class="btn-secondary">Modifier la création</router-link>
+          <button class="btn-secondary" :disabled="exporting" @click="exportPdf">{{ exporting ? 'Préparation…' : 'Télécharger le PDF' }}</button>
         </div>
       </header>
+      <div v-if="exportError" class="p-4 rounded-xl border border-red-900/50 bg-red-950/30 text-sm text-red-300">
+        {{ exportError }}
+      </div>
 
       <!-- À compléter -->
       <div v-if="hasPending && !readOnly" class="p-4 rounded-xl border border-amber-700/40 bg-amber-950/20 text-sm text-amber-200 flex flex-wrap items-center justify-between gap-3">
@@ -302,9 +309,11 @@ import { useRoute } from 'vue-router'
 import { useCharacterStore, getErrorMessage } from '@/stores/character'
 import { stripSaved, type SavedCharacter } from '@/types/character'
 import {
-  loadApiBackgrounds, loadApiClass, loadApiRaces, loadConditions, loadSkills,
+  loadApiBackgrounds, loadApiClass, loadApiRaces, loadConditions, loadEquipmentCatalog, loadSkills,
   type ApiClass, type ApiCondition, type ApiSkill,
 } from '@/utils/dataLoader'
+import { usePdfExport } from '@/composables/usePdfExport'
+import { toSheetPdfData } from '@/utils/sheetPdf'
 import {
   applyDamage, currentHp, heal, longRest, setDeathSave, setFeatureUsed, setSlotsUsed, setTemporaryHp, shortRest, slotsUsed, spendHitDie, toggleCondition,
   type Input,
@@ -341,6 +350,7 @@ const skills = ref<ApiSkill[]>([])
 const conditions = ref<ApiCondition[]>([])
 const raceTraits = ref<{ key: string; name: string; description: string; source: string }[]>([])
 const backgroundFeature = ref<{ key: string; name: string; description: string; source: string } | null>(null)
+const backgroundPersonality = ref<{ id: number; text: string }[]>([])
 const levelUpMode = ref<'level' | 'complete' | null>(null)
 const hpAmount = ref<number | null>(null)
 const speedFeet = ref<number | null>(null)
@@ -365,6 +375,7 @@ async function loadReferences(character: SavedCharacter) {
   backgroundFeature.value = background?.feature
     ? { key: 'background', name: background.feature.name, description: background.feature.description ?? '', source: background.name }
     : null
+  backgroundPersonality.value = background?.personality ?? []
 }
 
 onMounted(async () => {
@@ -500,6 +511,31 @@ const pendingSummary = computed(() => {
     ...(p.choices.length ? [`${p.choices.length} choix`] : []),
   ].join(', ')
 })
+
+// --- Fiche PDF ---------------------------------------------------------------------------
+
+const exporting = ref(false)
+const exportError = ref<string | null>(null)
+const { generatePdf, downloadPdf } = usePdfExport()
+
+async function exportPdf() {
+  exporting.value = true
+  exportError.value = null
+  try {
+    const catalog = await loadEquipmentCatalog()
+    const data = toSheetPdfData({
+      input: input.value!, sheet: sheet.value, names: saved.value!.names, speedFeet: speedFeet.value,
+      features: features.value,
+      equipmentName: (index) => catalog.find((e) => e.index === index)?.name,
+      personalityText: (optionId) => backgroundPersonality.value.find((p) => p.id === optionId)?.text,
+    })
+    downloadPdf(await generatePdf(data), `${data.name || 'personnage'}.pdf`)
+  } catch (e) {
+    exportError.value = `Impossible de générer le PDF : ${getErrorMessage(e, 'erreur inconnue')}`
+  } finally {
+    exporting.value = false
+  }
+}
 
 // --- Actions ---------------------------------------------------------------------------
 

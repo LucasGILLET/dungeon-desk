@@ -27,8 +27,9 @@ export interface CampaignMember {
   name: string
   isMe: boolean
   joinedAt: string
-  character: { id: number; name: string; level: number | null; race: string | null; classes: { name: string | null; level: number }[] } | null
+  character: CampaignCharacter | null
 }
+export interface CampaignCharacter { id: number; name: string; level: number | null; race: string | null; classes: { name: string | null; level: number }[] }
 export interface CampaignSession { id: number; number: number; playedOn: string | null; title: string | null; summary: string | null; gmNotes: string | null }
 export interface Quest {
   id: number
@@ -80,6 +81,8 @@ export interface Campaign {
   gm: { id: number; name: string }
   inviteCode: string | null // MJ seulement
   members: CampaignMember[]
+  // Personnages joués par le MJ lui-même, membres du groupe
+  gmCharacters: CampaignCharacter[]
   partyLevels: number[]
   sessions: CampaignSession[]
   quests: Quest[]
@@ -150,6 +153,8 @@ export const campaignsApi = {
   join: (code: string, characterId: number | null) => call<{ campaignId: number }>(`/invite/${encodeURIComponent(code)}/join`, { method: 'POST', body: { characterId } }),
   setCharacter: (id: number, characterId: number | null) => call<{ campaignId: number }>(`/${id}/membership`, { method: 'PUT', body: { characterId } }),
   removeMember: (id: number, userId: number) => call<{ message: string }>(`/${id}/members/${userId}`, { method: 'DELETE' }),
+  addGmCharacter: (id: number, characterId: number) => call<{ campaignId: number }>(`/${id}/gm-characters`, { method: 'POST', body: { characterId } }),
+  removeGmCharacter: (id: number, characterId: number) => call<{ message: string }>(`/${id}/gm-characters/${characterId}`, { method: 'DELETE' }),
   // Séances, quêtes, PNJ, rencontres : création si childId absent, sinon modification
   save: (id: number, collection: CampaignCollection, body: SessionInput | QuestInput | CampaignNpcInput | EncounterInput, childId?: number) =>
     call<{ id: number }>(`/${id}/${collection}${childId ? `/${childId}` : ''}`, { method: childId ? 'PUT' : 'POST', body }),

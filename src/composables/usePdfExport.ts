@@ -228,7 +228,7 @@ export function usePdfExport() {
 
       // --- 1. Basic Info ---
       setField(fieldMapping.CharacterName, character.name)
-      setField(fieldMapping.ClassLevel, `${character.characterClass} ${character.level}`)
+      setField(fieldMapping.ClassLevel, character.classLevel ?? `${character.characterClass} ${character.level}`)
       setField(fieldMapping.Background, character.background)
       setField(fieldMapping.PlayerName, character.playerName)
       setField(fieldMapping.Race, character.race)

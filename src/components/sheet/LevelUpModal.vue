@@ -56,7 +56,7 @@
               @click="subclassChoice[c] = s.index"
             >
               <span class="font-bold font-serif">{{ s.name }}</span>
-              <span class="block text-xs text-zinc-500 mt-1 line-clamp-3">{{ s.description }}</span>
+              <span class="block text-xs text-zinc-500 mt-1 line-clamp-3">{{ plainText(s.description) }}</span>
             </button>
           </div>
         </section>
@@ -153,6 +153,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { plainText } from '@/utils/richText'
 import ChoicesPanel from '@/components/choices/ChoicesPanel.vue'
 import { previewCharacter } from '@/api/generated/endpoints'
 import { useChoicePreview } from '@/composables/useChoicePreview'

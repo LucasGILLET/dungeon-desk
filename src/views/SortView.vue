@@ -28,13 +28,13 @@
 
       <!-- Description -->
       <section v-if="spell.desc && spell.desc.length" class="mb-6 italic">
-        <div v-for="(d, i) in spell.desc" :key="i" class="mb-2">{{ d }}</div>
+        <RichText :text="spell.desc.join('\n\n')" />
       </section>
 
       <!-- Aux niveaux supérieurs -->
       <section v-if="spell.higher_level && spell.higher_level.length" class="mb-6">
         <h3 class="text-lg font-semibold mb-2 text-amber-200">Aux niveaux supérieurs</h3>
-        <div v-for="(h, i) in spell.higher_level" :key="i" class="mb-2">{{ h }}</div>
+        <RichText :text="spell.higher_level.join('\n\n')" />
       </section>
 
       <!-- Classes -->
@@ -48,6 +48,7 @@
 </template>
 
 <script setup lang="ts">
+import RichText from '@/components/RichText.vue'
 import { loadSpells } from '@/utils/spellFormat'
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'

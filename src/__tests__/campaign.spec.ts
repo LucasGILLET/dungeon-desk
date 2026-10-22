@@ -6,7 +6,9 @@ import CampaignView from '@/views/CampaignView.vue'
 import type { Campaign } from '@/api/campaigns'
 
 vi.mock('@/stores/auth', () => ({ useAuthStore: () => ({ isAuthenticated: true }) }))
-vi.mock('@/stores/character', () => ({ useCharacterStore: () => ({ fetchCharacters: vi.fn().mockResolvedValue([]) }) }))
+// Personnages de l'utilisateur connecté (MJ ou joueur)
+const mine = vi.hoisted(() => ({ characters: [] as { id: number; name: string; level: number }[] }))
+vi.mock('@/stores/character', () => ({ useCharacterStore: () => ({ fetchCharacters: vi.fn(async () => mine.characters) }) }))
 vi.mock('@/api/campaigns', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/api/campaigns')>()
   return { ...actual, campaignsApi: { get: vi.fn() } }
@@ -16,7 +18,8 @@ const campaign = (role: 'GM' | 'PLAYER'): Campaign => ({
   id: 5, edition: '2014', name: 'La mine perdue', description: 'Une **mine** oubliée.', theme: 'Exploration', status: 'ACTIVE', role,
   gm: { id: 2, name: 'MJ' }, inviteCode: role === 'GM' ? 'abc123' : null,
   members: [{ userId: 1, name: 'Joueuse', isMe: role === 'PLAYER', joinedAt: '', character: { id: 9, name: 'Test moine', level: 3, race: 'Humain', classes: [{ name: 'Moine', level: 3 }] } }],
-  partyLevels: [3],
+  gmCharacters: [{ id: 12, name: 'Compagnon', level: 2, race: 'Elfe', classes: [{ name: 'Rôdeur', level: 2 }] }],
+  partyLevels: [3, 2],
   sessions: [{ id: 1, number: 1, playedOn: '2026-10-10', title: 'Départ', summary: 'Résumé', gmNotes: role === 'GM' ? 'Secret' : null }],
   quests: [],
   npcs: [],
@@ -41,7 +44,10 @@ async function mountAs(role: 'GM' | 'PLAYER', tab?: string) {
   return wrapper
 }
 
-beforeEach(() => setActivePinia(createPinia()))
+beforeEach(() => {
+  setActivePinia(createPinia())
+  mine.characters = []
+})
 
 describe('CampaignView', () => {
   it('shows every tab and the invitation link to the game master', async () => {
@@ -58,5 +64,19 @@ describe('CampaignView', () => {
     expect(wrapper.text()).toContain('Résumé')
     expect(wrapper.text()).not.toContain('Notes du MJ')
     expect(wrapper.text()).not.toContain('Nouvelle séance')
+  })
+
+  it('lets the game master add their own characters, and shows them to players', async () => {
+    mine.characters = [{ id: 12, name: 'Compagnon', level: 2 }, { id: 13, name: 'Héroïne solo', level: 1 }]
+    const gm = await mountAs('GM')
+    expect(gm.text()).toContain('Personnages du MJ')
+    // Le personnage déjà dans le groupe n'est plus proposé
+    const options = gm.findAll('select option').map((o) => o.text())
+    expect(options).toContain('Héroïne solo (niveau 1)')
+    expect(options).not.toContain('Compagnon (niveau 2)')
+
+    const player = await mountAs('PLAYER')
+    expect(player.text()).toContain('Compagnon')
+    expect(player.find('a[href="/character/12"]').exists()).toBe(false)
   })
 })
