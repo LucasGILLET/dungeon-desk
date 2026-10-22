@@ -12,7 +12,14 @@ vi.mock('@/api/monsters', () => ({ monstersApi: { list: vi.fn(async () => []), g
 vi.mock('@/utils/dataLoader', () => ({
   loadConditions: vi.fn(async () => [{ index: 'prone', name: 'À terre', description: '' }]),
   loadMonsters: vi.fn(async () => []),
-  loadMonster: vi.fn(),
+  loadMonster: vi.fn(async () => ({
+    index: 'goblin', name: 'Gobelin', source: 'SRD', abilityScores: { dex: 14 },
+    traits: [], bonusActions: [], reactions: [], legendaryActions: [], lairActions: [],
+    actions: [{
+      name: 'Cimeterre', description: 'Attaque…', attack: { type: 'MELEE_WEAPON', bonus: 4, reachFt: 5, rangeFt: null }, save: null, usage: null, legendaryCost: null,
+      damages: [{ dice: '1d6+2', damageType: { index: 'slashing', name: 'Tranchant' }, alternativeGroup: null }], multiattack: [], spellcasting: null,
+    }],
+  })),
 }))
 
 const fighter = (over: Partial<Combatant>): Combatant => ({
@@ -81,5 +88,22 @@ describe('CombatTrackerView', () => {
     await wrapper.find('select[aria-label="Ajouter un état à Gobelin 1"]').setValue('prone')
     await vi.runAllTimersAsync()
     expect((saveCombat.mock.calls[0]![1] as Combat).combatants[1]!.conditions).toEqual(['prone'])
+  })
+
+  it("rolls a monster's attack and damage, and applies the damage to a target", async () => {
+    vi.useFakeTimers()
+    vi.spyOn(Math, 'random').mockReturnValue(0.999) // 20 naturel, puis dés au maximum
+    const wrapper = await mountTracker()
+
+    await wrapper.findAll('button').find((b) => b.text().startsWith('Attaques'))!.trigger('click')
+    await wrapper.find('button[aria-label="Jet d\'attaque : Cimeterre"]').trigger('click')
+    expect(wrapper.text().replace(/\s+/g, ' ')).toContain('Attaque : 24 (20 +4) — coup critique, dégâts doublés')
+    await wrapper.find('button[aria-label="Jet de dégâts : Cimeterre"]').trigger('click')
+    expect(wrapper.text().replace(/\s+/g, ' ')).toContain('Dégâts : 14 (14 tranchant, critique)') // 2d6+2 au maximum
+
+    await wrapper.find('select[aria-label="Appliquer les dégâts de Cimeterre à"]').setValue('0')
+    await vi.runAllTimersAsync()
+    expect((saveCombat.mock.calls.at(-1)![1] as Combat).combatants[0]!.hitPoints).toBe(10) // Bram : 24 - 14
+    vi.mocked(Math.random).mockRestore()
   })
 })

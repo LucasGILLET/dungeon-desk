@@ -67,6 +67,10 @@
                     v-else-if="c.monster" target="_blank" class="text-xs text-sky-300 hover:underline"
                     :to="{ name: c.monster.homebrew ? 'homebrew-monster' : 'monster-view', params: { index: c.monster.index } }"
                   >bloc de statistiques</router-link>
+                  <button
+                    v-if="c.monster && details[c.monster.index]" type="button" class="rounded-full border border-amber-500/30 bg-amber-500/10 px-2 text-xs text-amber-200 hover:bg-amber-500/20"
+                    :aria-expanded="!!openAttacks[i]" @click="openAttacks[i] = !openAttacks[i]"
+                  >Attaques {{ openAttacks[i] ? '▴' : '▾' }}</button>
                   <span v-if="isOut(c)" class="text-xs text-red-300">hors de combat</span>
                 </div>
                 <!-- États -->
@@ -80,6 +84,12 @@
                     <option v-for="k in conditions.filter((x) => !c.conditions.includes(x.index))" :key="k.index" :value="k.index">{{ k.name }}</option>
                   </select>
                 </div>
+                <!-- Attaques du monstre : jets d'attaque et de dégâts, à appliquer à une cible -->
+                <MonsterAttacksPanel
+                  v-if="openAttacks[i] && c.monster && details[c.monster.index]" :monster="details[c.monster.index]!"
+                  :targets="combat.combatants.map((x, position) => ({ position, name: x.name }))"
+                  @apply="(position, amount) => change(damage(combat!, position, amount))"
+                />
                 <input
                   :value="c.note ?? ''" class="mt-2 w-full bg-transparent text-xs text-zinc-400 outline-none placeholder:text-zinc-600" placeholder="Note (concentration, cible…)" maxlength="500"
                   :aria-label="`Note sur ${c.name}`" @change="change(patchCombatant(combat, i, { note: ($event.target as HTMLInputElement).value || null }))"
@@ -180,8 +190,9 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { campaignsApi, combatViewUrl, type Combat, type Combatant, type CombatantKind } from '@/api/campaigns'
+import MonsterAttacksPanel from '@/components/combat/MonsterAttacksPanel.vue'
 import { monstersApi } from '@/api/monsters'
-import { loadConditions, loadMonster, loadMonsters, type ApiMonsterSummary } from '@/utils/dataLoader'
+import { loadConditions, loadMonster, loadMonsters, type ApiMonster, type ApiMonsterSummary } from '@/utils/dataLoader'
 import { abilityModifier, formatChallenge } from '@/utils/monsterFormat'
 import {
   addCombatants, damage, heal, isOut, move, nextTurn, patchCombatant, removeCombatant, rollInitiative, setTempHp, sortByInitiative, toggleCondition,
@@ -206,6 +217,16 @@ const search = ref('')
 const addCount = ref(1)
 const other = reactive({ name: '', armorClass: null as number | null, maxHitPoints: null as number | null })
 const copied = ref(false)
+// Fiches des monstres du combat (une par monstre, pas par combattant) et panneaux d'attaques ouverts
+const details = reactive<Record<string, ApiMonster>>({})
+const openAttacks = reactive<Record<number, boolean>>({})
+
+async function loadDetail(monster: { index: string; homebrew: boolean }) {
+  if (details[monster.index]) return details[monster.index]
+  const detail = monster.homebrew ? await monstersApi.get(monster.index) : await loadMonster(monster.index)
+  details[monster.index] = detail
+  return detail
+}
 
 const current = computed(() => combat.value?.combatants[combat.value.turn] ?? null)
 const conditionName = (index: string) => conditions.value.find((c) => c.index === index)?.name ?? index
@@ -280,7 +301,7 @@ const matches = computed(() => {
 
 // Monstre du bestiaire : sa fiche donne le bonus d'initiative (DEX)
 async function addMonster(m: ApiMonsterSummary) {
-  const detail = m.source === 'HOMEBREW' ? await monstersApi.get(m.index) : await loadMonster(m.index)
+  const detail = await loadDetail({ index: m.index, homebrew: m.source === 'HOMEBREW' })
   change(addCombatants(combat.value!, {
     kind: 'MONSTER', character: null, monster: { index: m.index, name: m.name, homebrew: m.source === 'HOMEBREW' }, name: m.name,
     initiative: null, initiativeBonus: abilityModifier(detail.abilityScores.dex), armorClass: m.armorClass, maxHitPoints: m.hitPoints, hitPoints: m.hitPoints,
@@ -319,7 +340,12 @@ onMounted(async () => {
     const [loaded, conditionRows] = await Promise.all([campaignsApi.combat(campaignId, combatId), loadConditions()])
     combat.value = loaded
     conditions.value = conditionRows
-    const [mine, srd] = await Promise.all([monstersApi.list().catch(() => []), loadMonsters()])
+    const monsters = new Map(loaded.combatants.flatMap((c) => (c.monster ? [[c.monster.index, c.monster]] : [])))
+    const [mine, srd] = await Promise.all([
+      monstersApi.list().catch(() => []),
+      loadMonsters(),
+      ...[...monsters.values()].map((m) => loadDetail(m).catch(() => null)),
+    ])
     bestiary.value = [...mine, ...srd]
   } catch (e) {
     loadError.value = `Impossible de charger le combat : ${e instanceof Error ? e.message : String(e)}`

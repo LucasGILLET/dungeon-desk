@@ -2,6 +2,8 @@
   <div>
     <p class="leading-relaxed">
       <span class="font-semibold italic text-amber-100">{{ title }}.</span>
+      <!-- Attaque, sauvegarde, dégâts saisis en champs (monstre maison) : rédigés comme le SRD -->
+      <template v-if="details.length">{{ ' ' }}<em class="text-zinc-300">{{ details.join(' ') }}</em></template>
       {{ ' ' }}<span class="whitespace-pre-line">{{ description }}</span>
     </p>
     <!-- Incantation : sorts cliquables, regroupés par niveau ou par usage -->
@@ -19,13 +21,16 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { ApiMonsterAction } from '@/utils/dataLoader'
-import { actionTitle, formatUsage } from '@/utils/monsterFormat'
+import { actionDetailLines, actionTitle, formatUsage } from '@/utils/monsterFormat'
 
-const props = defineProps<{ action: ApiMonsterAction; legendary?: boolean }>()
+// homebrew : attaque, sauvegarde et dégâts saisis en champs, à rédiger (le SRD les a dans son texte)
+const props = defineProps<{ action: ApiMonsterAction; legendary?: boolean; homebrew?: boolean }>()
 
 // Incantation : la liste de sorts du texte est remplacée par la liste structurée (liens vers les sorts)
 const description = computed(() =>
   props.action.spellcasting && spellGroups.value.length ? props.action.description.split(/\n\s*\n/)[0] : props.action.description)
+
+const details = computed(() => (props.homebrew ? actionDetailLines(props.action) : []))
 
 const title = computed(() => {
   const base = actionTitle(props.action)

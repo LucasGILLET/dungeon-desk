@@ -154,3 +154,60 @@ export function actionTitle(action: ApiMonsterAction): string {
   const usage = formatUsage(action.usage)
   return usage && !action.name.includes('(') ? `${action.name} (${usage})` : action.name
 }
+
+// --- Ligne d'attaque d'une action (monstres maison) --------------------------------------
+// Les actions du SRD décrivent l'attaque dans leur texte ; celles d'un monstre
+// maison la donnent en champs : on la rédige comme le SRD français.
+
+const ATTACK_LABELS: Record<string, string> = {
+  MELEE_WEAPON: 'Attaque au corps à corps avec une arme',
+  RANGED_WEAPON: 'Attaque à distance avec une arme',
+  MELEE_OR_RANGED_WEAPON: 'Attaque au corps à corps ou à distance avec une arme',
+  MELEE_SPELL: 'Attaque au corps à corps avec un sort',
+  RANGED_SPELL: 'Attaque à distance avec un sort',
+}
+// « dégâts tranchants » (adjectif) ou « dégâts de feu » (nom)
+const ADJECTIVE_TYPES = new Set(['bludgeoning', 'piercing', 'slashing', 'necrotic', 'psychic', 'radiant'])
+export function damageTypeText(type: { index: string; name: string }): string {
+  const name = type.name.toLowerCase()
+  if (ADJECTIVE_TYPES.has(type.index)) return `dégâts ${name}s`
+  return /^[aeiouyéè]/.test(name) ? `dégâts d'${name}` : `dégâts de ${name}`
+}
+
+// Moyenne d'une formule de dés : « 2d6+3 » → 10
+export function averageDice(dice: string): number | null {
+  const tokens = dice.replace(/\s+/g, '').match(/[+-]?(\d*d\d+|\d+)/gi)
+  if (!tokens) return null
+  let total = 0
+  for (const token of tokens) {
+    const sign = token.startsWith('-') ? -1 : 1
+    const [count, sides] = token.replace(/^[+-]/, '').toLowerCase().split('d')
+    total += sign * (sides === undefined ? Number(count) : (Number(count || 1) * (Number(sides) + 1)) / 2)
+  }
+  return Math.floor(total)
+}
+
+const damageLine = (damages: ApiMonsterAction['damages']) => {
+  const groups = new Map<string, string[]>()
+  for (const d of damages) {
+    const key = d.alternativeGroup == null ? `always-${groups.size}` : `alt-${d.alternativeGroup}`
+    const text = `${averageDice(d.dice) ?? '?'} (${d.dice}) ${damageTypeText(d.damageType)}`
+    groups.set(key, [...(groups.get(key) ?? []), text])
+  }
+  return [...groups.values()].map((alternatives) => alternatives.join(' ou ')).join(' + ')
+}
+
+// Lignes à ajouter au texte de l'action, seulement si le texte ne les contient pas déjà
+export function actionDetailLines(action: ApiMonsterAction): string[] {
+  const text = action.description ?? ''
+  const lines: string[] = []
+  const a = action.attack
+  if (a && !/Attaque[^.]*:/.test(text)) {
+    const reach = a.reachFt != null ? `allonge ${meters(a.reachFt)}` : null
+    const range = a.rangeFt ? `portée ${String(Math.round(a.rangeFt.normal * 0.3 * 10) / 10).replace('.', ',')}${a.rangeFt.long ? `/${String(Math.round(a.rangeFt.long * 0.3 * 10) / 10).replace('.', ',')}` : ''} m` : null
+    lines.push(`${ATTACK_LABELS[a.type] ?? 'Attaque'} : ${signed(a.bonus ?? 0)} au toucher${[reach, range].filter(Boolean).map((x) => `, ${x}`).join('')}, une cible.`)
+  }
+  if (action.save && !/DD\s*\d+/.test(text)) lines.push(`Jet de sauvegarde de ${action.save.ability.name} DD ${action.save.dc}.`)
+  if (action.damages.length && !/Dégâts\s*:/i.test(text)) lines.push(`Dégâts : ${damageLine(action.damages)}.`)
+  return lines
+}

@@ -52,14 +52,14 @@
 
         <hr class="my-5 border-red-400/30" />
         <section v-if="monster.traits.length" class="space-y-3">
-          <MonsterActionBlock v-for="(a, i) in monster.traits" :key="`trait-${i}`" :action="a" />
+          <MonsterActionBlock v-for="(a, i) in monster.traits" :key="`trait-${i}`" :action="a" :homebrew="monster.source === 'HOMEBREW'" />
         </section>
 
         <section v-for="group in actionGroups" :key="group.title" class="mt-6">
           <h2 class="mb-3 border-b border-red-400/30 pb-1 text-2xl font-semibold text-amber-200">{{ group.title }}</h2>
           <p v-if="group.intro" class="mb-3 text-zinc-300">{{ group.intro }}</p>
           <div class="space-y-3">
-            <MonsterActionBlock v-for="(a, i) in group.actions" :key="`${group.title}-${i}`" :action="a" :legendary="group.legendary" />
+            <MonsterActionBlock v-for="(a, i) in group.actions" :key="`${group.title}-${i}`" :action="a" :legendary="group.legendary" :homebrew="monster.source === 'HOMEBREW'" />
           </div>
         </section>
 
