@@ -23,10 +23,11 @@ export interface SheetPdfSources {
   speedFeet: number | null
   features: { name: string }[]
   equipmentName: (index: string) => string | undefined
+  magicItemName: (index: string) => string | undefined
   personalityText: (optionId: number) => string | undefined
 }
 
-export function toSheetPdfData({ input, sheet, names, speedFeet, features, equipmentName, personalityText }: SheetPdfSources): PDFCharacterData {
+export function toSheetPdfData({ input, sheet, names, speedFeet, features, equipmentName, magicItemName, personalityText }: SheetPdfSources): PDFCharacterData {
   const score = (a: string) => sheet.abilityScores[a]?.total ?? 10
   const proficient = (index: string) => sheet.proficiencies.some((p) => p.index === index)
   const skills = Object.fromEntries(Object.entries(SKILLS).map(([index, key]) => [key, proficient(`skill-${index}`)])) as Record<(typeof SKILLS)[keyof typeof SKILLS], boolean>
@@ -40,7 +41,9 @@ export function toSheetPdfData({ input, sheet, names, speedFeet, features, equip
 
   const classes = names.classes.map((c) => `${c.class ?? '?'}${c.subclass ? ` (${c.subclass})` : ''}`)
   const items = (input.items ?? []).map((i) => {
-    const name = i.name || (i.equipment ? equipmentName(i.equipment) ?? i.equipment : '?')
+    const name = i.name
+      || (i.equipment ? equipmentName(i.equipment) ?? i.equipment : null)
+      || (i.magicItem ? magicItemName(i.magicItem) ?? i.magicItem : '?')
     return (i.quantity ?? 1) > 1 ? `${name} ×${i.quantity}` : name
   })
   const coins = input.currencies ?? {}
@@ -82,7 +85,12 @@ export function toSheetPdfData({ input, sheet, names, speedFeet, features, equip
     hpCurrent: currentHp(input, sheet.maxHitPoints),
     hitDice: (sheet.hitDice ?? []).map((d) => `${d.total}d${d.die}`).join(' + '),
     featuresTraits: features.map((f) => f.name).join(', '),
-    attacks: [],
+    // Les trois premières : armes équipées d'abord, puis sorts mineurs (ordre de l'API)
+    attacks: (sheet.attacks ?? []).slice(0, 3).map((a) => ({
+      name: a.name,
+      bonus: a.attackBonus != null ? (a.attackBonus >= 0 ? `+${a.attackBonus}` : `${a.attackBonus}`) : a.save ? `DD ${a.save.dc}` : '',
+      damage: a.damage ?? '',
+    })),
     appearance: input.appearance ?? '',
     backstory: input.backstory ?? '',
     equipment: items.join(', '),

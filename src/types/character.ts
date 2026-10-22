@@ -56,6 +56,19 @@ export interface PreviewChoice {
   pool: { type: 'ANY_LANGUAGE' | 'EQUIPMENT_CATEGORY'; category: { index: string; name: string } | null; candidates: { index: string; name: string }[] } | null;
 }
 
+export interface SheetAttack {
+  kind: 'WEAPON' | 'SPELL';
+  index: string;
+  name: string;
+  attackBonus: number | null;
+  save: { dc: number; ability: string } | null;
+  damage: string | null;
+  versatileDamage: string | null;
+  range: string | null;
+  properties: string[];
+  equipped: boolean;
+}
+
 export interface CharacterSheetValues {
   level: number;
   // Capacités et traits accordés par une option choisie (index) : « Tueur de colosses »
@@ -79,6 +92,8 @@ export interface CharacterSheetValues {
   pactSlots?: { level: number; count: number } | null;
   spellcasting?: { class: string; ability: string; saveDC: number; attackBonus: number }[];
   armorClass?: { value: number; detail: string };
+  // Armes de l'inventaire et sorts mineurs offensifs (jet d'attaque ou DD, dégâts)
+  attacks?: SheetAttack[];
   featureResources?: { feature: string | null; trait: string | null; name: string; max: number; used: number; recharge: 'SHORT' | 'LONG' }[];
 }
 

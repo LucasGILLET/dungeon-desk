@@ -21,12 +21,16 @@ const sheet: CharacterSheetValues = {
   languages: [{ index: 'common', name: 'Commun' }],
   hitDice: [{ class: 'fighter', die: 10, total: 3, used: 0 }, { class: 'wizard', die: 6, total: 1, used: 0 }],
   armorClass: { value: 19, detail: 'Cotte de mailles 16 + 1 (Défense) + Bouclier 2' },
+  attacks: [
+    { kind: 'WEAPON', index: 'longsword', name: 'Épée longue', attackBonus: 5, save: null, damage: '1d8 + 3 tranchant', versatileDamage: null, range: null, properties: [], equipped: true },
+    { kind: 'SPELL', index: 'sacred-flame', name: 'Flamme sacrée', attackBonus: null, save: { dc: 13, ability: 'dex' }, damage: '1d8 radiant', versatileDamage: null, range: null, properties: [], equipped: false },
+  ],
 }
 
 const data = toSheetPdfData({
   input: {
     name: 'Brann', race: 'dwarf', abilityScores: { str: 16, dex: 14, con: 14, int: 12, wis: 10, cha: 8 },
-    classes: [], items: [{ equipment: 'chain-mail', quantity: 1 }, { name: 'Potion de soins', quantity: 2 }],
+    classes: [], items: [{ equipment: 'chain-mail', quantity: 1 }, { name: 'Potion de soins', quantity: 2 }, { magicItem: 'cloak-of-elvenkind', quantity: 1 }],
     currencies: { GP: 15, SP: 3 },
     personality: [{ kind: 'IDEAL', optionId: 7 }, { kind: 'FLAW', text: 'Trop fier' }],
     state: { experiencePoints: 2700, damageTaken: 4 } as never,
@@ -36,6 +40,7 @@ const data = toSheetPdfData({
   speedFeet: 25,
   features: [{ name: 'Second souffle' }, { name: 'Vision dans le noir' }],
   equipmentName: (i) => (i === 'chain-mail' ? 'Cotte de mailles' : undefined),
+  magicItemName: (i) => (i === 'cloak-of-elvenkind' ? 'Cape elfique' : undefined),
   personalityText: (id) => (id === 7 ? 'Responsabilité' : undefined),
 })
 
@@ -52,8 +57,15 @@ describe('toSheetPdfData', () => {
   })
 
   it("liste l'équipement, la monnaie, les maîtrises et la personnalité", () => {
-    expect(data.equipment).toBe('Cotte de mailles, Potion de soins ×2')
+    expect(data.equipment).toBe('Cotte de mailles, Potion de soins ×2, Cape elfique')
     expect(data).toMatchObject({ po: 15, pa: 3, pc: 0, otherMasteries: 'Armures lourdes, Commun', ideals: 'Responsabilité', flaws: 'Trop fier' })
     expect(data.featuresTraits).toBe('Second souffle, Vision dans le noir')
+  })
+
+  it('remplit le tableau des attaques', () => {
+    expect(data.attacks).toEqual([
+      { name: 'Épée longue', bonus: '+5', damage: '1d8 + 3 tranchant' },
+      { name: 'Flamme sacrée', bonus: 'DD 13', damage: '1d8 radiant' },
+    ])
   })
 })

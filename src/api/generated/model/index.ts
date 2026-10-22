@@ -68,6 +68,7 @@ export * from './getSrdBackgroundsParams';
 export * from './getSrdConditionsParams';
 export * from './getSrdEditionClassesIndexParams';
 export * from './getSrdEditionClassesParams';
+export * from './getSrdEquipmentByIndexParams';
 export * from './getSrdEquipmentParams';
 export * from './getSrdFeatsParams';
 export * from './getSrdGuideParams';

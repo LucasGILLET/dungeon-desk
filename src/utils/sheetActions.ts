@@ -118,12 +118,16 @@ export function toggleCondition(input: Input, condition: string): Input {
 
 // --- Inventaire -----------------------------------------------------------------------
 
-export function addItem(input: Input, item: { equipment?: string | null; name?: string | null; quantity?: number }): Input {
+// Objet du catalogue, objet magique ou objet libre ; un objet déjà présent voit sa quantité augmenter
+export function addItem(input: Input, item: { equipment?: string | null; magicItem?: string | null; name?: string | null; quantity?: number }): Input {
   const next = clone(input)
   const items = next.items ?? []
-  const same = items.find((i) => (item.equipment ? i.equipment === item.equipment : !i.equipment && i.name === item.name))
+  const same = items.find((i) =>
+    item.equipment ? i.equipment === item.equipment
+      : item.magicItem ? i.magicItem === item.magicItem
+        : !i.equipment && !i.magicItem && i.name === item.name)
   if (same) same.quantity = (same.quantity ?? 1) + (item.quantity ?? 1)
-  else items.push({ equipment: item.equipment ?? null, name: item.name ?? null, quantity: item.quantity ?? 1, equipped: false, attuned: false })
+  else items.push({ equipment: item.equipment ?? null, magicItem: item.magicItem ?? null, name: item.name ?? null, quantity: item.quantity ?? 1, equipped: false, attuned: false })
   next.items = items
   return next
 }
@@ -143,5 +147,52 @@ export const removeItem = (input: Input, index: number) => updateItem(input, ind
 export function setCurrency(input: Input, currency: 'CP' | 'SP' | 'EP' | 'GP' | 'PP', amount: number): Input {
   const next = clone(input)
   next.currencies = { ...(next.currencies ?? {}), [currency]: Math.max(0, Math.floor(amount) || 0) }
+  return next
+}
+
+// --- Retour en arrière ------------------------------------------------------------------
+
+// Retire le dernier niveau pris (le plus haut niveau de personnage). Une classe
+// sans niveau disparaît, une sous-classe sous son niveau d'accès aussi ; les PV
+// actuels et dés de vie dépensés restent dans les nouvelles limites.
+export function removeLastLevel(input: Input, subclassLevel: (classIndex: string) => number): Input {
+  const next = clone(input)
+  const levels = next.classes.flatMap((c) => c.levels.map((l) => l.characterLevel))
+  if (levels.length <= 1) return next
+  const top = Math.max(...levels)
+  next.classes = next.classes
+    .map((c) => {
+      const kept = c.levels.filter((l) => l.characterLevel !== top)
+      if (kept.length === c.levels.length) return c
+      return {
+        ...c,
+        levels: kept,
+        subclass: kept.length < subclassLevel(c.class) ? null : c.subclass,
+        hitDiceUsed: Math.min(c.hitDiceUsed ?? 0, kept.length),
+      }
+    })
+    .filter((c) => c.levels.length > 0)
+  next.state = { ...state(next), currentHitPoints: null }
+  return next
+}
+
+// Retire les réponses que l'API refuse après un retour en arrière : choix d'un
+// niveau retiré, sorts trop puissants, utilisations d'une capacité perdue.
+// Renvoie null quand aucune erreur ne vise ces listes.
+export function pruneRejected(input: Input, errors: { path: string }[]): Input | null {
+  // « spells[3].spell » → 3 pour la liste « spells »
+  const rejected = (list: string) => new Set(errors.flatMap((e) => {
+    if (!e.path.startsWith(`${list}[`)) return []
+    const index = Number.parseInt(e.path.slice(list.length + 1), 10)
+    return Number.isNaN(index) ? [] : [index]
+  }))
+  const choices = rejected('choices')
+  const spells = rejected('spells')
+  const usage = rejected('state.featureUsage')
+  if (!choices.size && !spells.size && !usage.size) return null
+  const next = clone(input)
+  next.choices = (next.choices ?? []).filter((_, i) => !choices.has(i))
+  next.spells = (next.spells ?? []).filter((_, i) => !spells.has(i))
+  next.state = { ...state(next), featureUsage: (state(next).featureUsage ?? []).filter((_, i) => !usage.has(i)) }
   return next
 }

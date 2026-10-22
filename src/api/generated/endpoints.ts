@@ -44,6 +44,7 @@ import type {
   GetSrdConditionsParams,
   GetSrdEditionClassesIndexParams,
   GetSrdEditionClassesParams,
+  GetSrdEquipmentByIndexParams,
   GetSrdEquipmentParams,
   GetSrdFeatsParams,
   GetSrdGuideParams,
@@ -966,6 +967,174 @@ export const useRemoveCampaignMember = <TError = unknown,
       > => {
 
       const mutationOptions = getRemoveCampaignMemberMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Add one of the game master's characters to the party
+ */
+export type addCampaignGmCharacterResponse201 = {
+  data: void
+  status: 201
+}
+    
+export type addCampaignGmCharacterResponseSuccess = (addCampaignGmCharacterResponse201) & {
+  headers: Headers;
+};
+;
+
+export type addCampaignGmCharacterResponse = (addCampaignGmCharacterResponseSuccess)
+
+export const getAddCampaignGmCharacterUrl = (id: number,) => {
+
+
+  
+
+  return `/campaigns/${id}/gm-characters`
+}
+
+export const addCampaignGmCharacter = async (id: number, options?: RequestInit): Promise<addCampaignGmCharacterResponse> => {
+  
+  return customFetch<addCampaignGmCharacterResponse>(getAddCampaignGmCharacterUrl(id),
+  {      
+    ...options,
+    method: 'POST'
+    
+    
+  }
+);}
+
+
+
+
+export const getAddCampaignGmCharacterMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addCampaignGmCharacter>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addCampaignGmCharacter>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['addCampaignGmCharacter'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addCampaignGmCharacter>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  addCampaignGmCharacter(id,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddCampaignGmCharacterMutationResult = NonNullable<Awaited<ReturnType<typeof addCampaignGmCharacter>>>
+    
+    export type AddCampaignGmCharacterMutationError = unknown
+
+    /**
+ * @summary Add one of the game master's characters to the party
+ */
+export const useAddCampaignGmCharacter = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addCampaignGmCharacter>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationReturnType<
+        Awaited<ReturnType<typeof addCampaignGmCharacter>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+
+      const mutationOptions = getAddCampaignGmCharacterMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * @summary Remove a game master's character from the party
+ */
+export type removeCampaignGmCharacterResponse200 = {
+  data: void
+  status: 200
+}
+    
+export type removeCampaignGmCharacterResponseSuccess = (removeCampaignGmCharacterResponse200) & {
+  headers: Headers;
+};
+;
+
+export type removeCampaignGmCharacterResponse = (removeCampaignGmCharacterResponseSuccess)
+
+export const getRemoveCampaignGmCharacterUrl = (id: number,
+    characterId: number,) => {
+
+
+  
+
+  return `/campaigns/${id}/gm-characters/${characterId}`
+}
+
+export const removeCampaignGmCharacter = async (id: number,
+    characterId: number, options?: RequestInit): Promise<removeCampaignGmCharacterResponse> => {
+  
+  return customFetch<removeCampaignGmCharacterResponse>(getRemoveCampaignGmCharacterUrl(id,characterId),
+  {      
+    ...options,
+    method: 'DELETE'
+    
+    
+  }
+);}
+
+
+
+
+export const getRemoveCampaignGmCharacterMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeCampaignGmCharacter>>, TError,{id: number;characterId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof removeCampaignGmCharacter>>, TError,{id: number;characterId: number}, TContext> => {
+
+const mutationKey = ['removeCampaignGmCharacter'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof removeCampaignGmCharacter>>, {id: number;characterId: number}> = (props) => {
+          const {id,characterId} = props ?? {};
+
+          return  removeCampaignGmCharacter(id,characterId,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RemoveCampaignGmCharacterMutationResult = NonNullable<Awaited<ReturnType<typeof removeCampaignGmCharacter>>>
+    
+    export type RemoveCampaignGmCharacterMutationError = unknown
+
+    /**
+ * @summary Remove a game master's character from the party
+ */
+export const useRemoveCampaignGmCharacter = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeCampaignGmCharacter>>, TError,{id: number;characterId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationReturnType<
+        Awaited<ReturnType<typeof removeCampaignGmCharacter>>,
+        TError,
+        {id: number;characterId: number},
+        TContext
+      > => {
+
+      const mutationOptions = getRemoveCampaignGmCharacterMutationOptions(options);
 
       return useMutation(mutationOptions, queryClient);
     }
@@ -2927,6 +3096,119 @@ export function useGetSrdEquipment<TData = Awaited<ReturnType<typeof getSrdEquip
  ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetSrdEquipmentQueryOptions(edition,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = unref(queryOptions).queryKey as DataTag<QueryKey, TData, TError>;
+
+  return query;
+}
+
+
+
+
+
+/**
+ * @summary One piece of equipment with its weapon or armor stats and property rules (translated)
+ */
+export type getSrdEquipmentByIndexResponse200 = {
+  data: void
+  status: 200
+}
+
+export type getSrdEquipmentByIndexResponse404 = {
+  data: void
+  status: 404
+}
+    
+export type getSrdEquipmentByIndexResponseSuccess = (getSrdEquipmentByIndexResponse200) & {
+  headers: Headers;
+};
+export type getSrdEquipmentByIndexResponseError = (getSrdEquipmentByIndexResponse404) & {
+  headers: Headers;
+};
+
+export type getSrdEquipmentByIndexResponse = (getSrdEquipmentByIndexResponseSuccess | getSrdEquipmentByIndexResponseError)
+
+export const getGetSrdEquipmentByIndexUrl = (edition: string,
+    index: string,
+    params?: GetSrdEquipmentByIndexParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/srd/${edition}/equipment/${index}?${stringifiedParams}` : `/srd/${edition}/equipment/${index}`
+}
+
+export const getSrdEquipmentByIndex = async (edition: string,
+    index: string,
+    params?: GetSrdEquipmentByIndexParams, options?: RequestInit): Promise<getSrdEquipmentByIndexResponse> => {
+  
+  return customFetch<getSrdEquipmentByIndexResponse>(getGetSrdEquipmentByIndexUrl(edition,index,params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getGetSrdEquipmentByIndexQueryKey = (edition?: MaybeRef<string>,
+    index?: MaybeRef<string>,
+    params?: MaybeRef<GetSrdEquipmentByIndexParams>,) => {
+    return [
+    'srd',edition,'equipment',index, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetSrdEquipmentByIndexQueryOptions = <TData = Awaited<ReturnType<typeof getSrdEquipmentByIndex>>, TError = void>(edition: MaybeRef<string>,
+    index: MaybeRef<string>,
+    params?: MaybeRef<GetSrdEquipmentByIndexParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdEquipmentByIndex>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  getGetSrdEquipmentByIndexQueryKey(edition,index,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSrdEquipmentByIndex>>> = ({ signal }) => getSrdEquipmentByIndex(unref(edition),unref(index),unref(params), { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: computed(() => !!(unref(edition) && unref(index))), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSrdEquipmentByIndex>>, TError, TData> 
+}
+
+export type GetSrdEquipmentByIndexQueryResult = NonNullable<Awaited<ReturnType<typeof getSrdEquipmentByIndex>>>
+export type GetSrdEquipmentByIndexQueryError = void
+
+
+/**
+ * @summary One piece of equipment with its weapon or armor stats and property rules (translated)
+ */
+
+export function useGetSrdEquipmentByIndex<TData = Awaited<ReturnType<typeof getSrdEquipmentByIndex>>, TError = void>(
+ edition: MaybeRef<string>,
+    index: MaybeRef<string>,
+    params?: MaybeRef<GetSrdEquipmentByIndexParams>, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSrdEquipmentByIndex>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient 
+ ): UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSrdEquipmentByIndexQueryOptions(edition,index,params,options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryReturnType<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

@@ -19,11 +19,12 @@
     <form class="flex flex-col sm:flex-row gap-2 mb-4" @submit.prevent="add">
       <input
         v-model="query" list="equipment-catalog" class="input flex-1"
-        placeholder="Ajouter un objet du catalogue ou un objet libre (objet magique, butin…)"
+        placeholder="Ajouter un objet, un objet magique ou un objet libre (butin…)"
         aria-label="Objet à ajouter"
       />
       <datalist id="equipment-catalog">
         <option v-for="e in catalog" :key="e.index" :value="e.name"></option>
+        <option v-for="m in magicCatalog" :key="`magic-${m.index}`" :value="m.name">Objet magique · {{ RARITY_LABELS[m.rarity] }}</option>
       </datalist>
       <input v-model.number="quantity" type="number" min="1" class="input w-20" aria-label="Quantité" />
       <button type="submit" class="px-4 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold disabled:opacity-40" :disabled="!query.trim()">
@@ -45,9 +46,10 @@
       <tbody>
         <tr v-for="(item, i) in input.items" :key="i" class="border-t border-zinc-800/70">
           <td class="py-2">
-            <span class="text-zinc-200">{{ itemName(item) }}</span>
+            <button type="button" class="text-left text-zinc-200 hover:text-amber-300 hover:underline" :title="`Voir la fiche de ${itemName(item)}`" @click="open = item">{{ itemName(item) }}</button>
             <span v-if="details(item)" class="ml-2 text-xs text-zinc-500">{{ details(item) }}</span>
-            <span v-if="!item.equipment" class="ml-2 text-[10px] uppercase text-zinc-600">libre</span>
+            <span v-if="item.magicItem" :class="['ml-2 rounded-full border px-2 text-[10px] uppercase', RARITY_CLASSES[magicByIndex.get(item.magicItem)?.rarity ?? 'VARIES']]">magique</span>
+            <span v-else-if="!item.equipment" class="ml-2 text-[10px] uppercase text-zinc-600">libre</span>
           </td>
           <td class="py-2">
             <div class="flex items-center justify-center gap-2">
@@ -73,12 +75,15 @@
       </tbody>
     </table>
     <p class="mt-3 text-xs text-zinc-500">Poids porté : {{ totalWeight }} kg</p>
+    <ItemDetailModal v-if="open" :item="open" :name="itemName(open)" @close="open = null" />
   </section>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { loadEquipmentCatalog, type ApiEquipment } from '@/utils/dataLoader'
+import ItemDetailModal from '@/components/sheet/ItemDetailModal.vue'
+import { loadEquipmentCatalog, loadMagicItems, type ApiEquipment, type ApiMagicItemSummary } from '@/utils/dataLoader'
+import { RARITY_CLASSES, RARITY_LABELS } from '@/utils/monsterFormat'
 import { addItem, removeItem, setCurrency, updateItem, type Input } from '@/utils/sheetActions'
 
 const props = defineProps<{ input: Input }>()
@@ -89,14 +94,22 @@ const CURRENCIES = [
 ] as const
 
 const catalog = ref<ApiEquipment[]>([])
+const magicCatalog = ref<ApiMagicItemSummary[]>([])
 const query = ref('')
 const quantity = ref(1)
-onMounted(async () => { catalog.value = await loadEquipmentCatalog() })
+onMounted(async () => {
+  ;[catalog.value, magicCatalog.value] = await Promise.all([loadEquipmentCatalog(), loadMagicItems()])
+})
 
 type Item = NonNullable<Input['items']>[number]
+const open = ref<Item | null>(null)
 const byIndex = computed(() => new Map(catalog.value.map((e) => [e.index, e])))
-const itemName = (item: Item) => item.name || byIndex.value.get(item.equipment ?? '')?.name || item.equipment || '?'
+const magicByIndex = computed(() => new Map(magicCatalog.value.map((m) => [m.index, m])))
+const itemName = (item: Item) =>
+  item.name || byIndex.value.get(item.equipment ?? '')?.name || magicByIndex.value.get(item.magicItem ?? '')?.name || item.equipment || item.magicItem || '?'
 const details = (item: Item) => {
+  const m = magicByIndex.value.get(item.magicItem ?? '')
+  if (m) return [RARITY_LABELS[m.rarity], m.requiresAttunement ? 'lien' : null].filter(Boolean).join(' · ')
   const e = byIndex.value.get(item.equipment ?? '')
   if (!e) return ''
   return [e.damage, e.armorClass != null ? `CA ${e.armorClass}` : null].filter(Boolean).join(' · ')
@@ -108,12 +121,15 @@ const totalWeight = computed(() => {
   return (Math.round(lb * 0.45 * 10) / 10).toString().replace('.', ',')
 })
 
-// Nom du catalogue → objet du catalogue ; sinon objet libre
+// Nom du catalogue → objet du catalogue, puis objet magique ; sinon objet libre
 function add() {
   const name = query.value.trim()
   if (!name) return
-  const match = catalog.value.find((e) => e.name.toLowerCase() === name.toLowerCase())
-  emit('update', addItem(props.input, match ? { equipment: match.index, quantity: quantity.value || 1 } : { name, quantity: quantity.value || 1 }))
+  const same = (n: string) => n.toLowerCase() === name.toLowerCase()
+  const match = catalog.value.find((e) => same(e.name))
+  const magic = match ? undefined : magicCatalog.value.find((m) => same(m.name))
+  const count = quantity.value || 1
+  emit('update', addItem(props.input, match ? { equipment: match.index, quantity: count } : magic ? { magicItem: magic.index, quantity: count } : { name, quantity: count }))
   query.value = ''
   quantity.value = 1
 }

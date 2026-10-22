@@ -32,6 +32,7 @@
           <span class="text-xs mr-2" :class="saveStatusClass">{{ saveStatusLabel }}</span>
           <button class="btn-secondary" @click="levelUpMode = 'complete'" v-if="hasPending">Compléter</button>
           <button class="btn-primary" :disabled="sheet.level >= 20" @click="levelUpMode = 'level'">Monter de niveau</button>
+          <button class="btn-secondary" :disabled="sheet.level <= 1 || removingLevel" @click="removeLevel">{{ removingLevel ? 'Retrait…' : 'Retirer un niveau' }}</button>
           <router-link :to="`/character/${saved.id}/edit`" class="btn-secondary">Modifier la création</router-link>
           <button class="btn-secondary" :disabled="exporting" @click="exportPdf">{{ exporting ? 'Préparation…' : 'Télécharger le PDF' }}</button>
         </div>
@@ -168,6 +169,37 @@
                 <button class="btn-secondary flex-1" @click="update(longRest(input))">Repos long</button>
               </div>
             </div>
+          </section>
+
+          <!-- Attaques : armes de l'inventaire et sorts mineurs, comme sur la fiche papier -->
+          <section v-if="sheet.attacks?.length" class="panel">
+            <h2 class="panel-title">Attaques</h2>
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="text-left text-[10px] uppercase tracking-widest text-zinc-500">
+                  <th class="py-1 font-bold">Nom</th>
+                  <th class="py-1 text-center font-bold">Attaque</th>
+                  <th class="py-1 font-bold">Dégâts</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="a in sheet.attacks" :key="`${a.kind}-${a.index}`" class="border-t border-zinc-800/70 align-top">
+                  <td class="py-2 pr-2">
+                    <span :class="a.equipped || a.kind === 'SPELL' ? 'text-zinc-100' : 'text-zinc-400'">{{ a.name }}</span>
+                    <span v-if="a.kind === 'SPELL'" class="ml-1 text-[10px] uppercase text-violet-300">sort</span>
+                    <span v-else-if="!a.equipped" class="ml-1 text-[10px] uppercase text-zinc-600">rangée</span>
+                    <p v-if="a.range || a.properties.length" class="text-xs text-zinc-500">{{ [a.range, ...a.properties].filter(Boolean).join(' · ') }}</p>
+                  </td>
+                  <td class="py-2 text-center font-bold text-white">
+                    {{ a.attackBonus != null ? signed(a.attackBonus) : a.save ? `DD ${a.save.dc} ${abilityShort(a.save.ability)}` : '—' }}
+                  </td>
+                  <td class="py-2 text-zinc-200">
+                    {{ a.damage ?? '—' }}
+                    <p v-if="a.versatileDamage" class="text-xs text-zinc-500">à deux mains : {{ a.versatileDamage }}</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </section>
 
           <!-- Capacités à utilisations limitées -->
@@ -307,15 +339,16 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useCharacterStore, getErrorMessage } from '@/stores/character'
-import { stripSaved, type SavedCharacter } from '@/types/character'
+import { stripSaved, type CharacterPreview, type SavedCharacter } from '@/types/character'
+import { previewCharacter } from '@/api/generated/endpoints'
 import {
-  loadApiBackgrounds, loadApiClass, loadApiRaces, loadConditions, loadEquipmentCatalog, loadSkills,
+  loadApiBackgrounds, loadApiClass, loadApiRaces, loadConditions, loadEquipmentCatalog, loadMagicItems, loadSkills,
   type ApiClass, type ApiCondition, type ApiSkill,
 } from '@/utils/dataLoader'
 import { usePdfExport } from '@/composables/usePdfExport'
 import { toSheetPdfData } from '@/utils/sheetPdf'
 import {
-  applyDamage, currentHp, heal, longRest, setDeathSave, setFeatureUsed, setSlotsUsed, setTemporaryHp, shortRest, slotsUsed, spendHitDie, toggleCondition,
+  applyDamage, currentHp, heal, longRest, pruneRejected, removeLastLevel, setDeathSave, setFeatureUsed, setSlotsUsed, setTemporaryHp, shortRest, slotsUsed, spendHitDie, toggleCondition,
   type Input,
 } from '@/utils/sheetActions'
 import { feetToMeters } from '@/utils/spellFormat'
@@ -512,6 +545,31 @@ const pendingSummary = computed(() => {
   ].join(', ')
 })
 
+// --- Retour en arrière -------------------------------------------------------------------
+
+const removingLevel = ref(false)
+
+// Retire le dernier niveau, puis les choix, sorts et utilisations que l'API
+// refuse ensuite (réponses du niveau retiré, sorts trop puissants…)
+async function removeLevel() {
+  if (!window.confirm(`Retirer le niveau ${sheet.value.level} ? Les choix faits à ce niveau seront perdus.`)) return
+  removingLevel.value = true
+  try {
+    let next = removeLastLevel(input.value!, (c) => classes.value.find((k) => k.index === c)?.subclassLevel ?? 1)
+    for (let pass = 0; pass < 5; pass++) {
+      const preview = (await previewCharacter(next, { lang: 'fr' })).data as unknown as CharacterPreview
+      const pruned = pruneRejected(next, preview.errors)
+      if (!pruned) break
+      next = pruned
+    }
+    update(next)
+  } catch (e) {
+    saveError.value = getErrorMessage(e, 'retrait du niveau impossible')
+  } finally {
+    removingLevel.value = false
+  }
+}
+
 // --- Fiche PDF ---------------------------------------------------------------------------
 
 const exporting = ref(false)
@@ -522,11 +580,12 @@ async function exportPdf() {
   exporting.value = true
   exportError.value = null
   try {
-    const catalog = await loadEquipmentCatalog()
+    const [catalog, magicItems] = await Promise.all([loadEquipmentCatalog(), loadMagicItems()])
     const data = toSheetPdfData({
       input: input.value!, sheet: sheet.value, names: saved.value!.names, speedFeet: speedFeet.value,
       features: features.value,
       equipmentName: (index) => catalog.find((e) => e.index === index)?.name,
+      magicItemName: (index) => magicItems.find((m) => m.index === index)?.name,
       personalityText: (optionId) => backgroundPersonality.value.find((p) => p.id === optionId)?.text,
     })
     downloadPdf(await generatePdf(data), `${data.name || 'personnage'}.pdf`)

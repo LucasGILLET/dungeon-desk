@@ -10,7 +10,12 @@ export type CharacterCreateInputItemsItem = {
   /** @nullable */
   equipment?: string | null;
   /**
-   * Objet libre (objet magique, butin…)
+   * Objet magique du SRD (à la place de equipment)
+   * @nullable
+   */
+  magicItem?: string | null;
+  /**
+   * Objet libre (butin…), ou nom personnalisé
    * @nullable
    */
   name?: string | null;

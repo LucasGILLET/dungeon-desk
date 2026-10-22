@@ -36,6 +36,13 @@ vi.mock('@/utils/dataLoader', () => ({
   loadConditions: vi.fn(async () => [{ index: 'poisoned', name: 'Empoisonné', description: '…' }]),
   loadEquipmentCatalog: vi.fn(async () => [{ index: 'longsword', name: 'Épée longue', kind: 'WEAPON', cost: null, weightLb: 3, damage: '1d8', armorClass: null }]),
   loadFeats: vi.fn(async () => [{ index: 'grappler', name: 'Lutteur', description: 'Vous luttez.', prerequisites: [] }]),
+  loadMagicItems: vi.fn(async () => [{ index: 'cloak-of-elvenkind', name: 'Cape elfique', rarity: 'UNCOMMON', requiresAttunement: true, category: { index: 'wondrous-items', name: 'Objet merveilleux' } }]),
+  loadEquipment: vi.fn(async () => ({
+    index: 'longsword', name: 'Épée longue', description: null, kind: 'WEAPON', cost: { amount: 15, currency: 'GP' }, weightLb: 3, categories: [], armor: null,
+    weapon: { category: 'MARTIAL', range: 'MELEE', damage: '1d8', damageType: { index: 'slashing', name: 'Tranchant' }, versatileDamage: '1d10', normalRangeFt: null, longRangeFt: null,
+      properties: [{ index: 'versatile', name: 'Polyvalente', description: 'Peut être utilisée à deux mains.' }] },
+  })),
+  loadMagicItem: vi.fn(),
 }))
 vi.mock('@/utils/subclasses', () => ({
   loadSubclassesForClass: vi.fn(async () => [{ id: 'champion', index: 'champion', name: 'Champion', className: 'fighter', source: 'SRD', description: 'Un guerrier accompli.' }]),
@@ -59,6 +66,7 @@ const sheetValues = (levels: number) => ({
   expertise: [], languages: [{ index: 'common', name: 'Commun' }],
   hitDice: [{ class: 'fighter', die: 10, total: levels, used: 0 }], spellSlots: [], pactSlots: null, spellcasting: [],
   armorClass: { value: 16, detail: 'Cotte de mailles 16' },
+  attacks: [{ kind: 'WEAPON', index: 'longsword', name: 'Épée longue', attackBonus: 5, save: null, damage: '1d8 + 3 tranchant', versatileDamage: '1d10 + 3 tranchant', range: null, properties: ['Polyvalente'], equipped: true }],
   featureResources: [
     { feature: 'second-wind', trait: null, name: 'Second souffle', max: 1, used: 0, recharge: 'SHORT' },
     { feature: 'lay-on-hands', trait: null, name: 'Imposition des mains', max: 15, used: 0, recharge: 'LONG' },
@@ -68,7 +76,7 @@ const saved = (levels: number) => ({
   id: 7, name: 'Bram', edition: '2014', race: 'human', subrace: null, background: 'soldier', abilityMethod: 'POINT_BUY',
   abilityScores: { str: 15, dex: 11, con: 13, int: 9, wis: 12, cha: 7 },
   classes: [{ class: 'fighter', subclass: null, hitDiceUsed: 0, levels: Array.from({ length: levels }, (_, i) => ({ level: i + 1, characterLevel: i + 1 })) }],
-  choices: [], spells: [], items: [{ equipment: 'longsword', quantity: 1, equipped: true, attuned: false }], currencies: { GP: 10 },
+  choices: [], spells: [], items: [{ equipment: 'longsword', quantity: 1, equipped: true, attuned: false }, { magicItem: 'cloak-of-elvenkind', quantity: 1, equipped: true, attuned: true }], currencies: { GP: 10 },
   personality: [], conditions: [], state: { currentHitPoints: null, temporaryHitPoints: 0, spellSlotsUsed: [], featureUsage: [] },
   names: { race: 'Humain', subrace: null, background: 'Soldat', classes: [{ class: 'Guerrier', subclass: null, level: levels }] },
   sheet: sheetValues(levels), warnings: [], createdAt: '', updatedAt: '',
@@ -131,6 +139,43 @@ describe('CharacterSheetView', () => {
     expect(text).toContain('Cotte de mailles 16')
     expect(text).toContain('Second souffle')
     expect(text).toContain('15 / 15') // réserve affichée en compteur
+    // Attaques calculées par le back, objet magique de l'inventaire
+    expect(text).toContain('1d8 + 3 tranchant')
+    expect(text).toContain('à deux mains : 1d10 + 3 tranchant')
+    expect(text).toContain('Cape elfique')
+    expect(text).toContain('Peu commun · lien')
+  })
+
+  it("opens the full sheet of an inventory item, closed with Escape", async () => {
+    const wrapper = await mountSheet()
+    await wrapper.find('button[title="Voir la fiche de Épée longue"]').trigger('click')
+    await flushPromises()
+    const dialog = wrapper.find('[role="dialog"][aria-label="Épée longue"]')
+    expect(dialog.text()).toContain('1d8 tranchant')
+    expect(dialog.text()).toContain('Polyvalente')
+    expect(dialog.text()).toContain('Peut être utilisée à deux mains.')
+    expect(dialog.text()).toContain('15 po')
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+    await flushPromises()
+    expect(wrapper.find('[role="dialog"][aria-label="Épée longue"]').exists()).toBe(false)
+  })
+
+  it('removes the last level after dropping the answers the API refuses', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const input = saved(2)
+    mockGetCharacter.mockResolvedValue({ data: { ...input, choices: [{ choiceId: 5, optionId: 50 }] } })
+    // La réponse au choix 5 n'appartient plus au personnage une fois le niveau 2 retiré
+    mockPreview.mockImplementationOnce(async () => ({ data: { valid: false, errors: [{ path: 'choices[0].choiceId', message: 'not available' }], sheet: null, choices: [] } }))
+    vi.useFakeTimers()
+    const wrapper = await mountSheet()
+
+    await wrapper.findAll('button').find((b) => b.text() === 'Retirer un niveau')!.trigger('click')
+    await vi.runAllTimersAsync()
+
+    const sent = mockUpdate.mock.calls.at(-1)![0].data
+    expect(sent.classes[0].levels).toHaveLength(1)
+    expect(sent.choices).toEqual([])
   })
 
   it('saves damage automatically, in the exchange format', async () => {

@@ -84,5 +84,35 @@ describe('sheetActions', () => {
     expect(a.togglePrepared(known, 'wizard', 'magic-missile').spells?.[0]?.prepared).toBe(true)
     expect(a.removeSpell(known, 'wizard', 'magic-missile').spells).toEqual([])
   })
-})
 
+  it('removes the last level taken, and the class it leaves empty', () => {
+    const subclassLevel = (c: string) => (c === 'wizard' ? 2 : 3)
+    // Niveau 5 pris en guerrier : la classe disparaît
+    const level4 = a.removeLastLevel(base(), subclassLevel)
+    expect(level4.classes.map((c) => c.class)).toEqual(['wizard'])
+    expect(level4.state?.currentHitPoints).toBeNull()
+
+    // Puis le niveau 4 de magicien, puis le 2 : la sous-classe (niveau 2) tombe, les dés dépensés suivent
+    const withSubclass = { ...level4, classes: [{ ...level4.classes[0]!, subclass: 'evocation' }] }
+    const level1 = a.removeLastLevel(a.removeLastLevel(a.removeLastLevel(withSubclass, subclassLevel), subclassLevel), subclassLevel)
+    expect(level1.classes[0]).toMatchObject({ levels: [{ level: 1, characterLevel: 1 }], subclass: null, hitDiceUsed: 1 })
+    // Jamais en dessous du niveau 1
+    expect(a.removeLastLevel(level1, subclassLevel).classes[0]!.levels).toHaveLength(1)
+  })
+
+  it('drops the answers the API rejects after going back', () => {
+    const input: a.Input = {
+      ...base(),
+      choices: [{ choiceId: 1, optionId: 10 }, { choiceId: 2, optionId: 20 }],
+      spells: [{ spell: 'fire-bolt', class: 'wizard' }, { spell: 'fireball', class: 'wizard' }],
+      state: { featureUsage: [{ feature: 'action-surge', used: 1 }] } as never,
+    }
+    const pruned = a.pruneRejected(input, [
+      { path: 'choices[1].choiceId' }, { path: 'spells[1].spell' }, { path: 'state.featureUsage[0].feature' }, { path: 'name' },
+    ])
+    expect(pruned?.choices).toEqual([{ choiceId: 1, optionId: 10 }])
+    expect(pruned?.spells).toEqual([{ spell: 'fire-bolt', class: 'wizard' }])
+    expect(pruned?.state?.featureUsage).toEqual([])
+    expect(a.pruneRejected(input, [{ path: 'name' }])).toBeNull()
+  })
+})

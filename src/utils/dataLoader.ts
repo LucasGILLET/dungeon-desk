@@ -259,6 +259,33 @@ export interface ApiFeat extends Ref {
 export const loadSkills = () => get<ApiSkill[]>('skills')
 export const loadConditions = () => get<ApiCondition[]>('conditions')
 export const loadEquipmentCatalog = () => get<ApiEquipment[]>('equipment')
+// Fiche complète d'un objet (dégâts, propriétés et leur règle, armure…)
+export interface ApiEquipmentDetail extends Ref {
+  description: string | null
+  kind: string
+  cost: { amount: number; currency: string } | null
+  weightLb: number | null
+  categories: Ref[]
+  weapon: {
+    category: 'SIMPLE' | 'MARTIAL'
+    range: 'MELEE' | 'RANGED'
+    damage: string | null
+    damageType: Ref | null
+    versatileDamage: string | null
+    normalRangeFt: number | null
+    longRangeFt: number | null
+    properties: (Ref & { description: string })[]
+  } | null
+  armor: {
+    category: 'LIGHT' | 'MEDIUM' | 'HEAVY' | 'SHIELD'
+    baseArmorClass: number
+    addsDexModifier: boolean
+    maxDexModifier: number | null
+    strengthMinimum: number | null
+    stealthDisadvantage: boolean
+  } | null
+}
+export const loadEquipment = (index: string) => get<ApiEquipmentDetail>(`equipment/${encodeURIComponent(index)}`)
 export const loadFeats = () => get<ApiFeat[]>('feats')
 
 export interface ApiAbilityScore extends Ref { abbreviation: string; summary: string | null; description: string | null }
