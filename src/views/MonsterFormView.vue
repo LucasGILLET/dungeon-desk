@@ -11,7 +11,7 @@
       <p v-if="loadError" class="mt-6 text-red-300">{{ loadError }}</p>
       <p v-else-if="!form || !options" class="mt-6 text-zinc-400">Chargement…</p>
 
-      <form v-else class="mt-6 grid gap-6" @submit.prevent="save">
+      <form v-else class="mt-6 grid gap-6" @submit.prevent="save" @invalid.capture="onInvalid">
         <!-- Identité -->
         <section class="ui-panel grid gap-4 sm:grid-cols-2">
           <label class="ui-label sm:col-span-2">Nom<input v-model="form.name" class="ui-input" required maxlength="120" /></label>
@@ -48,7 +48,7 @@
           <label class="ui-label">Bonus<input v-model.number="form.hitDice.bonus" type="number" class="ui-input" /></label>
           <label class="ui-label">Points de vie<input v-model.number="hitPoints" type="number" min="1" class="ui-input" :placeholder="`${averageHp} (moyenne)`" /></label>
           <label v-for="s in SPEEDS" :key="s.key" class="ui-label">{{ s.label }} (m)
-            <input :value="meters(form.speeds[s.key])" type="number" min="0" step="1.5" class="ui-input" @input="setDistance(form.speeds, s.key, ($event.target as HTMLInputElement).value)" />
+            <input :value="meters(form.speeds[s.key])" type="number" min="0" step="any" class="ui-input" @input="setDistance(form.speeds, s.key, ($event.target as HTMLInputElement).value)" />
           </label>
         </section>
 
@@ -127,7 +127,7 @@
           </div>
           <div class="grid gap-4 sm:grid-cols-4">
             <label v-for="s in SENSES" :key="s.key" class="ui-label">{{ s.label }} (m)
-              <input :value="meters(form.senses[s.key])" type="number" min="0" step="1.5" class="ui-input" @input="setDistance(form.senses, s.key, ($event.target as HTMLInputElement).value)" />
+              <input :value="meters(form.senses[s.key])" type="number" min="0" step="any" class="ui-input" @input="setDistance(form.senses, s.key, ($event.target as HTMLInputElement).value)" />
             </label>
             <label class="ui-label">Perception passive<input v-model.number="passive" type="number" min="0" max="40" class="ui-input" :placeholder="String(10 + abilityModifier(form.abilityScores.wis))" /></label>
             <label class="ui-label sm:col-span-3">Langues<input v-model="languages" class="ui-input" maxlength="300" placeholder="commun, gobelin" /></label>
@@ -298,12 +298,27 @@ function toggle(list: string[], index: string) {
   if (i >= 0) list.splice(i, 1)
   else list.push(index)
 }
+
+// Champ obligatoire vide : le navigateur bloque l'envoi avec une bulle sur le
+// champ, souvent loin du bouton ; on le dit aussi à côté du bouton
+function onInvalid(event: Event) {
+  const field = event.target as HTMLInputElement
+  const label = field.getAttribute('aria-label') ?? field.closest('label')?.firstChild?.textContent?.trim() ?? 'un champ'
+  saveError.value = `À compléter avant d'enregistrer : ${label}.`
+}
+
+// Dés saisis librement (« 2D6 + 3 ») → notation attendue par l'API (« 2d6+3 »)
+const normalizeDice = (dice: string) => dice.replace(/\s+/g, '').toLowerCase()
+
 async function save() {
   saving.value = true
   saveError.value = null
   try {
     const input = form.value!
     if (!input.legendaryActions.length) input.legendaryActionsPerRound = null
+    for (const list of [input.traits, input.actions, input.bonusActions, input.reactions, input.legendaryActions, input.lairActions]) {
+      for (const a of list) for (const d of a.damages) d.dice = normalizeDice(d.dice)
+    }
     const { index } = editIndex ? await monstersApi.update(editIndex, input) : await monstersApi.create(input)
     router.push({ name: 'homebrew-monster', params: { index } })
   } catch (e) {

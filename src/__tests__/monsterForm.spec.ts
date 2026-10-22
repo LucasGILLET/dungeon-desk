@@ -137,4 +137,31 @@ describe('MonsterFormView', () => {
     expect(sent.damageResistances).toEqual([{ damageType: 'slashing', nonMagicalOnly: true }, { damageType: 'fire', nonMagicalOnly: false }])
     expect(sent.lairActions).toEqual([expect.objectContaining({ name: 'Éboulement' })])
   })
+
+  it('accepts any distance and loosely typed dice, and says which field is missing', async () => {
+    const { wrapper } = await mountForm('/my-monsters/new')
+    // Une vitesse qui n'est pas un multiple de 1,5 m reste valide (arrondie à 35 pieds)
+    const fly = wrapper.findAll('label').find((l) => l.text().startsWith('Vol (m)'))!.find('input')
+    expect(fly.attributes('step')).toBe('any')
+    await fly.setValue('10')
+
+    const actions = wrapper.findAll('section').find((x) => x.find('h2').exists() && x.find('h2').text() === 'Actions')!
+    await actions.find('button').trigger('click')
+    // Action sans nom : le navigateur bloquerait l'envoi, le message le dit près du bouton
+    const name = actions.find('input[required]')
+    name.element.dispatchEvent(new Event('invalid'))
+    await flushPromises()
+    expect(wrapper.text()).toContain("À compléter avant d'enregistrer : Nom.")
+
+    await name.setValue('Griffes')
+    await actions.findAll('button').find((b) => b.text() === '+ Ajouter des dégâts')!.trigger('click')
+    await actions.find('input[aria-label="Dés de dégâts"]').setValue('2D6 + 3')
+    await wrapper.find('input[required][maxlength="120"]').setValue('Orza')
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    const sent = create.mock.calls[0]![0]
+    expect(sent.speeds.fly).toBe(35)
+    expect(sent.actions[0].damages[0].dice).toBe('2d6+3')
+  })
 })

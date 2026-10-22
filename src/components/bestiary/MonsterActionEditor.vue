@@ -27,10 +27,10 @@
         <template v-if="a.attack">
           <label class="ui-label">Bonus au toucher<input v-model.number="a.attack.bonus" type="number" class="ui-input" /></label>
           <label v-if="isMelee(a.attack.type)" class="ui-label">Allonge (m)
-            <input :value="meters(a.attack.reachFt)" type="number" step="1.5" min="0" class="ui-input" @input="a.attack.reachFt = feet(($event.target as HTMLInputElement).value)" />
+            <input :value="meters(a.attack.reachFt)" type="number" step="any" min="0" class="ui-input" @input="a.attack.reachFt = feet(($event.target as HTMLInputElement).value)" />
           </label>
           <label v-else class="ui-label">Portée (m)
-            <input :value="meters(a.attack.rangeFt?.normal)" type="number" step="1.5" min="0" class="ui-input" @input="setRange(a, ($event.target as HTMLInputElement).value)" />
+            <input :value="meters(a.attack.rangeFt?.normal)" type="number" step="any" min="0" class="ui-input" @input="setRange(a, ($event.target as HTMLInputElement).value)" />
           </label>
         </template>
       </div>
@@ -48,7 +48,7 @@
       <div v-if="!traits" class="grid gap-2">
         <p class="text-sm text-zinc-400">Dégâts</p>
         <div v-for="(d, j) in a.damages" :key="j" class="flex gap-2">
-          <input v-model="d.dice" class="ui-input w-32 font-mono" placeholder="2d6+3" aria-label="Dés de dégâts" pattern="^(\d+d\d+|\d+)(\+\d+d\d+)*([+-]\d+)?$" />
+          <input v-model="d.dice" class="ui-input w-32 font-mono" placeholder="2d6+3" aria-label="Dés de dégâts" />
           <select v-model="d.damageType" class="ui-input flex-1" aria-label="Type de dégâts">
             <option v-for="t in options.damageTypes" :key="t.index" :value="t.index">{{ t.name }}</option>
           </select>
