@@ -32,6 +32,22 @@ vi.mock('@/api/campaigns', async (importOriginal) => {
   }
 })
 
+const { removeMonster } = vi.hoisted(() => ({ removeMonster: vi.fn() }))
+vi.mock('@/api/monsters', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/api/monsters')>()
+  return {
+    ...actual,
+    monstersApi: {
+      list: vi.fn().mockResolvedValue([{
+        index: 'orza-1a2b3c', name: 'Orza', source: 'HOMEBREW', size: 'MEDIUM', type: { index: 'fiend', name: 'Fiélon' }, subtypes: [], swarmOfSize: null,
+        alignment: { unaligned: false, options: [{ index: 'chaotic-evil', name: 'chaotique mauvais' }] }, armorClass: 16, hitPoints: 85, challengeRating: 6, xp: 2300,
+        legendary: true, imageUrl: null,
+      }]),
+      remove: removeMonster,
+    },
+  }
+})
+
 async function mountAt(query: Record<string, string> = {}) {
   const stub = { template: '<div />' }
   const router = createRouter({
@@ -43,6 +59,9 @@ async function mountAt(query: Record<string, string> = {}) {
       { path: '/gm', name: 'gm-dashboard', component: stub },
       { path: '/character-creator', component: stub },
       { path: '/npc-generator', component: stub },
+      { path: '/my-monsters/new', name: 'homebrew-monster-new', component: stub },
+      { path: '/my-monsters/:index', name: 'homebrew-monster', component: stub },
+      { path: '/my-monsters/:index/edit', name: 'homebrew-monster-edit', component: stub },
     ],
   })
   router.push({ path: '/profile', query })
@@ -83,5 +102,21 @@ describe('ProfileView', () => {
     await wrapper.find('article button').trigger('click')
     expect(wrapper.find('[role="dialog"]').text()).toContain('Aubergiste')
     expect((wrapper.find('[role="dialog"] textarea').element as HTMLTextAreaElement).value).toBe('Sait tout')
+  })
+
+  it('lists the homebrew monsters, and explains why one used in an encounter cannot be deleted', async () => {
+    const { wrapper } = await mountAt({ tab: 'monsters' })
+    expect(wrapper.find('nav').text()).toContain('Monstres')
+    const card = wrapper.find('article')
+    expect(card.text()).toContain('Orza')
+    expect(card.text()).toContain('FP 6')
+    expect(card.find('a').attributes('href')).toBe('/my-monsters/orza-1a2b3c')
+
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const { MonsterApiError } = await import('@/api/monsters')
+    removeMonster.mockRejectedValueOnce(new MonsterApiError('This monster is used in an encounter', 409))
+    await wrapper.find('button[aria-label="Supprimer Orza"]').trigger('click')
+    await flushPromises()
+    expect(wrapper.text()).toContain('« Orza » est utilisé dans une rencontre')
   })
 })

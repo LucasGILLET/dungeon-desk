@@ -8,7 +8,7 @@
           <h1 class="text-3xl font-bold bg-gradient-to-r from-amber-200 via-amber-500 to-amber-200 bg-clip-text text-transparent font-serif mb-2">
             Sanctuaire du Gardien
           </h1>
-          <p class="text-zinc-400">Vos personnages, vos PNJ et vos campagnes</p>
+          <p class="text-zinc-400">Vos personnages, vos PNJ, vos monstres et vos campagnes</p>
         </div>
         <div v-if="authStore.isAuthenticated" class="flex items-center gap-4 mt-4 md:mt-0">
           <div class="text-right mr-4 hidden md:block">
@@ -70,7 +70,7 @@
               v-model="search"
               type="search"
               class="ui-input sm:w-64"
-              :placeholder="tab === 'npcs' ? 'Nom, métier…' : 'Nom, race, classe…'"
+              :placeholder="tab === 'npcs' ? 'Nom, métier…' : tab === 'monsters' ? 'Nom, type…' : 'Nom, race, classe…'"
               aria-label="Rechercher"
             />
           </div>
@@ -158,6 +158,40 @@
             </div>
           </template>
 
+          <!-- MONSTRES MAISON -->
+          <template v-else-if="tab === 'monsters'">
+            <div v-if="monstersLoading && !monsters.length" class="flex justify-center py-20"><div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-violet-500"></div></div>
+            <EmptyState v-else-if="!monsters.length" icon="🐉" text="Vous n'avez pas encore créé de monstre" :to="{ name: 'homebrew-monster-new' }" label="Créer un monstre" />
+            <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              <article
+                v-for="m in filteredMonsters"
+                :key="m.index"
+                class="bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-lg overflow-hidden group transition-all hover:shadow-xl hover:shadow-black/50 flex flex-col"
+              >
+                <div class="h-2 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-rose-500 opacity-70 group-hover:opacity-100 transition-opacity"></div>
+                <router-link :to="{ name: 'homebrew-monster', params: { index: m.index } }" class="p-5 flex-grow">
+                  <div class="flex justify-between items-start mb-2 gap-2">
+                    <div class="min-w-0">
+                      <h3 class="font-bold text-lg text-white group-hover:text-violet-300 transition-colors truncate">{{ m.name }}</h3>
+                      <div class="text-xs text-zinc-500">{{ formatTypeLine(m) }}</div>
+                    </div>
+                    <span class="shrink-0 text-xs px-2 py-1 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">FP {{ formatChallenge(m.challengeRating) }}</span>
+                  </div>
+                  <div class="mt-3 flex flex-wrap gap-2 text-xs text-zinc-300">
+                    <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1">CA {{ m.armorClass }}</span>
+                    <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1">PV {{ m.hitPoints }}</span>
+                    <span v-if="m.legendary" class="rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-amber-200">Légendaire</span>
+                  </div>
+                </router-link>
+                <div class="bg-zinc-950/50 p-3 border-t border-zinc-800 flex justify-between items-center">
+                  <router-link :to="{ name: 'homebrew-monster-edit', params: { index: m.index } }" class="text-xs font-medium text-zinc-400 hover:text-white transition-colors">Modifier →</router-link>
+                  <button type="button" class="text-zinc-600 hover:text-red-500 p-1 transition-colors" :aria-label="`Supprimer ${m.name}`" @click="removeMonster(m)">🗑️</button>
+                </div>
+              </article>
+              <p v-if="!filteredMonsters.length" class="text-sm text-zinc-500">Aucun monstre ne correspond à « {{ search }} ».</p>
+            </div>
+          </template>
+
           <!-- CAMPAGNES -->
           <template v-else>
             <div v-if="campaignsLoading && !campaigns.length" class="flex justify-center py-20"><div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500"></div></div>
@@ -210,21 +244,26 @@ import { useRoute, useRouter, type RouteLocationRaw } from 'vue-router'
 import NpcDetailModal from '@/components/profile/NpcDetailModal.vue'
 import EmptyState from '@/components/profile/ProfileEmptyState.vue'
 import { CAMPAIGN_STATUS_LABELS, campaignsApi, type CampaignSummary } from '@/api/campaigns'
+import { MonsterApiError, monstersApi } from '@/api/monsters'
+import type { ApiMonsterSummary } from '@/utils/dataLoader'
+import { formatChallenge, formatTypeLine } from '@/utils/monsterFormat'
 import { useAuthStore } from '@/stores/auth'
 import { useCharacterStore } from '@/stores/character'
 import { useNpcStore } from '@/stores/npc'
 import type { CharacterSummary } from '@/types/character'
 
-type Tab = 'characters' | 'npcs' | 'campaigns'
+type Tab = 'characters' | 'npcs' | 'monsters' | 'campaigns'
 
 const TABS: { key: Tab; label: string; active: string; badge: string }[] = [
   { key: 'characters', label: 'Personnages (PJ)', active: 'bg-amber-900/30 text-amber-400 border border-amber-900/50', badge: 'bg-amber-900/50 text-amber-200' },
   { key: 'npcs', label: 'PNJ', active: 'bg-emerald-900/30 text-emerald-400 border border-emerald-900/50', badge: 'bg-emerald-900/50 text-emerald-200' },
+  { key: 'monsters', label: 'Monstres', active: 'bg-violet-900/30 text-violet-300 border border-violet-900/50', badge: 'bg-violet-900/50 text-violet-200' },
   { key: 'campaigns', label: 'Campagnes', active: 'bg-red-900/30 text-red-300 border border-red-900/50', badge: 'bg-red-900/50 text-red-200' },
 ]
 const TAB_HEADINGS: Record<Tab, { icon: string; title: string }> = {
   characters: { icon: '⚔️', title: 'Vos personnages (PJ)' },
   npcs: { icon: '🎭', title: 'Vos personnages non-joueurs' },
+  monsters: { icon: '🐉', title: 'Vos monstres' },
   campaigns: { icon: '🎲', title: 'Vos campagnes' },
 }
 // Encart d'appel à l'action, selon l'onglet
@@ -236,6 +275,11 @@ const CTAS: Record<Tab, { heading: string; text: string; label: string; to: Rout
   npcs: {
     heading: "Besoin d'un nouveau PNJ ?", text: 'Le générateur est prêt à invoquer une nouvelle âme pour votre histoire.', label: 'Aller au générateur', to: '/npc-generator',
     panel: 'bg-gradient-to-br from-emerald-900/20 to-teal-900/20 border-emerald-900/30', title: 'text-emerald-400', button: 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-900/20',
+  },
+  monsters: {
+    heading: 'Une créature à vous ?', text: 'Saisissez son bloc de statistiques, ou partez de la copie d\'un monstre du bestiaire.', label: 'Créer un monstre',
+    to: { name: 'homebrew-monster-new' },
+    panel: 'bg-gradient-to-br from-violet-900/20 to-fuchsia-900/20 border-violet-900/30', title: 'text-violet-300', button: 'bg-violet-700 hover:bg-violet-600 shadow-violet-900/20',
   },
   campaigns: {
     heading: 'Mener une campagne ?', text: 'Préparez vos séances, vos quêtes et vos rencontres, et invitez vos joueurs.', label: 'Tableau de bord MJ', to: { name: 'gm-dashboard' },
@@ -250,6 +294,9 @@ const npcStore = useNpcStore()
 const characterStore = useCharacterStore()
 
 const campaigns = ref<CampaignSummary[]>([])
+// Monstres maison : visibles par leur seul auteur
+const monsters = ref<ApiMonsterSummary[]>([])
+const monstersLoading = ref(false)
 const campaignsLoading = ref(false)
 const openedNpc = ref<any | null>(null)
 const search = ref('')
@@ -265,6 +312,7 @@ const cta = computed(() => CTAS[tab.value])
 const counts = computed<Record<Tab, number>>(() => ({
   characters: characterStore.characters.length,
   npcs: npcStore.npcs.length,
+  monsters: monsters.value.length,
   campaigns: campaigns.value.length,
 }))
 
@@ -281,6 +329,8 @@ const filteredCharacters = computed(() => [...characterStore.characters]
   .sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)))
   .filter((c) => matches(c.name, c.names.race, c.names.subrace, classLine(c))))
 const filteredNpcs = computed(() => npcStore.npcs.filter((n: any) => matches(n.name, n.profession, n.names?.race, n.names?.class)))
+
+const filteredMonsters = computed(() => monsters.value.filter((m) => matches(m.name, m.type.name)))
 
 const campaignsOf = (characterId: number) => campaigns.value.filter((c) => c.myCharacter?.id === characterId)
 const campaignGroups = computed(() => [
@@ -303,6 +353,19 @@ async function removeCharacter(char: CharacterSummary) {
   }
 }
 
+async function removeMonster(m: ApiMonsterSummary) {
+  if (!window.confirm(`Supprimer définitivement « ${m.name} » ?`)) return
+  actionError.value = null
+  try {
+    await monstersApi.remove(m.index)
+    monsters.value = monsters.value.filter((x) => x.index !== m.index)
+  } catch (e) {
+    actionError.value = e instanceof MonsterApiError && e.status === 409
+      ? `« ${m.name} » est utilisé dans une rencontre : retirez-le d'abord de la rencontre.`
+      : `Impossible de supprimer « ${m.name} ».`
+  }
+}
+
 async function removeNpc(id: number) {
   if (!window.confirm('Supprimer définitivement ce PNJ ? Il sera aussi retiré de vos campagnes.')) return
   await npcStore.deleteNpc(id)
@@ -312,7 +375,9 @@ async function removeNpc(id: number) {
 async function load() {
   if (!authStore.isAuthenticated) return
   campaignsLoading.value = true
+  monstersLoading.value = true
   await Promise.all([
+    monstersApi.list().then((list) => (monsters.value = list)).catch((e) => console.error(e)).finally(() => (monstersLoading.value = false)),
     npcStore.fetchNpcs().catch((e) => console.error(e)),
     characterStore.fetchCharacters().catch((e) => console.error(e)),
     campaignsApi.list().then((list) => (campaigns.value = list)).catch((e) => console.error(e)),
