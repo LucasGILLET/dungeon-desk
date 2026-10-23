@@ -2,7 +2,7 @@
   <div class="mt-3 grid gap-2 rounded-xl border border-white/10 bg-black/30 p-3 text-sm">
     <!-- Attaques multiples sans jet propre : le texte dit quoi enchaîner -->
     <p v-for="m in multiattacks" :key="m.name" class="text-xs italic text-zinc-400"><strong class="not-italic text-zinc-300">{{ m.name }}.</strong> {{ m.description }}</p>
-    <p v-if="!rows.length" class="text-xs text-zinc-500">Aucune attaque chiffrée pour ce monstre : voir son bloc de statistiques.</p>
+    <p v-if="!rows.length && !textOnly.length" class="text-xs text-zinc-500">Aucune action pour ce monstre : voir son bloc de statistiques.</p>
 
     <div v-for="row in rows" :key="row.key" class="grid gap-1 border-t border-white/5 pt-2 first:border-t-0 first:pt-0">
       <div class="flex flex-wrap items-center gap-2">
@@ -37,6 +37,16 @@
         <span v-if="applied[row.key]" class="text-emerald-300">{{ applied[row.key] }}</span>
       </div>
     </div>
+
+    <!-- Actions sans jet (repaire, légendaires, bonus, réactions) : à ne pas oublier -->
+    <div v-if="textOnly.length" class="grid gap-1 border-t border-white/10 pt-2">
+      <p class="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Sans jet</p>
+      <p v-for="t in textOnly" :key="t.key" class="text-xs text-zinc-300">
+        <strong class="text-zinc-100">{{ t.action.name }}</strong>
+        <span class="ml-1 text-[10px] uppercase text-zinc-500">{{ t.group }}</span>
+        <template v-if="t.action.description"> — <span class="italic text-zinc-400">{{ t.action.description }}</span></template>
+      </p>
+    </div>
   </div>
 </template>
 
@@ -54,6 +64,13 @@ const GROUPS = [
 ] as const
 const rows = computed(() => GROUPS.flatMap(([group, key]) =>
   combatActions(props.monster[key]).map((action, i) => ({ key: `${key}-${i}`, group, action }))))
+// Actions sans jet, hors attaques multiples (en haut) et capacités passives (sur la fiche)
+const TEXT_GROUPS = [['Repaire (init. 20)', 'lairActions'], ['Légendaire', 'legendaryActions'], ['Action bonus', 'bonusActions'], ['Réaction', 'reactions'], ['Action', 'actions']] as const
+const textOnly = computed(() => TEXT_GROUPS.flatMap(([group, key]) =>
+  props.monster[key]
+    .filter((a) => !combatActions([a]).length && !(a.multiattack.length || /attaques multiples/i.test(a.name)))
+    .map((action, i) => ({ key: `${key}-text-${i}`, group, action }))))
+
 // Attaques multiples sans jet propre : affichées en texte ; avec un jet (attaque
 // saisie directement sur elles), elles sont déjà une ligne d'attaque
 const multiattacks = computed(() => props.monster.actions

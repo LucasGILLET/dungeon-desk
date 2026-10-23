@@ -34,4 +34,13 @@ describe('MonsterAttacksPanel', () => {
     expect(shown.match(/Attaques multiples/g)).toHaveLength(1)
     expect(shown).toMatch(/Griffes ?Toucher \+6/)
   })
+
+  it('also lists the actions without a roll, lair actions first', () => {
+    const m = { ...monster([]), lairActions: [action({ name: 'Appel aux ombres', description: 'Deux ombres viennent en aide.' })], legendaryActions: [action({ name: 'Déplacement des ombres' })] } as ApiMonster
+    const shown = mount(MonsterAttacksPanel, { props: { monster: m, targets: [] } }).text().replace(/\s+/g, ' ')
+    expect(shown).toContain('Sans jet')
+    expect(shown).toMatch(/Appel aux ombres ?Repaire \(init\. 20\) — Deux ombres viennent en aide\./)
+    expect(shown.indexOf('Appel aux ombres')).toBeLessThan(shown.indexOf('Déplacement des ombres'))
+    expect(shown).not.toContain('Aucune action')
+  })
 })
