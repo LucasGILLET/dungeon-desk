@@ -256,10 +256,9 @@ describe('CharacterSheetView', () => {
   })
 
   it('edits a past ability score improvement, prefilled with the current choice', async () => {
-    const level4 = saved(4)
-    level4.classes[0]!.subclass = 'champion'
-    level4.classes[0]!.levels[3] = { ...level4.classes[0]!.levels[3]!, abilityIncreases: [{ ability: 'str', bonus: 2 }] } as never
-    mockGetCharacter.mockResolvedValue({ data: level4 })
+    const base = saved(4)
+    const levels = base.classes[0]!.levels.map((l) => (l.level === 4 ? { ...l, abilityIncreases: [{ ability: 'str', bonus: 2 }] } : l))
+    mockGetCharacter.mockResolvedValue({ data: { ...base, classes: [{ ...base.classes[0]!, subclass: 'champion', levels }] } })
     const wrapper = await mountSheet()
 
     await wrapper.findAll('button').find((b) => b.text() === 'Modifier mes choix')!.trigger('click')
