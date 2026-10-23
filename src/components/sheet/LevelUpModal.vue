@@ -3,7 +3,7 @@
     <div class="max-w-4xl mx-auto my-8 rounded-2xl border border-zinc-700 bg-zinc-950 shadow-2xl">
       <header class="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
         <h2 class="text-2xl font-bold font-serif text-white">
-          {{ mode === 'level' ? `Niveau ${totalLevel + 1}` : 'Compléter le personnage' }}
+          {{ mode === 'level' ? `Niveau ${totalLevel + 1}` : mode === 'edit' ? 'Modifier mes choix' : 'Compléter le personnage' }}
         </h2>
         <button class="text-zinc-500 hover:text-white text-xl" aria-label="Fermer" @click="emit('close')">✕</button>
       </header>
@@ -117,7 +117,8 @@
         <!-- Nouveaux choix -->
         <section v-if="preview">
           <h3 class="section-title">Choix</h3>
-          <p v-if="!visibleChoices.length" class="text-sm text-zinc-500">Aucun nouveau choix.</p>
+          <p v-if="mode === 'edit'" class="mb-3 text-xs text-zinc-500">Tous vos choix, niveau par niveau. Ceux qui ne sont plus possibles (ancienne sous-classe…) sont retirés.</p>
+          <p v-if="!visibleChoices.length" class="text-sm text-zinc-500">{{ mode === 'edit' ? 'Aucun choix.' : 'Aucun nouveau choix.' }}</p>
           <ChoicesPanel
             v-else
             :choices="visibleChoices"
@@ -143,7 +144,7 @@
         <div class="flex gap-2">
           <button class="px-4 py-2 rounded-lg border border-zinc-700 text-zinc-300 text-sm" @click="emit('close')">Annuler</button>
           <button class="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold disabled:opacity-40" :disabled="!canApply" @click="apply">
-            {{ mode === 'level' ? 'Monter de niveau' : 'Valider' }}
+            {{ mode === 'level' ? 'Monter de niveau' : mode === 'edit' ? 'Enregistrer' : 'Valider' }}
           </button>
         </div>
       </footer>
@@ -163,7 +164,8 @@ import { loadSubclassesForClass, type SubclassData } from '@/utils/subclasses'
 import type { Input } from '@/utils/sheetActions'
 import { feetToMeters } from '@/utils/spellFormat'
 
-const props = defineProps<{ mode: 'level' | 'complete'; input: Input; saved: SavedCharacter }>()
+// edit : revenir sur les choix déjà faits (améliorations, dons, sous-classes, options)
+const props = defineProps<{ mode: 'level' | 'complete' | 'edit'; input: Input; saved: SavedCharacter }>()
 const emit = defineEmits<{ close: []; apply: [input: Input] }>()
 
 const ABILITIES = [
@@ -213,6 +215,13 @@ const asiTargets = computed(() => {
   if (props.mode === 'level') {
     return grantsAsi(classRule.value, newClassLevel.value) ? [{ key: `${classIndex.value}:${newClassLevel.value}`, class: classIndex.value, level: newClassLevel.value }] : []
   }
+  if (props.mode === 'edit') {
+    // Tous les niveaux atteints qui donnent une amélioration, choisie ou non
+    return props.input.classes.flatMap((c) => {
+      const cls = allClasses.value.find((k) => k.index === c.class)
+      return c.levels.filter((l) => grantsAsi(cls, l.level)).map((l) => ({ key: `${c.class}:${l.level}`, class: c.class, level: l.level }))
+    })
+  }
   return sheet.value.pending.abilityScoreImprovements.map((p) => ({ key: `${p.class}:${p.level}`, class: p.class, level: p.level }))
 })
 // Sous-classes à choisir : atteinte du niveau de sous-classe, ou en attente
@@ -222,14 +231,38 @@ const subclassTargets = computed(() => {
     const current = owned(classIndex.value)?.subclass
     return cls && !current && newClassLevel.value >= cls.subclassLevel ? [classIndex.value] : []
   }
+  if (props.mode === 'edit') {
+    // Sous-classes déjà atteintes : modifiables
+    return props.input.classes.filter((c) => {
+      const cls = allClasses.value.find((k) => k.index === c.class)
+      return cls && c.levels.length >= cls.subclassLevel
+    }).map((c) => c.class)
+  }
   return sheet.value.pending.subclasses
 })
 
+// Mode edit : chaque amélioration et sous-classe préremplie avec le choix actuel
+const levelOf = (classIndex: string, level: number) => props.input.classes.find((c) => c.class === classIndex)?.levels.find((l) => l.level === level)
 watch(asiTargets, (targets) => {
-  for (const t of targets) asi[t.key] ??= { mode: 'plus2', abilities: [], feat: null }
+  for (const t of targets) {
+    if (asi[t.key]) continue
+    const current = props.mode === 'edit' ? levelOf(t.class, t.level) : undefined
+    const increases = current?.abilityIncreases ?? []
+    asi[t.key] = current?.feat
+      ? { mode: 'feat', abilities: [], feat: current.feat }
+      : increases.length
+        ? { mode: increases.length === 1 && increases[0]!.bonus === 2 ? 'plus2' : 'plus1', abilities: increases.flatMap((x) => (x.ability ? [x.ability] : [])), feat: null }
+        : { mode: 'plus2', abilities: [], feat: null }
+  }
 }, { immediate: true })
 watch(subclassTargets, async (targets) => {
-  for (const c of targets) subclassesOf[c] ??= await loadSubclassesForClass(c)
+  for (const c of targets) {
+    if (props.mode === 'edit' && !subclassChoice[c]) {
+      const current = owned(c)?.subclass
+      if (current) subclassChoice[c] = current
+    }
+    subclassesOf[c] ??= await loadSubclassesForClass(c)
+  }
 }, { immediate: true })
 
 function toggleAbility(key: string, ability: string) {
@@ -239,8 +272,13 @@ function toggleAbility(key: string, ability: string) {
     ? state.abilities.filter((a) => a !== ability)
     : [...state.abilities, ability].slice(-max)
 }
+const ownIncrease = (key: string, ability: string) => {
+  if (props.mode !== 'edit') return 0
+  const [c, l] = key.split(':')
+  return levelOf(c!, Number(l))?.abilityIncreases?.find((x) => x.ability === ability)?.bonus ?? 0
+}
 const abilityAtMax = (ability: string, key: string) =>
-  !asi[key]?.abilities.includes(ability) && score(ability) + (asi[key]?.mode === 'plus2' ? 2 : 1) > 20
+  !asi[key]?.abilities.includes(ability) && score(ability) - ownIncrease(key, ability) + (asi[key]?.mode === 'plus2' ? 2 : 1) > 20
 
 function roll() {
   hpMode.value = 'roll'
@@ -265,6 +303,7 @@ const gains = computed(() => {
     ? [{ cls: classRule.value, from: newClassLevel.value, to: newClassLevel.value }]
     : []
   for (const c of subclassTargets.value) {
+    if (props.mode === 'edit' && subclassChoice[c] === owned(c)?.subclass) continue
     const cls = allClasses.value.find((k) => k.index === c)
     const level = props.mode === 'level' && c === classIndex.value ? newClassLevel.value : owned(c)?.levels.length ?? 0
     if (cls) targets.push({ cls, from: 1, to: level })
@@ -360,7 +399,7 @@ const { preview, answers, loading, loadError, refresh, setAnswers } = useChoiceP
 // Choix déjà complets avant d'ouvrir la fenêtre : masqués
 const initialCounts = new Map<number, number>()
 for (const a of props.input.choices ?? []) initialCounts.set(a.choiceId, (initialCounts.get(a.choiceId) ?? 0) + 1)
-const visibleChoices = computed(() => (preview.value?.choices ?? []).filter((c) => (initialCounts.get(c.id) ?? 0) < c.choose))
+const visibleChoices = computed(() => (preview.value?.choices ?? []).filter((c) => props.mode === 'edit' || (initialCounts.get(c.id) ?? 0) < c.choose))
 
 const asiComplete = computed(() => asiTargets.value.every((t) => {
   const s = asi[t.key]

@@ -35,6 +35,7 @@
           <span class="text-xs mr-2" :class="saveStatusClass">{{ saveStatusLabel }}</span>
           <button class="btn-secondary" @click="levelUpMode = 'complete'" v-if="hasPending">Compléter</button>
           <button class="btn-primary" :disabled="sheet.level >= 20" @click="levelUpMode = 'level'">Monter de niveau</button>
+          <button class="btn-secondary" @click="levelUpMode = 'edit'">Modifier mes choix</button>
           <button class="btn-secondary" :disabled="sheet.level <= 1 || removingLevel" @click="removeLevel">{{ removingLevel ? 'Retrait…' : 'Retirer un niveau' }}</button>
           <router-link :to="`/character/${saved.id}/edit`" class="btn-secondary">Modifier la création</router-link>
           <button class="btn-secondary" :disabled="exporting" @click="exportPdf">{{ exporting ? 'Préparation…' : 'Télécharger le PDF' }}</button>
@@ -413,7 +414,7 @@ const conditions = ref<ApiCondition[]>([])
 const raceTraits = ref<{ key: string; name: string; description: string; source: string }[]>([])
 const backgroundFeature = ref<{ key: string; name: string; description: string; source: string } | null>(null)
 const backgroundPersonality = ref<{ id: number; text: string }[]>([])
-const levelUpMode = ref<'level' | 'complete' | null>(null)
+const levelUpMode = ref<'level' | 'complete' | 'edit' | null>(null)
 const hpAmount = ref<number | null>(null)
 const speedFeet = ref<number | null>(null)
 const lastRoll = ref('')

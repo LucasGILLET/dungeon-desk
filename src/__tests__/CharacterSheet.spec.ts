@@ -255,6 +255,36 @@ describe('CharacterSheetView', () => {
     expect(sent.classes[0].levels[3]).toMatchObject({ level: 4, feat: 'grappler', abilityIncreases: [] })
   })
 
+  it('edits a past ability score improvement, prefilled with the current choice', async () => {
+    const level4 = saved(4)
+    level4.classes[0]!.subclass = 'champion'
+    level4.classes[0]!.levels[3] = { ...level4.classes[0]!.levels[3]!, abilityIncreases: [{ ability: 'str', bonus: 2 }] } as never
+    mockGetCharacter.mockResolvedValue({ data: level4 })
+    const wrapper = await mountSheet()
+
+    await wrapper.findAll('button').find((b) => b.text() === 'Modifier mes choix')!.trigger('click')
+    await flushPromises()
+    const dialog = () => wrapper.find('[role="dialog"]')
+    expect(dialog().text()).toContain('Modifier mes choix')
+    expect(dialog().text()).toContain('Amélioration de caractéristiques (Guerrier 4)')
+    // Le choix actuel est présélectionné : +2 en FOR
+    const selected = dialog().findAll('button.choice-on').map((b) => b.text())
+    expect(selected).toContain('+2 à une caractéristique')
+    expect(selected.some((t) => t.startsWith('FOR'))).toBe(true)
+
+    await dialog().findAll('button').find((b) => b.text() === 'Un don')!.trigger('click')
+    await dialog().findAll('button').find((b) => b.text().startsWith('Lutteur'))!.trigger('click')
+    await new Promise((r) => setTimeout(r, 300))
+    await flushPromises()
+
+    vi.useFakeTimers()
+    await wrapper.findAll('footer button').find((b) => b.text() === 'Enregistrer')!.trigger('click')
+    await vi.advanceTimersByTimeAsync(700)
+    const sent = mockUpdate.mock.calls.at(-1)![0].data
+    expect(sent.classes[0].levels).toHaveLength(4)
+    expect(sent.classes[0].levels[3]).toMatchObject({ level: 4, feat: 'grappler', abilityIncreases: [] })
+  })
+
   it('spends a limited use and saves it', async () => {
     vi.useFakeTimers()
     const wrapper = await mountSheet()
