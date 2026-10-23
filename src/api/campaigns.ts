@@ -135,6 +135,10 @@ export interface Combatant {
   maxHitPoints: number | null
   hitPoints: number | null
   tempHitPoints: number
+  // Personnage : PV reçus du serveur (ceux de sa fiche), renvoyés tels quels pour
+  // que seuls les PV changés dans le combat soient reportés sur la fiche
+  syncedHitPoints?: number | null
+  syncedTempHitPoints?: number | null
   conditions: string[]
   note: string | null
   hidden: boolean
@@ -159,6 +163,7 @@ export const combatState = (c: Combat) => ({
     kind: x.kind, characterId: x.character?.id ?? null, monster: x.monster?.index ?? null, name: x.name,
     initiative: x.initiative, initiativeBonus: x.initiativeBonus, armorClass: x.armorClass, maxHitPoints: x.maxHitPoints,
     hitPoints: x.hitPoints, tempHitPoints: x.tempHitPoints, conditions: x.conditions, note: x.note, hidden: x.hidden,
+    ...(x.character ? { syncedHitPoints: x.syncedHitPoints, syncedTempHitPoints: x.syncedTempHitPoints } : {}),
   })),
 })
 

@@ -185,7 +185,7 @@ describe('CharacterSheetView', () => {
     const wrapper = await mountSheet()
 
     await wrapper.findAll('button').find((b) => b.text() === 'Retirer un niveau')!.trigger('click')
-    await vi.runAllTimersAsync()
+    await vi.advanceTimersByTimeAsync(700)
 
     const sent = mockUpdate.mock.calls.at(-1)![0].data
     expect(sent.classes[0].levels).toHaveLength(1)
@@ -318,7 +318,7 @@ describe('CharacterSheetView', () => {
     mockGetCharacter.mockResolvedValue({ data: { ...saved(2), items: [{ magicItem: 'weapon-1', quantity: 1, equipped: true, attuned: false }] } })
     const wrapper = await mountSheet()
 
-    await vi.runAllTimersAsync()
+    await vi.advanceTimersByTimeAsync(700)
     // (« Arme, +1 » : la virgule couperait un sélecteur CSS en deux)
     const select = wrapper.findAll('select').find((x) => x.attributes('aria-label') === 'Objet de base de Arme, +1')!
     expect(select.findAll('option').map((o) => o.text())).toEqual(['— choisir —', 'Épée longue'])
@@ -326,7 +326,7 @@ describe('CharacterSheetView', () => {
     expect(wrapper.find('select[aria-label="Objet de base de Cape elfique"]').exists()).toBe(false)
 
     await select.setValue('longsword')
-    await vi.runAllTimersAsync()
+    await vi.advanceTimersByTimeAsync(700)
     expect(mockUpdate.mock.calls.at(-1)![0].data.items[0]).toMatchObject({ magicItem: 'weapon-1', equipment: 'longsword' })
   })
 })

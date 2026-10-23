@@ -73,7 +73,7 @@ describe('CombatTrackerView', () => {
 
     await wrapper.find('input[aria-label="Montant pour Gobelin 1"]').setValue(4)
     await wrapper.findAll('button').filter((b) => b.text() === 'Dégâts')[1]!.trigger('click')
-    await vi.runAllTimersAsync()
+    await vi.advanceTimersByTimeAsync(700)
 
     // Un seul enregistrement pour les deux changements
     expect(saveCombat).toHaveBeenCalledTimes(1)
@@ -86,7 +86,7 @@ describe('CombatTrackerView', () => {
     vi.useFakeTimers()
     const wrapper = await mountTracker()
     await wrapper.find('select[aria-label="Ajouter un état à Gobelin 1"]').setValue('prone')
-    await vi.runAllTimersAsync()
+    await vi.advanceTimersByTimeAsync(700)
     expect((saveCombat.mock.calls[0]![1] as Combat).combatants[1]!.conditions).toEqual(['prone'])
   })
 
@@ -102,8 +102,21 @@ describe('CombatTrackerView', () => {
     expect(wrapper.text().replace(/\s+/g, ' ')).toContain('Dégâts : 14 (14 tranchant, critique)') // 2d6+2 au maximum
 
     await wrapper.find('select[aria-label="Appliquer les dégâts de Cimeterre à"]').setValue('0')
-    await vi.runAllTimersAsync()
+    await vi.advanceTimersByTimeAsync(700)
     expect((saveCombat.mock.calls.at(-1)![1] as Combat).combatants[0]!.hitPoints).toBe(10) // Bram : 24 - 14
     vi.mocked(Math.random).mockRestore()
+  })
+
+  it('picks up the hit points changed on a character sheet, every 10 seconds when idle', async () => {
+    vi.useFakeTimers()
+    const healed = stored()
+    healed.combatants[0]!.hitPoints = 30 // le joueur s'est soigné sur sa fiche
+    combat.mockResolvedValueOnce(stored()).mockResolvedValue(healed)
+    const wrapper = await mountTracker()
+    expect((wrapper.find('input[aria-label="PV de Bram"]').element as HTMLInputElement).value).toBe('24')
+
+    await vi.advanceTimersByTimeAsync(10000)
+    expect((wrapper.find('input[aria-label="PV de Bram"]').element as HTMLInputElement).value).toBe('30')
+    expect(saveCombat).not.toHaveBeenCalled()
   })
 })

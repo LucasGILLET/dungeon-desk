@@ -353,8 +353,29 @@ onMounted(async () => {
     loadError.value = `Impossible de charger le combat : ${e instanceof Error ? e.message : String(e)}`
   }
 })
+// Relecture toutes les 10 s et au retour sur l'onglet : PV changés sur les fiches
+// des joueurs. Jamais pendant un enregistrement ni une saisie en cours.
+const editing = () => {
+  const el = document.activeElement
+  return !!el && ['INPUT', 'SELECT', 'TEXTAREA'].includes(el.tagName)
+}
+async function refreshFromServer() {
+  if (!combat.value || pending.value || saving.value || editing() || document.hidden) return
+  try {
+    const fresh = await campaignsApi.combat(campaignId, combatId)
+    if (!pending.value && !saving.value && !editing()) combat.value = fresh
+  } catch {
+    // Réseau indisponible : nouvel essai au prochain passage
+  }
+}
+const refreshTimer = setInterval(refreshFromServer, 10000)
+const onVisible = () => { if (!document.hidden) refreshFromServer() }
+document.addEventListener('visibilitychange', onVisible)
+
 // Un enregistrement en attente part avant de quitter la page
 onBeforeUnmount(() => {
+  clearInterval(refreshTimer)
+  document.removeEventListener('visibilitychange', onVisible)
   if (pending.value) {
     clearTimeout(timer)
     save()

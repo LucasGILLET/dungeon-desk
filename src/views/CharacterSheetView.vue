@@ -360,7 +360,7 @@
 
 <script setup lang="ts">
 import SkeletonSheet from '@/components/skeleton/SkeletonSheet.vue'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { characterShareUrl, copySharedCharacter, fetchSharedCharacter, shareCharacter } from '@/api/characterShare'
 import { useAuthStore } from '@/stores/auth'
@@ -454,6 +454,31 @@ onMounted(async () => {
   } catch (e) {
     loadError.value = getErrorMessage(e, 'erreur inconnue')
   }
+})
+
+// --- Relecture : PV changés par le MJ dans un combat -----------------------------------
+
+// Toutes les 10 s et au retour sur l'onglet ; jamais pendant un enregistrement, une
+// saisie ou une fenêtre ouverte (montée de niveau, objet)
+async function refreshFromServer() {
+  if (!saved.value || shared.value || pendingSave.value || saving.value || levelUpMode.value || document.hidden) return
+  const el = document.activeElement
+  if (el && ['INPUT', 'SELECT', 'TEXTAREA'].includes(el.tagName)) return
+  try {
+    const fresh = await store.fetchCharacter(id)
+    if (fresh.updatedAt === saved.value?.updatedAt || pendingSave.value || saving.value) return
+    saved.value = fresh
+    input.value = stripSaved(fresh)
+  } catch {
+    // Réseau indisponible : nouvel essai au prochain passage
+  }
+}
+const refreshTimer = setInterval(refreshFromServer, 10000)
+const onVisible = () => { if (!document.hidden) refreshFromServer() }
+document.addEventListener('visibilitychange', onVisible)
+onBeforeUnmount(() => {
+  clearInterval(refreshTimer)
+  document.removeEventListener('visibilitychange', onVisible)
 })
 
 // --- Enregistrement automatique -----------------------------------------------------
