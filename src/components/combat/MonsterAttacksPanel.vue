@@ -1,6 +1,6 @@
 <template>
   <div class="mt-3 grid gap-2 rounded-xl border border-white/10 bg-black/30 p-3 text-sm">
-    <!-- Attaques multiples : le texte dit quoi enchaîner -->
+    <!-- Attaques multiples sans jet propre : le texte dit quoi enchaîner -->
     <p v-for="m in multiattacks" :key="m.name" class="text-xs italic text-zinc-400"><strong class="not-italic text-zinc-300">{{ m.name }}.</strong> {{ m.description }}</p>
     <p v-if="!rows.length" class="text-xs text-zinc-500">Aucune attaque chiffrée pour ce monstre : voir son bloc de statistiques.</p>
 
@@ -18,6 +18,7 @@
           :aria-label="`Jet de dégâts : ${row.action.name}`" @click="damage(row.key, row.action)"
         >Dégâts {{ row.action.damages.map((d) => d.dice.replace(/\s+/g, '')).join(' + ') }}</button>
       </div>
+      <p v-if="row.action.description" class="line-clamp-2 text-xs italic text-zinc-400">{{ row.action.description }}</p>
 
       <p v-if="attacks[row.key]" class="text-xs" :class="attacks[row.key]!.critical ? 'text-amber-300' : attacks[row.key]!.fumble ? 'text-red-400' : 'text-zinc-300'">
         Attaque : <strong>{{ attacks[row.key]!.total }}</strong> ({{ attacks[row.key]!.d20 }} {{ signed(attacks[row.key]!.bonus) }})
@@ -53,7 +54,10 @@ const GROUPS = [
 ] as const
 const rows = computed(() => GROUPS.flatMap(([group, key]) =>
   combatActions(props.monster[key]).map((action, i) => ({ key: `${key}-${i}`, group, action }))))
-const multiattacks = computed(() => props.monster.actions.filter((a) => a.multiattack.length || /attaques multiples/i.test(a.name)))
+// Attaques multiples sans jet propre : affichées en texte ; avec un jet (attaque
+// saisie directement sur elles), elles sont déjà une ligne d'attaque
+const multiattacks = computed(() => props.monster.actions
+  .filter((a) => (a.multiattack.length || /attaques multiples/i.test(a.name)) && !combatActions([a]).length))
 
 const attacks = reactive<Record<string, AttackRoll | undefined>>({})
 const damages = reactive<Record<string, DamageRoll | undefined>>({})

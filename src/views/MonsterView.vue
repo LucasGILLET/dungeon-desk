@@ -134,7 +134,7 @@ const actionGroups = computed(() => {
   const m = monster.value
   if (!m) return []
   const legendaryIntro = m.legendaryActionsPerRound
-    ? `Cette créature peut effectuer ${m.legendaryActionsPerRound} actions légendaires, choisies parmi les options ci-dessous. Une seule action légendaire peut être utilisée à la fois, et seulement à la fin du tour d'une autre créature. Elle récupère les actions légendaires dépensées au début de son tour.`
+    ? `Cette créature peut effectuer ${m.legendaryActionsPerRound} ${m.legendaryActionsPerRound > 1 ? 'actions légendaires, choisies' : 'action légendaire, choisie'} parmi les options ci-dessous. Une seule action légendaire peut être utilisée à la fois, et seulement à la fin du tour d'une autre créature. Elle récupère les actions légendaires dépensées au début de son tour.`
     : null
   return [
     { title: 'Actions', actions: m.actions, intro: null, legendary: false },
