@@ -63,7 +63,9 @@
         </div>
       </section>
 
-      <section v-if="paginated.length" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <SkeletonCards v-if="loading" :count="9" label="Chargement des sorts…" />
+      <p v-else-if="loadError" class="rounded-3xl border border-red-900/50 bg-red-950/30 p-6 text-red-300">Impossible de charger les sorts : {{ loadError }}</p>
+      <section v-else-if="paginated.length" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <router-link
           v-for="s in paginated"
           :key="s.index"
@@ -122,6 +124,7 @@
 </template>
 
 <script setup lang="ts">
+import SkeletonCards from '@/components/skeleton/SkeletonCards.vue'
 import { loadSpells } from '@/utils/spellFormat'
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -274,6 +277,9 @@ watch(() => route.query, (qry) => {
   else currentPage.value = 1
 })
 
+const loading = ref(true)
+const loadError = ref<string | null>(null)
+
 onMounted(async () => {
   try {
     spells.value = await loadSpells()
@@ -287,7 +293,9 @@ onMounted(async () => {
       if (qry.page !== undefined) currentPage.value = Math.max(1, Number(qry.page) || 1)
     }
   } catch (e) {
-    console.error('Failed to load spells', e)
+    loadError.value = e instanceof Error ? e.message : String(e)
+  } finally {
+    loading.value = false
   }
 })
 </script>

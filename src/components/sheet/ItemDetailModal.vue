@@ -10,7 +10,7 @@
       </header>
 
       <div class="space-y-4 px-6 py-5 text-sm text-zinc-300">
-        <p v-if="loading" class="text-zinc-500">Chargement…</p>
+        <SkeletonText v-if="loading" :title="false" :lines="5" label="Chargement de la fiche de l'objet…" />
         <p v-else-if="error" class="text-red-300">{{ error }}</p>
 
         <!-- Objet du catalogue -->
@@ -53,6 +53,7 @@
 </template>
 
 <script setup lang="ts">
+import SkeletonText from '@/components/skeleton/SkeletonText.vue'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import RichText from '@/components/RichText.vue'
 import { loadEquipment, loadMagicItem, type ApiEquipmentDetail, type ApiMagicItem } from '@/utils/dataLoader'

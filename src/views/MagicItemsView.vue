@@ -8,7 +8,7 @@
     <div class="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
       <header class="mb-8">
         <h1 class="text-4xl font-bold tracking-tight text-amber-100 sm:text-5xl">Objets magiques</h1>
-        <p class="mt-2 text-zinc-400">{{ items.length }} objets du SRD 5.1, variantes comprises</p>
+        <p class="mt-2 text-zinc-400">{{ loading ? 'Objets magiques du SRD 5.1' : `${items.length} objets du SRD 5.1, variantes comprises` }}</p>
       </header>
 
       <section class="mb-8 rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-md sm:p-6">
@@ -45,7 +45,7 @@
         </div>
       </section>
 
-      <p v-if="loading" class="text-zinc-400">Chargement des objets magiques…</p>
+      <SkeletonCards v-if="loading" :count="9" label="Chargement des objets magiques…" />
       <p v-else-if="error" class="text-red-300">Impossible de charger les objets magiques : {{ error }}</p>
 
       <template v-else>
@@ -58,6 +58,7 @@
             v-for="item in paginated"
             :key="item.index"
             :to="{ name: 'magic-item-view', params: { index: item.index } }"
+            @mouseenter="prefetch(item.index)" @focus="prefetch(item.index)"
             class="group rounded-3xl border border-white/10 bg-white/[0.03] p-5 transition-all duration-200 hover:-translate-y-1 hover:border-amber-500/40 hover:bg-white/[0.05]"
           >
             <h2 class="text-xl font-semibold text-amber-200 group-hover:text-amber-100">{{ item.name }}</h2>
@@ -88,10 +89,14 @@
 </template>
 
 <script setup lang="ts">
+import SkeletonCards from '@/components/skeleton/SkeletonCards.vue'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { loadMagicItems, type ApiMagicItemSummary, type MagicItemRarity } from '@/utils/dataLoader'
+import { loadMagicItem, loadMagicItems, type ApiMagicItemSummary, type MagicItemRarity } from '@/utils/dataLoader'
 import { RARITIES, RARITY_CLASSES, RARITY_LABELS } from '@/utils/monsterFormat'
+
+// Fiche demandée au survol : gardée par le cache du dataLoader, le clic l'affiche sans attendre
+const prefetch = (index: string) => { loadMagicItem(index).catch(() => {}) }
 
 const field = 'w-full rounded-2xl border border-white/10 bg-zinc-950/70 px-4 py-3 text-zinc-100 outline-none transition placeholder:text-zinc-500 focus:border-amber-500/40 focus:ring-2 focus:ring-amber-500/10'
 const pager = 'rounded-full border border-white/10 bg-white/5 px-4 py-2 transition-colors hover:border-amber-500/30 hover:text-amber-100 disabled:cursor-not-allowed disabled:opacity-40'

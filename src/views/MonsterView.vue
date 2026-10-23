@@ -5,7 +5,7 @@
         <span>←</span><span>Bestiaire</span>
       </button>
 
-      <p v-if="loading" class="text-zinc-400">Chargement de la créature…</p>
+      <div v-if="loading" class="rounded-3xl border border-white/10 bg-white/[0.03] p-6 sm:p-8"><SkeletonText :lines="10" label="Chargement de la créature…" /></div>
       <p v-else-if="error" class="text-red-300">{{ error }}</p>
 
       <article v-else-if="monster" class="rounded-3xl border border-white/10 bg-white/[0.03] p-6 shadow-[0_16px_50px_rgba(0,0,0,0.22)] sm:p-8">
@@ -82,6 +82,7 @@
 </template>
 
 <script setup lang="ts">
+import SkeletonText from '@/components/skeleton/SkeletonText.vue'
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import MonsterActionBlock from '@/components/bestiary/MonsterActionBlock.vue'

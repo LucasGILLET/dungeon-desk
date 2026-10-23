@@ -1,7 +1,7 @@
 <template>
   <div class="sort-view min-h-[calc(100vh-5rem)] bg-zinc-950 text-zinc-200 font-sans selection:bg-amber-500/30 overflow-hidden relative">
 
-    <div v-if="loading">Chargement du sort…</div>
+    <div v-if="loading" class="mx-4 my-4 max-w-2xl rounded-2xl border border-white/10 bg-white/[0.03] px-6 py-8"><SkeletonText :lines="8" label="Chargement du sort…" /></div>
     <div v-else-if="error">Erreur: {{ error }}</div>
     <div v-else-if="!spell">Sort non trouvé.</div>
 
@@ -48,6 +48,7 @@
 </template>
 
 <script setup lang="ts">
+import SkeletonText from '@/components/skeleton/SkeletonText.vue'
 import RichText from '@/components/RichText.vue'
 import { loadSpells } from '@/utils/spellFormat'
 import { ref, onMounted } from 'vue'

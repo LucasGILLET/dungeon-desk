@@ -9,7 +9,7 @@
       </template>
 
       <p v-else-if="error" class="mt-4 text-red-300">{{ error }}</p>
-      <p v-else-if="!invite" class="mt-4 text-zinc-400">Chargement de l'invitation…</p>
+      <SkeletonText v-else-if="!invite" class="mt-4" :lines="3" label="Chargement de l'invitation…" />
 
       <template v-else>
         <div class="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
@@ -41,6 +41,7 @@
 </template>
 
 <script setup lang="ts">
+import SkeletonText from '@/components/skeleton/SkeletonText.vue'
 import { onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { CampaignApiError, campaignsApi, type CampaignInvite } from '@/api/campaigns'

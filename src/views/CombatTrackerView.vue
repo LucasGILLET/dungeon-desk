@@ -4,7 +4,7 @@
       <router-link :to="{ name: 'campaign', params: { id: campaignId }, query: { tab: 'encounters' } }" class="text-sm text-zinc-400 hover:text-amber-300">← Rencontres de la campagne</router-link>
 
       <p v-if="loadError" class="mt-6 text-red-300">{{ loadError }}</p>
-      <p v-else-if="!combat" class="mt-6 text-zinc-400">Chargement du combat…</p>
+      <div v-else-if="!combat" class="mt-6"><SkeletonText :lines="2" label="Chargement du combat…" /><SkeletonCards class="mt-6" :count="4" columns="grid-cols-1" compact /></div>
 
       <template v-else>
         <!-- En-tête : nom, round, tours -->
@@ -187,6 +187,8 @@
 </template>
 
 <script setup lang="ts">
+import SkeletonCards from '@/components/skeleton/SkeletonCards.vue'
+import SkeletonText from '@/components/skeleton/SkeletonText.vue'
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { campaignsApi, combatViewUrl, type Combat, type Combatant, type CombatantKind } from '@/api/campaigns'

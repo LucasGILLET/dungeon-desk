@@ -39,7 +39,7 @@
               <button v-if="next" type="button" class="text-right text-zinc-400 hover:text-amber-200" @click="select(next.index)">{{ next.name }} →</button>
             </div>
           </article>
-          <p v-else class="text-zinc-400">Chargement…</p>
+          <SkeletonText v-else :lines="12" label="Chargement de la règle…" />
         </main>
       </div>
     </div>
@@ -47,6 +47,7 @@
 </template>
 
 <script setup lang="ts">
+import SkeletonText from '@/components/skeleton/SkeletonText.vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import MarkdownText from '@/components/MarkdownText.vue'

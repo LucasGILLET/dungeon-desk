@@ -5,7 +5,7 @@
 
       <p v-if="!authStore.isAuthenticated" class="mt-8 text-zinc-300">Connectez-vous pour voir cette campagne.</p>
       <p v-else-if="error" class="mt-8 text-red-300">{{ error }}</p>
-      <p v-else-if="!campaign" class="mt-8 text-zinc-400">Chargement de la campagne…</p>
+      <div v-else-if="!campaign" class="mt-8"><SkeletonText :lines="4" label="Chargement de la campagne…" /><SkeletonCards class="mt-8" :count="3" compact /></div>
 
       <template v-else>
         <header class="mt-4 mb-6">
@@ -42,6 +42,8 @@
 </template>
 
 <script setup lang="ts">
+import SkeletonCards from '@/components/skeleton/SkeletonCards.vue'
+import SkeletonText from '@/components/skeleton/SkeletonText.vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import CampaignEncounters from '@/components/campaign/CampaignEncounters.vue'

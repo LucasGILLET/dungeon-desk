@@ -60,4 +60,6 @@ h3[id] {
   .ui-btn { @apply rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-200 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40; }
   .ui-btn-danger { @apply rounded-xl border border-red-900/50 bg-red-950/40 px-3 py-1.5 text-xs text-red-200 transition hover:bg-red-900/50; }
   .ui-panel { @apply rounded-3xl border border-white/10 bg-white/[0.03] p-5 sm:p-6; }
+  /* Squelette de chargement : bloc gris qui pulse (immobile si moins de mouvement est demandé) */
+  .ui-skeleton { @apply rounded-lg bg-white/[0.07] animate-pulse motion-reduce:animate-none; }
 }

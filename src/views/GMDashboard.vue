@@ -41,7 +41,7 @@
           </div>
         </form>
 
-        <p v-if="loading" class="text-zinc-400">Chargement des campagnes…</p>
+        <SkeletonCards v-if="loading" :count="3" label="Chargement des campagnes…" />
         <p v-else-if="error" class="text-red-300">{{ error }}</p>
 
         <template v-else>
@@ -74,6 +74,7 @@
 </template>
 
 <script setup lang="ts">
+import SkeletonCards from '@/components/skeleton/SkeletonCards.vue'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { CAMPAIGN_STATUS_LABELS, campaignsApi, type CampaignSummary } from '@/api/campaigns'

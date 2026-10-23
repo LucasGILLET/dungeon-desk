@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SkeletonText from '@/components/skeleton/SkeletonText.vue'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import GuidePageContent from '@/components/guide/GuidePageContent.vue'
@@ -109,7 +110,7 @@ onMounted(async () => {
             </p>
             <GuidePageContent :page="page" />
           </template>
-          <p v-else class="text-zinc-400">Chargement…</p>
+          <SkeletonText v-else :lines="12" label="Chargement de la page…" />
         </main>
       </div>
     </div>

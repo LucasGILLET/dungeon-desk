@@ -78,7 +78,7 @@
 
           <!-- PERSONNAGES -->
           <template v-if="tab === 'characters'">
-            <div v-if="characterStore.loading && !characterStore.characters.length" class="flex justify-center py-20"><div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-500"></div></div>
+            <SkeletonCards v-if="characterStore.loading && !characterStore.characters.length" columns="grid-cols-1 md:grid-cols-2 xl:grid-cols-3" :count="3" />
             <EmptyState v-else-if="!characterStore.characters.length" icon="🛡️" text="Aucun héros n'a encore répondu à l'appel" to="/character-creator" label="Créer un personnage" />
             <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               <article
@@ -120,7 +120,7 @@
 
           <!-- PNJ -->
           <template v-else-if="tab === 'npcs'">
-            <div v-if="npcStore.loading && !npcStore.npcs.length" class="flex justify-center py-20"><div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div></div>
+            <SkeletonCards v-if="npcStore.loading && !npcStore.npcs.length" columns="grid-cols-1 md:grid-cols-2 xl:grid-cols-3" :count="3" />
             <EmptyState v-else-if="!npcStore.npcs.length" icon="📜" text="Votre codex PNJ est vide" to="/npc-generator" label="Créer un PNJ" />
             <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               <article
@@ -160,7 +160,7 @@
 
           <!-- MONSTRES MAISON -->
           <template v-else-if="tab === 'monsters'">
-            <div v-if="monstersLoading && !monsters.length" class="flex justify-center py-20"><div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-violet-500"></div></div>
+            <SkeletonCards v-if="monstersLoading && !monsters.length" columns="grid-cols-1 md:grid-cols-2 xl:grid-cols-3" :count="3" />
             <EmptyState v-else-if="!monsters.length" icon="🐉" text="Vous n'avez pas encore créé de monstre" :to="{ name: 'homebrew-monster-new' }" label="Créer un monstre" />
             <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               <article
@@ -194,7 +194,7 @@
 
           <!-- CAMPAGNES -->
           <template v-else>
-            <div v-if="campaignsLoading && !campaigns.length" class="flex justify-center py-20"><div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500"></div></div>
+            <SkeletonCards v-if="campaignsLoading && !campaigns.length" columns="grid-cols-1 md:grid-cols-2 xl:grid-cols-3" :count="3" />
             <EmptyState
               v-else-if="!campaigns.length"
               icon="🎲"
@@ -239,6 +239,7 @@
 </template>
 
 <script setup lang="ts">
+import SkeletonCards from '@/components/skeleton/SkeletonCards.vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter, type RouteLocationRaw } from 'vue-router'
 import NpcDetailModal from '@/components/profile/NpcDetailModal.vue'

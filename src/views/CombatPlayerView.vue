@@ -2,7 +2,8 @@
   <div class="min-h-[calc(100vh-5rem)] bg-zinc-950 text-zinc-200">
     <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
       <p v-if="notFound" class="mt-10 text-center text-zinc-400">Ce combat n'est pas (ou plus) partagé par le MJ.</p>
-      <p v-else-if="!view" class="mt-10 text-center text-zinc-400">{{ error ?? 'Chargement du combat…' }}</p>
+      <p v-else-if="!view && error" class="mt-10 text-center text-zinc-400">{{ error }}</p>
+      <SkeletonCards v-else-if="!view" class="mt-10" :count="4" columns="grid-cols-1" compact label="Chargement du combat…" />
 
       <template v-else>
         <header class="text-center">
@@ -45,6 +46,7 @@
 </template>
 
 <script setup lang="ts">
+import SkeletonCards from '@/components/skeleton/SkeletonCards.vue'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { fetchCombatView, HEALTH_LABELS, type CombatView, type HealthLabel } from '@/api/campaigns'

@@ -5,9 +5,7 @@
       <router-link to="/profile" class="block mt-3 text-sm underline">Retour au profil</router-link>
     </div>
 
-    <div v-else-if="!saved || !input" class="flex justify-center py-32">
-      <div class="w-10 h-10 border-4 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"></div>
-    </div>
+    <SkeletonSheet v-else-if="!saved || !input" />
 
     <div v-else class="max-w-7xl mx-auto space-y-6">
       <!-- En-tête -->
@@ -360,6 +358,7 @@
 </template>
 
 <script setup lang="ts">
+import SkeletonSheet from '@/components/skeleton/SkeletonSheet.vue'
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { characterShareUrl, copySharedCharacter, fetchSharedCharacter, shareCharacter } from '@/api/characterShare'

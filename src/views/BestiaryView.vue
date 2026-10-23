@@ -10,7 +10,7 @@
         <div>
           <h1 class="text-4xl font-bold tracking-tight text-amber-100 sm:text-5xl">Bestiaire</h1>
           <p class="mt-2 text-zinc-400">
-            {{ srdCount }} créatures du SRD 5.1<template v-if="mine.length"> · {{ mine.length }} monstre{{ mine.length > 1 ? 's' : '' }} maison</template>
+            <template v-if="loading">Créatures du SRD 5.1</template><template v-else>{{ srdCount }} créatures du SRD 5.1</template><template v-if="mine.length"> · {{ mine.length }} monstre{{ mine.length > 1 ? 's' : '' }} maison</template>
           </p>
         </div>
         <router-link v-if="authStore.isAuthenticated" :to="{ name: 'homebrew-monster-new' }" class="ui-btn-primary">Créer un monstre</router-link>
@@ -72,7 +72,7 @@
         </div>
       </section>
 
-      <p v-if="loading" class="text-zinc-400">Chargement du bestiaire…</p>
+      <SkeletonCards v-if="loading" :count="9" label="Chargement du bestiaire…" />
       <p v-else-if="error" class="text-red-300">Impossible de charger le bestiaire : {{ error }}</p>
 
       <template v-else>
@@ -85,6 +85,7 @@
             v-for="m in paginated"
             :key="m.index"
             :to="{ name: m.source === 'HOMEBREW' ? 'homebrew-monster' : 'monster-view', params: { index: m.index } }"
+            @mouseenter="prefetch(m)" @focus="prefetch(m)"
             class="group rounded-3xl border border-white/10 bg-white/[0.03] p-5 transition-all duration-200 hover:-translate-y-1 hover:border-amber-500/40 hover:bg-white/[0.05]"
           >
             <div class="flex items-start justify-between gap-4">
@@ -124,12 +125,16 @@
 </template>
 
 <script setup lang="ts">
+import SkeletonCards from '@/components/skeleton/SkeletonCards.vue'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { monstersApi } from '@/api/monsters'
 import { useAuthStore } from '@/stores/auth'
-import { loadMonsters, type ApiMonsterSummary, type Size } from '@/utils/dataLoader'
+import { loadMonster, loadMonsters, type ApiMonsterSummary, type Size } from '@/utils/dataLoader'
 import { formatChallenge, formatTypeLine, SIZE_LABELS, SIZES } from '@/utils/monsterFormat'
+
+// Fiche du SRD demandée au survol : gardée par le cache du dataLoader, le clic l'affiche sans attendre
+const prefetch = (m: ApiMonsterSummary) => { if (m.source !== 'HOMEBREW') loadMonster(m.index).catch(() => {}) }
 
 const field = 'w-full rounded-2xl border border-white/10 bg-zinc-950/70 px-4 py-3 text-zinc-100 outline-none transition placeholder:text-zinc-500 focus:border-amber-500/40 focus:ring-2 focus:ring-amber-500/10'
 const pager = 'rounded-full border border-white/10 bg-white/5 px-4 py-2 transition-colors hover:border-amber-500/30 hover:text-amber-100 disabled:cursor-not-allowed disabled:opacity-40'

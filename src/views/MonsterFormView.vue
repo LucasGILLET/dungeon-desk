@@ -9,7 +9,7 @@
       </p>
 
       <p v-if="loadError" class="mt-6 text-red-300">{{ loadError }}</p>
-      <p v-else-if="!form || !options" class="mt-6 text-zinc-400">Chargement…</p>
+      <div v-else-if="!form || !options" class="mt-6 space-y-6"><SkeletonCards :count="3" columns="grid-cols-1" compact label="Chargement du formulaire…" /></div>
 
       <form v-else class="mt-6 grid gap-6" @submit.prevent="save" @invalid.capture="onInvalid">
         <!-- Identité -->
@@ -160,6 +160,7 @@
 </template>
 
 <script setup lang="ts">
+import SkeletonCards from '@/components/skeleton/SkeletonCards.vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import MonsterActionEditor from '@/components/bestiary/MonsterActionEditor.vue'
