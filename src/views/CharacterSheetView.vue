@@ -35,11 +35,16 @@
           <span class="text-xs mr-2" :class="saveStatusClass">{{ saveStatusLabel }}</span>
           <button class="btn-secondary" @click="levelUpMode = 'complete'" v-if="hasPending">Compléter</button>
           <button class="btn-primary" :disabled="sheet.level >= 20" @click="levelUpMode = 'level'">Monter de niveau</button>
-          <button class="btn-secondary" @click="levelUpMode = 'edit'">Modifier mes choix</button>
-          <button class="btn-secondary" :disabled="sheet.level <= 1 || removingLevel" @click="removeLevel">{{ removingLevel ? 'Retrait…' : 'Retirer un niveau' }}</button>
-          <router-link :to="`/character/${saved.id}/edit`" class="btn-secondary">Modifier la création</router-link>
-          <button class="btn-secondary" :disabled="exporting" @click="exportPdf">{{ exporting ? 'Préparation…' : 'Télécharger le PDF' }}</button>
-          <button class="btn-secondary" :aria-expanded="shareOpen" @click="shareOpen = !shareOpen">Partager</button>
+          <!-- Actions moins fréquentes, regroupées -->
+          <ActionsMenu label="Actions">
+            <p class="menu-group">Personnage</p>
+            <button type="button" role="menuitem" class="menu-item" @click="levelUpMode = 'edit'">Modifier mes choix</button>
+            <button type="button" role="menuitem" class="menu-item" :disabled="sheet.level <= 1 || removingLevel" @click="removeLevel">{{ removingLevel ? 'Retrait…' : 'Retirer un niveau' }}</button>
+            <router-link role="menuitem" :to="`/character/${saved.id}/edit`" class="menu-item">Modifier la création</router-link>
+            <p class="menu-group">Exporter</p>
+            <button type="button" role="menuitem" class="menu-item" :disabled="exporting" @click="exportPdf">{{ exporting ? 'Préparation…' : 'Télécharger le PDF' }}</button>
+            <button type="button" role="menuitem" class="menu-item" @click="shareOpen = !shareOpen">{{ shareOpen ? 'Masquer le partage' : 'Partager' }}</button>
+          </ActionsMenu>
         </div>
       </header>
       <!-- Partage par lien (propriétaire) -->
@@ -359,6 +364,7 @@
 </template>
 
 <script setup lang="ts">
+import ActionsMenu from '@/components/ActionsMenu.vue'
 import SkeletonSheet from '@/components/skeleton/SkeletonSheet.vue'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -745,6 +751,8 @@ function applyLevelUp(next: Input) {
 .qty { @apply w-6 h-6 rounded border border-zinc-700 text-zinc-300 hover:bg-zinc-800 disabled:opacity-40; }
 .btn-primary { @apply px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold disabled:opacity-40; }
 .btn-secondary { @apply px-4 py-2 rounded-lg border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-sm; }
+.menu-group { @apply px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-widest text-zinc-500; }
+.menu-item { @apply block w-full rounded-lg px-3 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-800 focus:bg-zinc-800 focus:outline-none disabled:cursor-not-allowed disabled:opacity-40; }
 .btn-danger { @apply px-3 py-1 rounded-md bg-red-900/60 hover:bg-red-800 text-red-100 text-sm disabled:opacity-40; }
 .btn-heal { @apply px-3 py-1 rounded-md bg-emerald-900/60 hover:bg-emerald-800 text-emerald-100 text-sm disabled:opacity-40; }
 </style>

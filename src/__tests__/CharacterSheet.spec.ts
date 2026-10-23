@@ -184,7 +184,10 @@ describe('CharacterSheetView', () => {
     vi.useFakeTimers()
     const wrapper = await mountSheet()
 
-    await wrapper.findAll('button').find((b) => b.text() === 'Retirer un niveau')!.trigger('click')
+    // Action regroupée dans le menu « Actions »
+    await wrapper.findAll('button').find((b) => b.text().startsWith('Actions'))!.trigger('click')
+    await flushPromises()
+    await wrapper.findAll('[role="menuitem"]').find((b) => b.text() === 'Retirer un niveau')!.trigger('click')
     await vi.advanceTimersByTimeAsync(700)
 
     const sent = mockUpdate.mock.calls.at(-1)![0].data
@@ -261,7 +264,10 @@ describe('CharacterSheetView', () => {
     mockGetCharacter.mockResolvedValue({ data: { ...base, classes: [{ ...base.classes[0]!, subclass: 'champion', levels }] } })
     const wrapper = await mountSheet()
 
-    await wrapper.findAll('button').find((b) => b.text() === 'Modifier mes choix')!.trigger('click')
+    // Action regroupée dans le menu « Actions »
+    await wrapper.findAll('button').find((b) => b.text().startsWith('Actions'))!.trigger('click')
+    await flushPromises()
+    await wrapper.findAll('[role="menuitem"]').find((b) => b.text() === 'Modifier mes choix')!.trigger('click')
     await flushPromises()
     const dialog = () => wrapper.find('[role="dialog"]')
     expect(dialog().text()).toContain('Modifier mes choix')
