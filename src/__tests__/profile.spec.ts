@@ -118,5 +118,10 @@ describe('ProfileView', () => {
     await wrapper.find('button[aria-label="Supprimer Orza"]').trigger('click')
     await flushPromises()
     expect(wrapper.text()).toContain('« Orza » est utilisé dans une rencontre')
+
+    removeMonster.mockRejectedValueOnce(new MonsterApiError('This monster is in an ongoing combat', 409, [], 'COMBAT'))
+    await wrapper.find('button[aria-label="Supprimer Orza"]').trigger('click')
+    await flushPromises()
+    expect(wrapper.text()).toContain('« Orza » est dans un combat en cours')
   })
 })

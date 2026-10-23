@@ -244,7 +244,7 @@ import { useRoute, useRouter, type RouteLocationRaw } from 'vue-router'
 import NpcDetailModal from '@/components/profile/NpcDetailModal.vue'
 import EmptyState from '@/components/profile/ProfileEmptyState.vue'
 import { CAMPAIGN_STATUS_LABELS, campaignsApi, type CampaignSummary } from '@/api/campaigns'
-import { MonsterApiError, monstersApi } from '@/api/monsters'
+import { deleteRefusal, monstersApi } from '@/api/monsters'
 import type { ApiMonsterSummary } from '@/utils/dataLoader'
 import { formatChallenge, formatTypeLine } from '@/utils/monsterFormat'
 import { useAuthStore } from '@/stores/auth'
@@ -360,9 +360,7 @@ async function removeMonster(m: ApiMonsterSummary) {
     await monstersApi.remove(m.index)
     monsters.value = monsters.value.filter((x) => x.index !== m.index)
   } catch (e) {
-    actionError.value = e instanceof MonsterApiError && e.status === 409
-      ? `« ${m.name} » est utilisé dans une rencontre : retirez-le d'abord de la rencontre.`
-      : `Impossible de supprimer « ${m.name} ».`
+    actionError.value = deleteRefusal(e, m.name) ?? `Impossible de supprimer « ${m.name} ».`
   }
 }
 

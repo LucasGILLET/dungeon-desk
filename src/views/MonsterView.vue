@@ -87,7 +87,7 @@ import { useRoute, useRouter } from 'vue-router'
 import MonsterActionBlock from '@/components/bestiary/MonsterActionBlock.vue'
 import LoadingImage from '@/components/LoadingImage.vue'
 import RichText from '@/components/RichText.vue'
-import { MonsterApiError, monstersApi } from '@/api/monsters'
+import { deleteRefusal, monstersApi } from '@/api/monsters'
 import { useAuthStore } from '@/stores/auth'
 import { loadMonster, type ApiMonster } from '@/utils/dataLoader'
 import {
@@ -153,9 +153,7 @@ async function removeMonster() {
     await monstersApi.remove(monster.value.index)
     router.push({ name: 'bestiary', query: { source: 'mine' } })
   } catch (e) {
-    deleteError.value = e instanceof MonsterApiError && e.status === 409
-      ? "Ce monstre est utilisé dans une rencontre : retirez-le d'abord de la rencontre."
-      : 'Suppression impossible.'
+    deleteError.value = deleteRefusal(e, monster.value.name) ?? 'Suppression impossible.'
   } finally {
     deleting.value = false
   }

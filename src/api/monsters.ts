@@ -59,9 +59,21 @@ export interface MonsterOptions {
 }
 
 export class MonsterApiError extends Error {
-  constructor(message: string, readonly status: number, readonly errors: { path: string; message: string }[] = []) {
+  constructor(
+    message: string, readonly status: number, readonly errors: { path: string; message: string }[] = [],
+    // Suppression refusée : monstre d'une rencontre, ou d'un combat en cours
+    readonly reason?: 'ENCOUNTER' | 'COMBAT',
+  ) {
     super(message)
   }
+}
+
+// Message d'une suppression refusée (le monstre sert encore), sinon null
+export function deleteRefusal(error: unknown, name: string): string | null {
+  if (!(error instanceof MonsterApiError) || error.status !== 409) return null
+  return error.reason === 'COMBAT'
+    ? `« ${name} » est dans un combat en cours : terminez le combat ou retirez-le du combat d'abord.`
+    : `« ${name} » est utilisé dans une rencontre : retirez-le d'abord de la rencontre.`
 }
 
 async function call<T>(path: string, options: { method?: string; body?: unknown } = {}): Promise<T> {
@@ -72,7 +84,7 @@ async function call<T>(path: string, options: { method?: string; body?: unknown 
   const data = await response.json().catch(() => ({}))
   if (!response.ok) {
     const errors = (data.errors ?? []) as { path: string; message: string }[]
-    throw new MonsterApiError(errors.map((e) => `${e.path} : ${e.message}`).join(', ') || data.message || `Erreur ${response.status}`, response.status, errors)
+    throw new MonsterApiError(errors.map((e) => `${e.path} : ${e.message}`).join(', ') || data.message || `Erreur ${response.status}`, response.status, errors, data.reason)
   }
   return data as T
 }
