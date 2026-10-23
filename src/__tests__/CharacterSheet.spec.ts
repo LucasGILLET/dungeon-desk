@@ -335,4 +335,29 @@ describe('CharacterSheetView', () => {
     await vi.advanceTimersByTimeAsync(700)
     expect(mockUpdate.mock.calls.at(-1)![0].data.items[0]).toMatchObject({ magicItem: 'weapon-1', equipment: 'longsword' })
   })
+
+  it('offers a tabbed view, remembered, with the tab in the address', async () => {
+    localStorage.removeItem('dungeon-desk:sheet-layout')
+    const wrapper = await mountSheet()
+    const visible = (title: string) => {
+      const heading = wrapper.findAll('h2').find((h) => h.text() === title)
+      return !!heading && (heading.element.closest('section') as HTMLElement).style.display !== 'none'
+    }
+    expect(visible('Combat') && visible('Compétences')).toBe(true) // tout, par défaut
+
+    await wrapper.findAll('button').find((b) => b.text() === 'Onglets')!.trigger('click')
+    expect(localStorage.getItem('dungeon-desk:sheet-layout')).toBe('tabs')
+    const tabs = wrapper.findAll('[role="tab"]').map((t) => t.text())
+    // Guerrier sans sorts : pas d'onglet Sorts
+    expect(tabs).toEqual(['Combat', 'Caractéristiques', 'Inventaire', 'Capacités', 'Notes'])
+    expect(visible('Combat')).toBe(true)
+    expect(visible('Compétences')).toBe(false)
+
+    await wrapper.find('[role="tab"][aria-selected="true"]').trigger('keydown', { key: 'ArrowRight' })
+    await flushPromises()
+    expect(wrapper.router.currentRoute.value.query.onglet).toBe('carac')
+    expect(visible('Compétences')).toBe(true)
+    expect(visible('Combat')).toBe(false)
+    localStorage.removeItem('dungeon-desk:sheet-layout')
+  })
 })

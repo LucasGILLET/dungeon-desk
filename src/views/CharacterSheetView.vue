@@ -83,11 +83,28 @@
 
       <!-- Lecture seule (MJ) : tous les boutons et champs de la fiche désactivés -->
       <!-- Un fieldset en display: contents perd l'espacement (space-y) du parent : il porte le sien -->
-      <fieldset :disabled="readOnly" class="m-0 min-w-0 space-y-6 border-0 p-0">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Affichage : toute la fiche, ou par onglets pour ne pas faire défiler -->
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div v-if="tabbed" role="tablist" aria-label="Parties de la fiche" class="flex flex-wrap gap-1 rounded-xl border border-zinc-800 bg-zinc-900/60 p-1">
+          <button
+            v-for="t in visibleTabs" :id="`sheet-tab-${t.key}`" :key="t.key" type="button" role="tab"
+            :aria-selected="tab === t.key" aria-controls="sheet-tabpanel" :tabindex="tab === t.key ? 0 : -1"
+            :class="['rounded-lg px-3 py-1.5 text-sm transition', tab === t.key ? 'bg-amber-600 text-white font-bold' : 'text-zinc-400 hover:text-zinc-100']"
+            @click="selectTab(t.key)" @keydown.right.prevent="moveTab(1)" @keydown.left.prevent="moveTab(-1)"
+          >{{ t.label }}</button>
+        </div>
+        <span v-else></span>
+        <div class="flex items-center gap-1 text-xs text-zinc-500" role="group" aria-label="Affichage de la fiche">
+          Affichage :
+          <button type="button" :aria-pressed="!tabbed" :class="['rounded-md px-2 py-1', !tabbed ? 'bg-zinc-800 text-zinc-100' : 'hover:text-zinc-200']" @click="setLayout('full')">Tout</button>
+          <button type="button" :aria-pressed="tabbed" :class="['rounded-md px-2 py-1', tabbed ? 'bg-zinc-800 text-zinc-100' : 'hover:text-zinc-200']" @click="setLayout('tabs')">Onglets</button>
+        </div>
+      </div>
+      <fieldset :id="tabbed ? 'sheet-tabpanel' : undefined" :role="tabbed ? 'tabpanel' : undefined" :aria-labelledby="tabbed ? `sheet-tab-${tab}` : undefined" :disabled="readOnly" class="m-0 min-w-0 space-y-6 border-0 p-0">
+      <div :class="['grid grid-cols-1 gap-6', tabbed ? 'lg:grid-cols-2 items-start' : 'lg:grid-cols-3']">
         <!-- Colonne 1 : caractéristiques, sauvegardes, compétences -->
-        <div class="space-y-6">
-          <section class="panel">
+        <div :class="tabbed ? 'contents' : 'space-y-6'">
+          <section v-show="shows('carac')" class="panel">
             <div class="grid grid-cols-3 gap-3">
               <div v-for="a in ABILITIES" :key="a.index" class="rounded-lg bg-zinc-950/60 border border-zinc-800 p-3 text-center">
                 <div class="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">{{ a.short }}</div>
@@ -101,7 +118,7 @@
             </div>
           </section>
 
-          <section class="panel">
+          <section v-show="shows('carac')" class="panel">
             <h2 class="panel-title">Jets de sauvegarde</h2>
             <ul class="space-y-1 text-sm">
               <li v-for="a in ABILITIES" :key="a.index" class="flex justify-between">
@@ -113,7 +130,7 @@
             </ul>
           </section>
 
-          <section class="panel">
+          <section v-show="shows('carac')" class="panel">
             <h2 class="panel-title">Compétences</h2>
             <ul class="space-y-1 text-sm">
               <li v-for="s in skillRows" :key="s.index" class="flex justify-between">
@@ -129,8 +146,8 @@
         </div>
 
         <!-- Colonne 2 : combat, sorts, états -->
-        <div class="space-y-6">
-          <section class="panel">
+        <div :class="tabbed ? 'contents' : 'space-y-6'">
+          <section v-show="shows('combat')" class="panel">
             <h2 class="panel-title">Combat</h2>
             <div class="grid grid-cols-4 gap-3 text-center">
               <div class="stat" :title="sheet.armorClass?.detail">
@@ -200,7 +217,7 @@
           </section>
 
           <!-- Attaques : armes de l'inventaire et sorts mineurs, comme sur la fiche papier -->
-          <section v-if="sheet.attacks?.length" class="panel">
+          <section v-show="shows('combat')" v-if="sheet.attacks?.length" class="panel">
             <h2 class="panel-title">Attaques</h2>
             <table class="w-full text-sm">
               <thead>
@@ -231,7 +248,7 @@
           </section>
 
           <!-- Capacités à utilisations limitées -->
-          <section v-if="sheet.featureResources?.length" class="panel">
+          <section v-show="shows('combat')" v-if="sheet.featureResources?.length" class="panel">
             <h2 class="panel-title">Capacités limitées</h2>
             <div v-for="r in sheet.featureResources" :key="r.feature ?? r.trait ?? r.name" class="flex items-center justify-between py-1.5 text-sm gap-3">
               <span>
@@ -256,7 +273,7 @@
           </section>
 
           <!-- Sorts -->
-          <section v-if="(sheet.spellSlots?.length || sheet.pactSlots || sheet.spellcasting?.length)" class="panel">
+          <section v-show="shows('sorts')" v-if="(sheet.spellSlots?.length || sheet.pactSlots || sheet.spellcasting?.length)" class="panel">
             <h2 class="panel-title">Incantation</h2>
             <ul class="text-sm space-y-1 mb-3">
               <li v-for="sc in sheet.spellcasting ?? []" :key="sc.class" class="flex justify-between">
@@ -283,7 +300,7 @@
           </section>
 
           <!-- États -->
-          <section class="panel">
+          <section v-show="shows('combat')" class="panel">
             <h2 class="panel-title">États</h2>
             <div class="flex flex-wrap gap-2">
               <button
@@ -299,8 +316,8 @@
         </div>
 
         <!-- Colonne 3 : capacités, traits, maîtrises -->
-        <div class="space-y-6">
-          <section class="panel">
+        <div :class="tabbed ? 'contents' : 'space-y-6'">
+          <section v-show="shows('capacites')" class="panel">
             <h2 class="panel-title">Capacités et traits</h2>
             <div class="space-y-2">
               <details v-for="f in features" :key="f.key" class="group rounded-lg bg-zinc-950/40 border border-zinc-800 px-3 py-2">
@@ -313,7 +330,7 @@
             </div>
           </section>
 
-          <section class="panel">
+          <section v-show="shows('carac')" class="panel">
             <h2 class="panel-title">Maîtrises et langues</h2>
             <dl class="text-sm space-y-2">
               <div v-for="g in proficiencyGroups" :key="g.label">
@@ -326,13 +343,13 @@
       </div>
 
       <!-- Sorts connus et préparés -->
-      <SheetSpells :input="input" :sheet="sheet" :classes="classes" @update="update" />
+      <SheetSpells v-show="shows('sorts')" :input="input" :sheet="sheet" :classes="classes" @update="update" />
 
       <!-- Inventaire -->
-      <SheetInventory :input="input" @update="update" />
+      <SheetInventory v-show="shows('inventaire')" :input="input" @update="update" />
 
       <!-- Notes -->
-      <section class="panel">
+      <section v-show="shows('notes')" class="panel">
         <h2 class="panel-title">Notes</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <label v-for="field in NOTE_FIELDS" :key="field.key" class="text-sm">
@@ -366,7 +383,7 @@
 <script setup lang="ts">
 import ActionsMenu from '@/components/ActionsMenu.vue'
 import SkeletonSheet from '@/components/skeleton/SkeletonSheet.vue'
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { characterShareUrl, copySharedCharacter, fetchSharedCharacter, shareCharacter } from '@/api/characterShare'
 import { useAuthStore } from '@/stores/auth'
@@ -461,6 +478,42 @@ onMounted(async () => {
     loadError.value = getErrorMessage(e, 'erreur inconnue')
   }
 })
+
+// --- Affichage : toute la fiche, ou par onglets ---------------------------------------
+
+type SheetTab = 'combat' | 'carac' | 'sorts' | 'inventaire' | 'capacites' | 'notes'
+const TABS: { key: SheetTab; label: string }[] = [
+  { key: 'combat', label: 'Combat' }, { key: 'carac', label: 'Caractéristiques' }, { key: 'sorts', label: 'Sorts' },
+  { key: 'inventaire', label: 'Inventaire' }, { key: 'capacites', label: 'Capacités' }, { key: 'notes', label: 'Notes' },
+]
+const LAYOUT_KEY = 'dungeon-desk:sheet-layout'
+// Préférence du navigateur ; stockage indisponible (navigation privée…) : toute la fiche
+const storedLayout = () => {
+  try { return localStorage.getItem(LAYOUT_KEY) === 'tabs' } catch { return false }
+}
+const tabbed = ref(storedLayout())
+function setLayout(layout: 'full' | 'tabs') {
+  tabbed.value = layout === 'tabs'
+  try { localStorage.setItem(LAYOUT_KEY, layout) } catch { /* préférence non retenue */ }
+}
+// Onglet Sorts seulement pour un lanceur de sorts
+const casts = computed(() => !!saved.value?.sheet && !!(sheet.value.spellSlots?.length || sheet.value.pactSlots || sheet.value.spellcasting?.length || input.value?.spells?.length))
+const visibleTabs = computed(() => TABS.filter((t) => t.key !== 'sorts' || casts.value))
+// Onglet dans l'adresse (?onglet=sorts) : il survit à un rechargement
+const tab = computed<SheetTab>(() => {
+  const wanted = route.query.onglet as SheetTab | undefined
+  return visibleTabs.value.some((t) => t.key === wanted) ? wanted! : 'combat'
+})
+function selectTab(key: SheetTab) {
+  router.replace({ query: { ...route.query, onglet: key === 'combat' ? undefined : key } })
+}
+function moveTab(step: 1 | -1) {
+  const list = visibleTabs.value
+  const next = list[(list.findIndex((t) => t.key === tab.value) + step + list.length) % list.length]!
+  selectTab(next.key)
+  nextTick(() => document.getElementById(`sheet-tab-${next.key}`)?.focus())
+}
+const shows = (key: SheetTab) => !tabbed.value || tab.value === key
 
 // --- Relecture : PV changés par le MJ dans un combat -----------------------------------
 
