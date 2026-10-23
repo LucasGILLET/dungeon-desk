@@ -13,33 +13,36 @@
         <SkeletonText v-if="loading" :title="false" :lines="5" label="Chargement de la fiche de l'objet…" />
         <p v-else-if="error" class="text-red-300">{{ error }}</p>
 
-        <!-- Objet du catalogue -->
-        <template v-else-if="equipment">
-          <dl class="grid grid-cols-2 gap-x-4 gap-y-2">
-            <template v-for="row in equipmentRows" :key="row.label">
-              <dt class="text-xs uppercase tracking-widest text-zinc-500">{{ row.label }}</dt>
-              <dd class="text-zinc-100">{{ row.value }}</dd>
-            </template>
-          </dl>
-          <section v-if="equipment.weapon?.properties.length" class="space-y-2">
-            <h3 class="text-xs font-bold uppercase tracking-widest text-amber-500">Propriétés</h3>
-            <div v-for="p in equipment.weapon.properties" :key="p.index">
-              <p class="font-semibold text-zinc-100">{{ p.name }}</p>
-              <RichText :text="p.description" class="text-zinc-400" />
-            </div>
-          </section>
-          <RichText v-if="equipment.description" :text="equipment.description" />
-        </template>
+        <!-- Objet magique (le cas échéant posé sur un objet de base, décrit ensuite) -->
+        <template v-else-if="magicItem || equipment">
+          <template v-if="magicItem">
+            <p class="flex flex-wrap gap-2 text-xs">
+              <span :class="['rounded-full border px-3 py-1', RARITY_CLASSES[magicItem.rarity]]">{{ RARITY_LABELS[magicItem.rarity] }}</span>
+              <span class="rounded-full border border-white/10 px-3 py-1">{{ magicItem.category.name }}</span>
+              <span v-if="magicItem.requiresAttunement" class="rounded-full border border-violet-400/30 bg-violet-400/10 px-3 py-1 text-violet-200">Nécessite un lien</span>
+            </p>
+            <RichText :text="magicItem.description" />
+            <router-link :to="`/magic-items/${magicItem.index}`" class="inline-block text-sky-300 hover:underline" @click="emit('close')">Voir la page de l'objet</router-link>
+          </template>
 
-        <!-- Objet magique -->
-        <template v-else-if="magicItem">
-          <p class="flex flex-wrap gap-2 text-xs">
-            <span :class="['rounded-full border px-3 py-1', RARITY_CLASSES[magicItem.rarity]]">{{ RARITY_LABELS[magicItem.rarity] }}</span>
-            <span class="rounded-full border border-white/10 px-3 py-1">{{ magicItem.category.name }}</span>
-            <span v-if="magicItem.requiresAttunement" class="rounded-full border border-violet-400/30 bg-violet-400/10 px-3 py-1 text-violet-200">Nécessite un lien</span>
-          </p>
-          <RichText :text="magicItem.description" />
-          <router-link :to="`/magic-items/${magicItem.index}`" class="inline-block text-sky-300 hover:underline" @click="emit('close')">Voir la page de l'objet</router-link>
+          <!-- Objet du catalogue -->
+          <template v-if="equipment">
+            <h3 v-if="magicItem" class="border-t border-zinc-800 pt-4 text-xs font-bold uppercase tracking-widest text-amber-500">Objet de base : {{ equipment.name }}</h3>
+            <dl class="grid grid-cols-2 gap-x-4 gap-y-2">
+              <template v-for="row in equipmentRows" :key="row.label">
+                <dt class="text-xs uppercase tracking-widest text-zinc-500">{{ row.label }}</dt>
+                <dd class="text-zinc-100">{{ row.value }}</dd>
+              </template>
+            </dl>
+            <section v-if="equipment.weapon?.properties.length" class="space-y-2">
+              <h3 class="text-xs font-bold uppercase tracking-widest text-amber-500">Propriétés</h3>
+              <div v-for="p in equipment.weapon.properties" :key="p.index">
+                <p class="font-semibold text-zinc-100">{{ p.name }}</p>
+                <RichText :text="p.description" class="text-zinc-400" />
+              </div>
+            </section>
+            <RichText v-if="equipment.description" :text="equipment.description" />
+          </template>
         </template>
 
         <!-- Objet libre -->
@@ -119,8 +122,13 @@ onMounted(async () => {
   if (!props.item.equipment && !props.item.magicItem) return
   loading.value = true
   try {
-    if (props.item.equipment) equipment.value = await loadEquipment(props.item.equipment)
-    else magicItem.value = await loadMagicItem(props.item.magicItem!)
+    // Les deux pour un objet magique posé sur un objet de base
+    const [base, magic] = await Promise.all([
+      props.item.equipment ? loadEquipment(props.item.equipment) : null,
+      props.item.magicItem ? loadMagicItem(props.item.magicItem) : null,
+    ])
+    equipment.value = base
+    magicItem.value = magic
   } catch {
     error.value = 'Impossible de charger la fiche de cet objet.'
   } finally {

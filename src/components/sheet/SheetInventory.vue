@@ -50,6 +50,18 @@
             <span v-if="details(item)" class="ml-2 text-xs text-zinc-500">{{ details(item) }}</span>
             <span v-if="item.magicItem" :class="['ml-2 rounded-full border px-2 text-[10px] uppercase', RARITY_CLASSES[magicByIndex.get(item.magicItem)?.rarity ?? 'VARIES']]">magique</span>
             <span v-else-if="!item.equipment" class="ml-2 text-[10px] uppercase text-zinc-600">libre</span>
+            <!-- Arme, armure, munitions ou bâton magique : posé sur un objet de base, dont il prend les statistiques -->
+            <label v-if="baseKind(item)" class="mt-1 flex items-center gap-2 text-xs text-zinc-500">
+              sur
+              <select
+                :value="item.equipment ?? ''" class="rounded border border-zinc-700 bg-zinc-950 px-1 py-0.5 text-xs text-zinc-200"
+                :aria-label="`Objet de base de ${itemName(item)}`"
+                @change="emit('update', updateItem(input, i, { equipment: ($event.target as HTMLSelectElement).value || null }))"
+              >
+                <option value="">— choisir —</option>
+                <option v-for="e in bases(item)" :key="e.index" :value="e.index">{{ e.name }}</option>
+              </select>
+            </label>
           </td>
           <td class="py-2">
             <div class="flex items-center justify-center gap-2">
@@ -105,11 +117,21 @@ type Item = NonNullable<Input['items']>[number]
 const open = ref<Item | null>(null)
 const byIndex = computed(() => new Map(catalog.value.map((e) => [e.index, e])))
 const magicByIndex = computed(() => new Map(magicCatalog.value.map((m) => [m.index, m])))
+// Objet magique posé sur un objet de base : le nom de l'objet magique, la base en détail
 const itemName = (item: Item) =>
-  item.name || byIndex.value.get(item.equipment ?? '')?.name || magicByIndex.value.get(item.magicItem ?? '')?.name || item.equipment || item.magicItem || '?'
+  item.name || magicByIndex.value.get(item.magicItem ?? '')?.name || byIndex.value.get(item.equipment ?? '')?.name || item.equipment || item.magicItem || '?'
+
+// Catégorie d'objet magique → nature des objets de base possibles (comme le back)
+const BASE_KINDS: Record<string, string> = { weapon: 'WEAPON', staff: 'WEAPON', armor: 'ARMOR', ammunition: 'AMMUNITION' }
+const baseKind = (item: Item) => BASE_KINDS[magicByIndex.value.get(item.magicItem ?? '')?.category.index ?? ''] ?? null
+const bases = (item: Item) => catalog.value.filter((e) => e.kind === baseKind(item)).sort((a, b) => a.name.localeCompare(b.name))
 const details = (item: Item) => {
   const m = magicByIndex.value.get(item.magicItem ?? '')
-  if (m) return [RARITY_LABELS[m.rarity], m.requiresAttunement ? 'lien' : null].filter(Boolean).join(' · ')
+  if (m) {
+    const base = byIndex.value.get(item.equipment ?? '')
+    const stats = base ? [base.damage, base.armorClass != null ? `CA ${base.armorClass}` : null] : []
+    return [RARITY_LABELS[m.rarity], m.requiresAttunement ? 'lien' : null, ...stats].filter(Boolean).join(' · ')
+  }
   const e = byIndex.value.get(item.equipment ?? '')
   if (!e) return ''
   return [e.damage, e.armorClass != null ? `CA ${e.armorClass}` : null].filter(Boolean).join(' · ')

@@ -36,7 +36,10 @@ vi.mock('@/utils/dataLoader', () => ({
   loadConditions: vi.fn(async () => [{ index: 'poisoned', name: 'Empoisonné', description: '…' }]),
   loadEquipmentCatalog: vi.fn(async () => [{ index: 'longsword', name: 'Épée longue', kind: 'WEAPON', cost: null, weightLb: 3, damage: '1d8', armorClass: null }]),
   loadFeats: vi.fn(async () => [{ index: 'grappler', name: 'Lutteur', description: 'Vous luttez.', prerequisites: [] }]),
-  loadMagicItems: vi.fn(async () => [{ index: 'cloak-of-elvenkind', name: 'Cape elfique', rarity: 'UNCOMMON', requiresAttunement: true, category: { index: 'wondrous-items', name: 'Objet merveilleux' } }]),
+  loadMagicItems: vi.fn(async () => [
+    { index: 'cloak-of-elvenkind', name: 'Cape elfique', rarity: 'UNCOMMON', requiresAttunement: true, category: { index: 'wondrous-items', name: 'Objet merveilleux' } },
+    { index: 'weapon-1', name: 'Arme, +1', rarity: 'UNCOMMON', requiresAttunement: false, category: { index: 'weapon', name: 'Arme' } },
+  ]),
   loadEquipment: vi.fn(async () => ({
     index: 'longsword', name: 'Épée longue', description: null, kind: 'WEAPON', cost: { amount: 15, currency: 'GP' }, weightLb: 3, categories: [], armor: null,
     weapon: { category: 'MARTIAL', range: 'MELEE', damage: '1d8', damageType: { index: 'slashing', name: 'Tranchant' }, versatileDamage: '1d10', normalRangeFt: null, longRangeFt: null,
@@ -279,5 +282,22 @@ describe('CharacterSheetView', () => {
     await flushPromises()
     expect(mockGetCharacter.mock.calls.at(-1)![0]).toBe('42')
     expect(wrapper.text()).not.toContain('Fiche partagée par')
+  })
+
+  it('puts a magic weapon on a base weapon from the inventory', async () => {
+    vi.useFakeTimers()
+    mockGetCharacter.mockResolvedValue({ data: { ...saved(2), items: [{ magicItem: 'weapon-1', quantity: 1, equipped: true, attuned: false }] } })
+    const wrapper = await mountSheet()
+
+    await vi.runAllTimersAsync()
+    // (« Arme, +1 » : la virgule couperait un sélecteur CSS en deux)
+    const select = wrapper.findAll('select').find((x) => x.attributes('aria-label') === 'Objet de base de Arme, +1')!
+    expect(select.findAll('option').map((o) => o.text())).toEqual(['— choisir —', 'Épée longue'])
+    // La cape elfique (objet merveilleux) ne se pose sur rien
+    expect(wrapper.find('select[aria-label="Objet de base de Cape elfique"]').exists()).toBe(false)
+
+    await select.setValue('longsword')
+    await vi.runAllTimersAsync()
+    expect(mockUpdate.mock.calls.at(-1)![0].data.items[0]).toMatchObject({ magicItem: 'weapon-1', equipment: 'longsword' })
   })
 })
