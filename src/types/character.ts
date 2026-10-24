@@ -106,12 +106,13 @@ export interface GrantedSpell {
   name: string;
   level: number;
   source: string; // « Ascendance infernale », « Domaine de la Vie »
-  kind: 'TRAIT' | 'SUBCLASS' | 'CHOICE';
+  kind: 'TRAIT' | 'SUBCLASS' | 'FEATURE' | 'CHOICE';
   ability: string | null;
   saveDC: number | null;
   attackBonus: number | null;
   castAtLevel: number | null; // lancé comme un sort de ce niveau
   oncePerLongRest: boolean;
+  atWill: boolean; // sans emplacement de sort
 }
 
 export interface StartingEquipment {

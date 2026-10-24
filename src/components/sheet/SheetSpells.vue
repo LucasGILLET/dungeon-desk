@@ -8,7 +8,7 @@
         <h3 class="text-lg font-bold font-serif text-white">{{ g.source }}</h3>
         <p class="text-xs text-zinc-500">
           <template v-if="g.saveDC != null">DD {{ g.saveDC }} · attaque {{ signed(g.attackBonus!) }} · </template>
-          {{ g.kind === 'SUBCLASS' ? 'toujours préparés, hors limite' : g.kind === 'TRAIT' ? 'accordés par un trait racial' : 'sorts choisis' }}
+          {{ KIND_LABELS[g.kind] }}
         </p>
       </div>
       <ul class="flex flex-wrap gap-2">
@@ -161,10 +161,16 @@ const granted = computed(() => {
   return [...groups.values()]
 })
 const grantedIndexes = computed(() => new Set((props.sheet.grantedSpells ?? []).map((s) => s.index)))
-// « Sort mineur », « niv. 1, lancé au niv. 2 · 1 / repos long »
+const KIND_LABELS: Record<GrantedSpell['kind'], string> = {
+  SUBCLASS: 'toujours préparés, hors limite',
+  TRAIT: 'accordés par un trait racial',
+  FEATURE: 'accordés par une capacité',
+  CHOICE: 'sorts choisis',
+}
+// « Sort mineur », « niv. 1, lancé au niv. 2 · 1 / repos long », « niv. 1 · à volonté »
 function spellNote(s: GrantedSpell) {
   const level = s.level === 0 ? 'sort mineur' : `niv. ${s.level}${s.castAtLevel && s.castAtLevel !== s.level ? `, lancé au niv. ${s.castAtLevel}` : ''}`
-  return s.oncePerLongRest ? `${level} · 1 / repos long` : level
+  return [level, s.atWill && s.level > 0 && 'à volonté', s.oncePerLongRest && '1 / repos long'].filter(Boolean).join(' · ')
 }
 
 // Sorts de la liste de la classe, d'un niveau lançable, pas encore choisis

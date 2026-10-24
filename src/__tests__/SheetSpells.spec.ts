@@ -77,10 +77,11 @@ describe('SheetSpells', () => {
   it('shows the spells granted by a trait, even to a character without spellcasting class, and does not offer them again', async () => {
     const { default: SheetSpells } = await import('@/components/sheet/SheetSpells.vue')
     const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/', component: { template: '<div />' } }, { path: '/sort/:index', component: { template: '<div />' } }] })
-    const infernal = { source: 'Ascendance infernale', kind: 'TRAIT', ability: 'cha', saveDC: 13, attackBonus: 5, oncePerLongRest: false, castAtLevel: null }
+    const infernal = { source: 'Ascendance infernale', kind: 'TRAIT', ability: 'cha', saveDC: 13, attackBonus: 5, oncePerLongRest: false, castAtLevel: null, atWill: false }
     const grantedSpells = [
       { ...infernal, index: 'thaumaturgy', name: 'Thaumaturgie', level: 0 },
       { ...infernal, index: 'hellish-rebuke', name: 'Représailles infernales', level: 1, castAtLevel: 2, oncePerLongRest: true },
+      { ...infernal, source: "Armure d'ombres", kind: 'FEATURE', index: 'mage-armor', name: 'Armure de mage', level: 1, atWill: true },
     ]
     const fighter = mount(SheetSpells, { props: { input: { ...input, classes: [{ class: 'fighter', levels: [] }], spells: [] }, sheet: { ...sheet, grantedSpells }, classes: [] } as never, global: { plugins: [router] } })
     await flushPromises()
@@ -89,6 +90,8 @@ describe('SheetSpells', () => {
     expect(text).toContain('DD 13 · attaque +5')
     expect(text).toContain('Thaumaturgie')
     expect(text).toContain('niv. 1, lancé au niv. 2 · 1 / repos long')
+    expect(text).toContain('accordés par une capacité')
+    expect(text).toContain('niv. 1 · à volonté')
 
     const wizardSheet = mount(SheetSpells, { props: { input, sheet: { ...sheet, grantedSpells: [{ ...infernal, index: 'shield', name: 'Bouclier', level: 1 }] }, classes: [wizard] } as never, global: { plugins: [router] } })
     await flushPromises()
