@@ -40,7 +40,7 @@ describe('SheetSpells', () => {
     const text = (await mountSpells()).text()
 
     expect(text).toContain('DD 13 · attaque +5')
-    expect(text).toContain('Tours de magie 1 / 3')
+    expect(text).toContain('Sorts mineurs 1 / 3')
     // Magicien 2 : INT +3 + niveau 2
     expect(text).toContain('Préparés 1 / 5')
     expect(text).toContain('Trait de feu')

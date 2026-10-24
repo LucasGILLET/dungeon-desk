@@ -29,7 +29,7 @@
           </p>
         </div>
         <div class="flex flex-wrap gap-2 text-xs">
-          <span v-if="c.cantripLimit" class="counter" :class="c.cantrips > c.cantripLimit ? 'counter-over' : ''">Tours de magie {{ c.cantrips }} / {{ c.cantripLimit }}</span>
+          <span v-if="c.cantripLimit" class="counter" :class="c.cantrips > c.cantripLimit ? 'counter-over' : ''">Sorts mineurs {{ c.cantrips }} / {{ c.cantripLimit }}</span>
           <span v-if="c.knownLimit != null" class="counter" :class="c.known > c.knownLimit ? 'counter-over' : ''">Sorts connus {{ c.known }} / {{ c.knownLimit }}</span>
           <span v-if="c.preparer" class="counter" :class="c.prepared > c.preparedLimit ? 'counter-over' : ''">Préparés {{ c.prepared }} / {{ c.preparedLimit }}</span>
         </div>
@@ -39,7 +39,7 @@
       <template v-else>
         <p v-if="!c.spells.length" class="text-sm text-zinc-500">Aucun sort pour l'instant.</p>
         <div v-for="group in c.groups" :key="group.level">
-          <div class="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-1">{{ group.level === 0 ? 'Tours de magie' : `Niveau ${group.level}` }}</div>
+          <div class="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-1">{{ group.level === 0 ? 'Sorts mineurs' : `Niveau ${group.level}` }}</div>
           <ul class="flex flex-wrap gap-2">
             <li v-for="s in group.spells" :key="s.index" class="flex items-center gap-2 pl-3 pr-1 py-1 rounded-full border text-sm"
                 :class="s.prepared || group.level === 0 || !c.preparer ? 'border-violet-700/60 bg-violet-950/30 text-zinc-100' : 'border-zinc-700 text-zinc-400'">
@@ -64,7 +64,7 @@
             </div>
             <div class="max-h-72 overflow-y-auto space-y-3">
               <div v-for="group in candidates(c)" :key="group.level">
-                <div class="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-1">{{ group.level === 0 ? 'Tours de magie' : `Niveau ${group.level}` }}</div>
+                <div class="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-1">{{ group.level === 0 ? 'Sorts mineurs' : `Niveau ${group.level}` }}</div>
                 <div class="flex flex-wrap gap-1.5">
                   <button
                     v-for="s in group.spells" :key="s.index" type="button"
@@ -161,9 +161,9 @@ const granted = computed(() => {
   return [...groups.values()]
 })
 const grantedIndexes = computed(() => new Set((props.sheet.grantedSpells ?? []).map((s) => s.index)))
-// « Tour de magie », « niv. 1, lancé au niv. 2 · 1 / repos long »
+// « Sort mineur », « niv. 1, lancé au niv. 2 · 1 / repos long »
 function spellNote(s: GrantedSpell) {
-  const level = s.level === 0 ? 'tour de magie' : `niv. ${s.level}${s.castAtLevel && s.castAtLevel !== s.level ? `, lancé au niv. ${s.castAtLevel}` : ''}`
+  const level = s.level === 0 ? 'sort mineur' : `niv. ${s.level}${s.castAtLevel && s.castAtLevel !== s.level ? `, lancé au niv. ${s.castAtLevel}` : ''}`
   return s.oncePerLongRest ? `${level} · 1 / repos long` : level
 }
 
