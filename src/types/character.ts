@@ -96,6 +96,22 @@ export interface CharacterSheetValues {
   // Armes de l'inventaire et sorts mineurs offensifs (jet d'attaque ou DD, dégâts)
   attacks?: SheetAttack[];
   featureResources?: { feature: string | null; trait: string | null; name: string; max: number; used: number; recharge: 'SHORT' | 'LONG' }[];
+  // Sorts accordés sans être choisis (trait racial, sous-classe, choix) et résistances des traits
+  grantedSpells?: GrantedSpell[];
+  damageResistances?: { damageType: string; name: string; source: string }[];
+}
+
+export interface GrantedSpell {
+  index: string;
+  name: string;
+  level: number;
+  source: string; // « Ascendance infernale », « Domaine de la Vie »
+  kind: 'TRAIT' | 'SUBCLASS' | 'CHOICE';
+  ability: string | null;
+  saveDC: number | null;
+  attackBonus: number | null;
+  castAtLevel: number | null; // lancé comme un sort de ce niveau
+  oncePerLongRest: boolean;
 }
 
 export interface StartingEquipment {

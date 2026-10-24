@@ -78,6 +78,7 @@ const sheetValues = (levels: number) => ({
   hitDice: [{ class: 'fighter', die: 10, total: levels, used: 0 }], spellSlots: [], pactSlots: null, spellcasting: [],
   armorClass: { value: 16, detail: 'Cotte de mailles 16' },
   attacks: [{ kind: 'WEAPON', index: 'longsword', name: 'Épée longue', attackBonus: 5, save: null, damage: '1d8 + 3 tranchant', versatileDamage: '1d10 + 3 tranchant', range: null, properties: ['Polyvalente'], equipped: true }],
+  damageResistances: [{ damageType: 'fire', name: 'Feu', source: 'Résistance infernale' }],
   featureResources: [
     { feature: 'second-wind', trait: null, name: 'Second souffle', max: 1, used: 0, recharge: 'SHORT' },
     { feature: 'lay-on-hands', trait: null, name: 'Imposition des mains', max: 15, used: 0, recharge: 'LONG' },
@@ -158,6 +159,9 @@ describe('CharacterSheetView', () => {
     expect(text).toContain('à deux mains : 1d10 + 3 tranchant')
     expect(text).toContain('Cape elfique')
     expect(text).toContain('Peu commun · lien')
+    // Résistance d'un trait racial, dans le bloc Combat
+    expect(text).toContain('Résistances')
+    expect(text).toContain('Feu')
   })
 
   it("opens the full sheet of an inventory item, closed with Escape", async () => {

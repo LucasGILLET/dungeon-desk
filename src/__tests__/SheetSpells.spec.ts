@@ -73,5 +73,26 @@ describe('SheetSpells', () => {
     await wrapper.findAll('button').find((b) => b.text().includes('Ajouter un sort'))!.trigger('click')
     expect(wrapper.text()).toContain('Bouclier')
   })
-})
 
+  it('shows the spells granted by a trait, even to a character without spellcasting class, and does not offer them again', async () => {
+    const { default: SheetSpells } = await import('@/components/sheet/SheetSpells.vue')
+    const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/', component: { template: '<div />' } }, { path: '/sort/:index', component: { template: '<div />' } }] })
+    const infernal = { source: 'Ascendance infernale', kind: 'TRAIT', ability: 'cha', saveDC: 13, attackBonus: 5, oncePerLongRest: false, castAtLevel: null }
+    const grantedSpells = [
+      { ...infernal, index: 'thaumaturgy', name: 'Thaumaturgie', level: 0 },
+      { ...infernal, index: 'hellish-rebuke', name: 'Représailles infernales', level: 1, castAtLevel: 2, oncePerLongRest: true },
+    ]
+    const fighter = mount(SheetSpells, { props: { input: { ...input, classes: [{ class: 'fighter', levels: [] }], spells: [] }, sheet: { ...sheet, grantedSpells }, classes: [] } as never, global: { plugins: [router] } })
+    await flushPromises()
+    const text = fighter.text()
+    expect(text).toContain('Ascendance infernale')
+    expect(text).toContain('DD 13 · attaque +5')
+    expect(text).toContain('Thaumaturgie')
+    expect(text).toContain('niv. 1, lancé au niv. 2 · 1 / repos long')
+
+    const wizardSheet = mount(SheetSpells, { props: { input, sheet: { ...sheet, grantedSpells: [{ ...infernal, index: 'shield', name: 'Bouclier', level: 1 }] }, classes: [wizard] } as never, global: { plugins: [router] } })
+    await flushPromises()
+    await wizardSheet.findAll('button').find((b) => b.text().includes('Ajouter un sort'))!.trigger('click')
+    expect(wizardSheet.findAll('button').some((b) => b.text() === 'Bouclier')).toBe(false)
+  })
+})

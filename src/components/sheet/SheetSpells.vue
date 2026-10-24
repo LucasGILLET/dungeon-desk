@@ -1,6 +1,23 @@
 <template>
-  <section v-if="casters.length" class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-8">
+  <section v-if="casters.length || granted.length" class="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-8">
     <h2 class="text-sm font-bold uppercase tracking-widest text-amber-500 font-serif">Sorts</h2>
+
+    <!-- Sorts accordés sans être choisis : trait racial, sous-classe, choix -->
+    <div v-for="g in granted" :key="g.source" class="space-y-2">
+      <div class="border-b border-zinc-800 pb-2">
+        <h3 class="text-lg font-bold font-serif text-white">{{ g.source }}</h3>
+        <p class="text-xs text-zinc-500">
+          <template v-if="g.saveDC != null">DD {{ g.saveDC }} · attaque {{ signed(g.attackBonus!) }} · </template>
+          {{ g.kind === 'SUBCLASS' ? 'toujours préparés, hors limite' : g.kind === 'TRAIT' ? 'accordés par un trait racial' : 'sorts choisis' }}
+        </p>
+      </div>
+      <ul class="flex flex-wrap gap-2">
+        <li v-for="s in g.spells" :key="s.index" class="flex items-center gap-2 px-3 py-1 rounded-full border border-violet-700/60 bg-violet-950/30 text-sm text-zinc-100">
+          <router-link :to="`/sort/${s.index}`" class="hover:underline">{{ s.name }}</router-link>
+          <span class="text-xs text-zinc-400">{{ spellNote(s) }}</span>
+        </li>
+      </ul>
+    </div>
 
     <div v-for="c in casters" :key="c.index" class="space-y-3">
       <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b border-zinc-800 pb-2">
@@ -73,7 +90,7 @@
 // limites viennent de la table de classe ; le back refuse un sort hors liste
 // ou d'un niveau pas encore lançable.
 import { computed, ref, watch } from 'vue'
-import type { CharacterSheetValues } from '@/types/character'
+import type { CharacterSheetValues, GrantedSpell } from '@/types/character'
 import { loadApiSpells, type ApiClass, type ApiSpell } from '@/utils/dataLoader'
 import { addSpell, removeSpell, togglePrepared, type Input } from '@/utils/sheetActions'
 
@@ -133,9 +150,26 @@ const casters = computed(() => props.input.classes.flatMap((entry) => {
 
 type Caster = (typeof casters.value)[number]
 
+// Sorts accordés, regroupés par origine (« Ascendance infernale »)
+const granted = computed(() => {
+  const groups = new Map<string, Pick<GrantedSpell, 'source' | 'kind' | 'saveDC' | 'attackBonus'> & { spells: GrantedSpell[] }>()
+  for (const s of props.sheet.grantedSpells ?? []) {
+    const group = groups.get(s.source) ?? { source: s.source, kind: s.kind, saveDC: s.saveDC, attackBonus: s.attackBonus, spells: [] }
+    group.spells.push(s)
+    groups.set(s.source, group)
+  }
+  return [...groups.values()]
+})
+const grantedIndexes = computed(() => new Set((props.sheet.grantedSpells ?? []).map((s) => s.index)))
+// « Tour de magie », « niv. 1, lancé au niv. 2 · 1 / repos long »
+function spellNote(s: GrantedSpell) {
+  const level = s.level === 0 ? 'tour de magie' : `niv. ${s.level}${s.castAtLevel && s.castAtLevel !== s.level ? `, lancé au niv. ${s.castAtLevel}` : ''}`
+  return s.oncePerLongRest ? `${level} · 1 / repos long` : level
+}
+
 // Sorts de la liste de la classe, d'un niveau lançable, pas encore choisis
 function candidates(c: Caster) {
-  const owned = new Set(c.spells.map((s) => s.index))
+  const owned = new Set([...c.spells.map((s) => s.index), ...grantedIndexes.value])
   const q = query.value.trim().toLowerCase()
   const list = spells.value.filter((s) =>
     s.classes.some((k) => k.index === c.index)

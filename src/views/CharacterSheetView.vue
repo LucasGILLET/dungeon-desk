@@ -163,6 +163,12 @@
 
             <p v-if="sheet.armorClass" class="mt-2 text-xs text-zinc-500">CA : {{ sheet.armorClass.detail }}</p>
 
+            <!-- Résistances aux dégâts (traits raciaux) -->
+            <div v-if="resistances.length" class="mt-3 flex flex-wrap items-center gap-2">
+              <span class="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Résistances</span>
+              <span v-for="r in resistances" :key="r.name" class="rounded-full border border-sky-800/60 bg-sky-950/30 px-2.5 py-0.5 text-xs text-sky-200" :title="r.sources">{{ r.name }}</span>
+            </div>
+
             <!-- Points de vie -->
             <div class="mt-5 rounded-lg bg-zinc-950/60 border border-zinc-800 p-4">
               <div class="flex items-end justify-between">
@@ -497,7 +503,13 @@ function setLayout(layout: 'full' | 'tabs') {
   try { localStorage.setItem(LAYOUT_KEY, layout) } catch { /* préférence non retenue */ }
 }
 // Onglet Sorts seulement pour un lanceur de sorts
-const casts = computed(() => !!saved.value?.sheet && !!(sheet.value.spellSlots?.length || sheet.value.pactSlots || sheet.value.spellcasting?.length || input.value?.spells?.length))
+const casts = computed(() => !!saved.value?.sheet && !!(sheet.value.spellSlots?.length || sheet.value.pactSlots || sheet.value.spellcasting?.length || input.value?.spells?.length || sheet.value.grantedSpells?.length))
+// Une résistance par type de dégâts, ses origines en infobulle
+const resistances = computed(() => {
+  const byName = new Map<string, string[]>()
+  for (const r of sheet.value.damageResistances ?? []) byName.set(r.name, [...(byName.get(r.name) ?? []), r.source])
+  return [...byName].map(([name, sources]) => ({ name, sources: sources.join(', ') }))
+})
 const visibleTabs = computed(() => TABS.filter((t) => t.key !== 'sorts' || casts.value))
 // Onglet dans l'adresse (?onglet=sorts) : il survit à un rechargement
 const tab = computed<SheetTab>(() => {
