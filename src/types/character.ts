@@ -99,6 +99,16 @@ export interface CharacterSheetValues {
   // Sorts accordés sans être choisis (trait racial, sous-classe, choix) et résistances des traits
   grantedSpells?: GrantedSpell[];
   damageResistances?: { damageType: string; name: string; source: string }[];
+  // Capacités, traits et sorts utilisables pendant le tour
+  turnOptions?: TurnOption[];
+}
+
+export interface TurnOption {
+  activation: 'ACTION' | 'BONUS_ACTION' | 'REACTION';
+  source: 'FEATURE' | 'TRAIT' | 'SPELL';
+  index: string;
+  name: string;
+  spellLevel: number | null;
 }
 
 export interface GrantedSpell {

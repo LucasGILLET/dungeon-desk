@@ -222,6 +222,9 @@
             </div>
           </section>
 
+          <!-- Pendant le tour : actions, actions bonus, réactions -->
+          <SheetTurn v-show="shows('combat')" :sheet="sheet" :input="input" />
+
           <!-- Attaques : armes de l'inventaire et sorts mineurs, comme sur la fiche papier -->
           <section v-show="shows('combat')" v-if="sheet.attacks?.length" class="panel">
             <h2 class="panel-title">Attaques</h2>
@@ -409,6 +412,7 @@ import {
 import { feetToMeters } from '@/utils/spellFormat'
 import SheetInventory from '@/components/sheet/SheetInventory.vue'
 import SheetSpells from '@/components/sheet/SheetSpells.vue'
+import SheetTurn from '@/components/sheet/SheetTurn.vue'
 import LevelUpModal from '@/components/sheet/LevelUpModal.vue'
 
 const ABILITIES = [
