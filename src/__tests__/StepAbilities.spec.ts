@@ -122,4 +122,56 @@ describe('StepAbilities', () => {
     const nav = wrapper.findComponent({ name: 'StepNavigation' })
     expect(nav.props('disableNext')).toBe(false)
   })
+
+  const methodButton = (wrapper: any, label: string) => wrapper.findAll('[role="radio"]').find((b: any) => b.text() === label)!
+
+  it('accepts any score from 1 to 30 in free entry, and saves the method', async () => {
+    const wrapper = await mountStep()
+    await methodButton(wrapper, 'Saisie libre').trigger('click')
+    const nav = () => wrapper.findComponent({ name: 'StepNavigation' })
+    expect(nav().props('disableNext')).toBe(false) // pas de capital à dépenser
+
+    await wrapper.find('[aria-label="Valeur de Force"]').setValue('20')
+    await wrapper.find('[aria-label="Valeur de Charisme"]').setValue('3')
+    await wrapper.find('[aria-label="Valeur de Dextérité"]').setValue('31')
+    expect(nav().props('disableNext')).toBe(true)
+    expect(wrapper.text()).toContain('Entre 1 et 30')
+    await wrapper.find('[aria-label="Valeur de Dextérité"]').setValue('17')
+
+    nav().vm.$emit('next')
+    expect(wrapper.emitted('update:character')!.at(-1)).toEqual([{ abilityMethod: 'MANUAL' }])
+    expect(wrapper.emitted('next')![0]).toEqual([{ str: 20, dex: 17, con: 8, int: 8, wis: 8, cha: 3 }])
+  })
+
+  it('rolls 4d6 (3 to 18) with the dice method, and refuses typed scores out of range', async () => {
+    const wrapper = await mountStep()
+    await methodButton(wrapper, 'Dés').trigger('click')
+    await wrapper.find('[aria-label="Lancer les dés"]').trigger('click')
+    const values = wrapper.findAll('input[type="number"]').map((i) => Number((i.element as HTMLInputElement).value))
+    expect(values).toHaveLength(6)
+    expect(values.every((v) => v >= 3 && v <= 18)).toBe(true)
+
+    await wrapper.find('[aria-label="Valeur de Force"]').setValue('19')
+    expect(wrapper.findComponent({ name: 'StepNavigation' }).props('disableNext')).toBe(true)
+  })
+
+  it('spreads the standard array, swapping a value already taken', async () => {
+    const wrapper = await mountStep()
+    await methodButton(wrapper, 'Tableau standard').trigger('click')
+    const nav = wrapper.findComponent({ name: 'StepNavigation' })
+    expect(nav.props('disableNext')).toBe(false)
+
+    const force = wrapper.find('[aria-label="Valeur de Force"]')
+    const before = (force.element as HTMLSelectElement).value
+    const holder = wrapper.findAll('select').find((s) => (s.element as HTMLSelectElement).value === '8')!
+    await force.setValue('8')
+    expect((holder.element as HTMLSelectElement).value).toBe(before)
+    expect(nav.props('disableNext')).toBe(false)
+  })
+
+  it('reopens a saved character on its method, with free scores kept', async () => {
+    const wrapper = await mountStep({ character: { ...character, abilityMethod: 'MANUAL', abilities: { str: 5, dex: 20, con: 8, int: 8, wis: 8, cha: 8 } } })
+    expect(methodButton(wrapper, 'Saisie libre').attributes('aria-checked')).toBe('true')
+    expect((wrapper.find('[aria-label="Valeur de Force"]').element as HTMLInputElement).value).toBe('5')
+  })
 })

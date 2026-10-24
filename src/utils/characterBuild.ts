@@ -77,6 +77,7 @@ export async function fromSavedCharacter(saved: SavedCharacter): Promise<Charact
     subclass,
     background: backgrounds.find((b) => b.index === saved.background) ?? ({ index: saved.background, name: saved.names.background } as SRDBackground),
     abilities: { str: 8, dex: 8, con: 8, int: 8, wis: 8, cha: 8, ...saved.abilityScores },
+    abilityMethod: saved.abilityMethod,
     proficiencies: { skills: [], languages: [], tools: [] },
     choices: (saved.choices ?? []).map((c) => ({ choiceId: c.choiceId, optionId: c.optionId, language: c.language, equipment: c.equipment })),
     features: [],

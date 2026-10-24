@@ -53,6 +53,8 @@ describe('toCharacterCreateInput', () => {
 
     // Inventaire, argent, niveaux et notes du personnage enregistré conservés
     expect(input).toMatchObject({ items: [{ name: 'Amulette' }], currencies: { GP: 3 }, notes: 'à garder', abilityMethod: 'MANUAL' })
+    // Méthode choisie dans le créateur, sinon celle enregistrée
+    expect(toCharacterCreateInput({ ...base(), id: 3, saved, abilityMethod: 'ROLLED' }).abilityMethod).toBe('ROLLED')
     expect(input.classes[0]).toMatchObject({ hitDiceUsed: 1, levels: [{ level: 1 }, { level: 2, hitPointRoll: 6 }] })
     // Champs de lecture seule non renvoyés
     expect(input).not.toHaveProperty('id')

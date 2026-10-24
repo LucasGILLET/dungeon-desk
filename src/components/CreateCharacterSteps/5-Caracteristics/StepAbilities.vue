@@ -22,6 +22,14 @@
 
     <!-- Action Bar (Specific to Abilities) -->
     <div class="shrink-0 px-4 py-2 relative transition-all duration-300" :class="(isTutorialStep(1) || isTutorialStep(2)) ? 'z-40' : 'z-10'">
+       <!-- Méthode : achat de points, tableau standard, dés ou saisie libre -->
+       <div class="max-w-4xl mx-auto mb-2 flex flex-wrap items-center justify-center gap-1 rounded-xl border border-zinc-800 bg-zinc-900/60 p-1" role="radiogroup" aria-label="Méthode de détermination">
+          <button
+            v-for="m in METHODS" :key="m.key" type="button" role="radio" :aria-checked="method === m.key" :title="m.hint"
+            :class="['rounded-lg px-3 py-1.5 text-sm transition', method === m.key ? 'bg-amber-600 text-white font-bold' : 'text-zinc-400 hover:text-zinc-100']"
+            @click="selectMethod(m.key)"
+          >{{ m.label }}</button>
+       </div>
        <div class="max-w-4xl mx-auto bg-zinc-900/60 border border-zinc-700/50 rounded-xl p-2 sm:p-3 flex flex-col md:flex-row items-center justify-between gap-3 backdrop-blur-md shadow-lg">
            
            <!-- Left: Class Priorities -->
@@ -47,7 +55,10 @@
            <!-- Center/Right: Points & Tools -->
            <div class="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
                <!-- Points Counter -->
-               <div class="relative flex items-center gap-3 p-1 rounded-lg" :class="{'bg-black/40 ring-2 ring-amber-500/50': isTutorialStep(2)}">
+               <div v-if="method !== 'POINT_BUY'" class="max-w-xs text-xs text-zinc-400 p-1 rounded-lg" :class="{'bg-black/40 ring-2 ring-amber-500/50': isTutorialStep(2)}">
+                  {{ currentMethod.hint }}
+               </div>
+               <div v-else class="relative flex items-center gap-3 p-1 rounded-lg" :class="{'bg-black/40 ring-2 ring-amber-500/50': isTutorialStep(2)}">
                   <div class="text-right leading-tight hidden sm:block">
                      <div class="text-[10px] text-zinc-500 uppercase tracking-wider font-bold">Capital</div>
                      <div class="text-xs text-amber-500 font-bold">Points</div>
@@ -66,7 +77,7 @@
                   <button @click="resetAbilities" class="p-2 text-zinc-400 hover:text-white bg-zinc-800/50 hover:bg-zinc-700 rounded-lg transition-colors border border-zinc-700 hover:border-zinc-500" title="Réinitialiser">
                       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                   </button>
-                  <button @click="randomizeAbilities" class="p-2 text-purple-400 hover:text-purple-200 bg-purple-900/10 hover:bg-purple-900/30 rounded-lg transition-colors border border-purple-500/20 hover:border-purple-500/50" title="Aléatoire">
+                  <button v-if="method !== 'MANUAL'" @click="randomizeAbilities" class="p-2 text-purple-400 hover:text-purple-200 bg-purple-900/10 hover:bg-purple-900/30 rounded-lg transition-colors border border-purple-500/20 hover:border-purple-500/50" :title="method === 'ROLLED' ? 'Lancer les dés (4d6, on garde les 3 meilleurs)' : 'Aléatoire'" :aria-label="method === 'ROLLED' ? 'Lancer les dés' : 'Aléatoire'">
                       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
                   </button>
                </div>
@@ -155,8 +166,26 @@
                
                <div v-if="index === 0 && isTutorialStep(5)" class="absolute inset-0 border-2 border-amber-500 rounded-lg animate-pulse pointer-events-none"></div>
 
+               <!-- Tableau standard : chaque valeur une fois (choisir une valeur prise échange les deux) -->
+               <label v-if="method === 'STANDARD_ARRAY'" class="flex items-center justify-between gap-2 px-1 text-xs text-zinc-400">
+                  Base
+                  <select :value="ability.value" :aria-label="`Valeur de ${ability.name}`" class="ui-input w-20 py-1 text-sm" @change="assignArrayValue(ability, Number(($event.target as HTMLSelectElement).value))">
+                     <option v-for="v in standardArray" :key="v" :value="v">{{ v }}</option>
+                  </select>
+               </label>
+
+               <!-- Dés ou saisie libre : la valeur de base se tape -->
+               <label v-else-if="method !== 'POINT_BUY'" class="flex items-center justify-between gap-2 px-1 text-xs text-zinc-400">
+                  Base
+                  <input
+                    v-model.number="ability.value" type="number" inputmode="numeric" :min="range.min" :max="range.max" step="1"
+                    :aria-label="`Valeur de ${ability.name}`" :aria-invalid="!isValidScore(ability.value)"
+                    :class="['ui-input w-20 py-1 text-sm text-center', !isValidScore(ability.value) ? 'border-red-500' : '']"
+                  />
+               </label>
+
                <!-- Buttons Row -->
-               <div class="flex items-center justify-between gap-2">
+               <div v-else class="flex items-center justify-between gap-2">
                    <button
                       @click="decreaseAbility(ability)"
                       :disabled="ability.value <= 8"
@@ -180,7 +209,9 @@
                
                <!-- Bonus Info -->
                <div class="flex justify-between items-center px-1 text-[9px] font-medium border-t border-zinc-800/50 pt-1 mt-0.5">
-                   <span class="text-zinc-500">Coût: {{ getAbilityPointCost(ability.value) }}</span>
+                   <span v-if="method === 'POINT_BUY'" class="text-zinc-500">Coût: {{ getAbilityPointCost(ability.value) }}</span>
+                   <span v-else-if="!isValidScore(ability.value)" class="text-red-400">Entre {{ range.min }} et {{ range.max }}</span>
+                   <span v-else></span>
                    <span v-if="getRacialBonus(ability.name) > 0" class="text-amber-500 bg-amber-950/30 px-1 rounded">
                      +{{ getRacialBonus(ability.name) }} Race
                   </span>
@@ -209,7 +240,7 @@
       :current-step="5" 
       :total-steps="8"
       step-name="Caractéristiques"
-      :disable-next="remainingPoints > 0"
+      :disable-next="!canContinue"
       @previous="emit('prev')"
       @next="validateAbilities"
     />
@@ -257,7 +288,57 @@ const emit = defineEmits<{
 }>()
 
 // Achat de points : budget et coûts de l'édition (API)
-const { cost: getAbilityPointCost, summaryOf: getAbilityDescription, budget, minValue, maxValue } = useCreationRules()
+const { cost: getAbilityPointCost, summaryOf: getAbilityDescription, budget, minValue, maxValue, standardArray } = useCreationRules()
+
+// --- Méthode de détermination ------------------------------------------------------
+type Method = NonNullable<Character['abilityMethod']>
+const METHODS: { key: Method; label: string; hint: string }[] = [
+  { key: 'POINT_BUY', label: 'Achat de points', hint: 'Dépensez un capital de points, de 8 à 15 avant bonus.' },
+  { key: 'STANDARD_ARRAY', label: 'Tableau standard', hint: 'Répartissez 15, 14, 13, 12, 10 et 8, chaque valeur une fois.' },
+  { key: 'ROLLED', label: 'Dés', hint: 'Lancez 4d6 et gardez les 3 meilleurs, ou tapez vos propres jets (3 à 18).' },
+  { key: 'MANUAL', label: 'Saisie libre', hint: 'Tapez les valeurs de votre choix (1 à 30), sans contrainte.' },
+]
+const method = ref<Method>(props.character.abilityMethod ?? 'POINT_BUY')
+const currentMethod = computed(() => METHODS.find((m) => m.key === method.value)!)
+// Bornes des valeurs tapées (avant bonus raciaux)
+const range = computed(() => method.value === 'ROLLED' ? { min: 3, max: 18 } : { min: 1, max: 30 })
+const isValidScore = (v: unknown) => Number.isInteger(v) && (v as number) >= range.value.min && (v as number) <= range.value.max
+
+const canContinue = computed(() => {
+  if (method.value === 'POINT_BUY') return remainingPoints.value === 0
+  if (method.value === 'STANDARD_ARRAY') {
+    return [...abilities.value.map((a) => a.value)].sort((a, b) => b - a).join() === [...standardArray.value].sort((a, b) => b - a).join()
+  }
+  return abilities.value.every((a) => isValidScore(a.value))
+})
+
+function selectMethod(next: Method) {
+  if (next === method.value) return
+  method.value = next
+  // Les valeurs en cours restent valables en dés ou en saisie libre (8 à 15)
+  if (next === 'POINT_BUY') resetAbilities()
+  if (next === 'STANDARD_ARRAY') assignStandardArray()
+}
+
+// Tableau standard : les plus hautes valeurs sur les priorités de la classe
+function assignStandardArray() {
+  const mainStats = props.character.class ? getClassMainStats(props.character.class) : []
+  const ordered = [...abilities.value].sort((a, b) => Number(mainStats.includes(b.name)) - Number(mainStats.includes(a.name)))
+  const values = [...standardArray.value].sort((a, b) => b - a)
+  ordered.forEach((a, i) => { a.value = values[i] ?? 8 })
+}
+
+function assignArrayValue(ability: Ability, value: number) {
+  const other = abilities.value.find((a) => a !== ability && a.value === value)
+  if (other) other.value = ability.value
+  ability.value = value
+}
+
+// 4d6, on garde les 3 meilleurs
+function rollAbility(): number {
+  const dice = Array.from({ length: 4 }, () => 1 + Math.floor(Math.random() * 6)).sort((a, b) => a - b)
+  return dice[1]! + dice[2]! + dice[3]!
+}
 
 const abilities = ref<Ability[]>([
   { name: 'Force', value: 8 },
@@ -324,7 +405,7 @@ watch(() => props.character.race, (newRace) => {
 const tutorialSteps = [
     { title: "Bienvenue", text: "Définissez les attributs de votre héros. C'est ici que vous décidez s'il sera fort, agile, ou intelligent." },
     { title: "Priorités de Classe", text: "Regardez ici ! Votre classe a besoin de certaines statistiques pour briller. Essayez de les maximiser." },
-    { title: "Votre Capital", text: "Vous disposez d'un capital de points (affiché en haut). Monter une caractéristique coûte 1 point par niveau, plus cher pour les valeurs les plus hautes. Gérez bien votre budget !" },
+    { title: "Votre Méthode", text: "Choisissez comment déterminer vos valeurs : achat de points (capital affiché ici), tableau standard, jets de dés, ou saisie libre si votre table utilise une autre règle." },
     { title: "Les Caractéristiques", text: "Chaque carte représente un attribut. Le gros chiffre est votre score total (incluant les bonus de race)." },
     { title: "Le Modificateur", text: "C'est LE chiffre important (+2, -1...). C'est ce bonus qui sera ajouté à vos jets de dés en jeu." },
     { title: "Ajustements", text: "Utilisez ces boutons pour dépenser vos points. Vous ne pouvez pas dépasser 15 (avant bonus) à la création." }
@@ -352,7 +433,7 @@ onMounted(() => {
       const engKey = abilityNameMap[ability.name]
       // @ts-ignore - Dynamic access to mapped keys
       const savedValue = props.character.abilities[engKey]
-      if (typeof savedValue === 'number' && savedValue >= minValue.value) {
+      if (typeof savedValue === 'number' && (method.value !== 'POINT_BUY' || savedValue >= minValue.value)) {
         ability.value = savedValue
       }
     })
@@ -452,10 +533,20 @@ function decreaseAbility(ability: Ability) {
 }
 
 function resetAbilities() {
-  abilities.value.forEach(a => a.value = minValue.value)
+  if (method.value === 'STANDARD_ARRAY') return assignStandardArray()
+  abilities.value.forEach(a => a.value = method.value === 'POINT_BUY' ? minValue.value : 10)
 }
 
 function randomizeAbilities() {
+  if (method.value === 'ROLLED') {
+    abilities.value.forEach((a) => { a.value = rollAbility() })
+    return
+  }
+  if (method.value === 'STANDARD_ARRAY') {
+    const values = [...standardArray.value].sort(() => Math.random() - 0.5)
+    abilities.value.forEach((a, i) => { a.value = values[i] ?? 8 })
+    return
+  }
   resetAbilities()
   
   // Tableau de priorité basé sur la classe
@@ -508,6 +599,7 @@ function validateAbilities() {
     const engKey = abilityNameMap[a.name] || a.name
     payload[engKey] = a.value
   })
+  emit('update:character', { abilityMethod: method.value })
   emit('next', payload)
 }
 

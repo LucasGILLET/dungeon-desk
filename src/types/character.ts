@@ -2,6 +2,7 @@ import type { SRDBackground, SRDClass, SRDFeature, SRDRace, SRDSubclass } from '
 import type { Subrace } from '@/utils/subrace';
 import type { SubclassData } from '@/utils/subclasses';
 import type { CharacterCreateInput } from '@/api/generated/model/characterCreateInput';
+import type { CharacterCreateInputAbilityMethod } from '@/api/generated/model/characterCreateInputAbilityMethod';
 
 export interface CharacterProficiency {
   name: string;
@@ -153,6 +154,8 @@ export interface CharacterSummary {
 // partent vers l'API (voir toCharacterCreateInput).
 export interface CharacterSheet {
   abilities: AbilityScores;
+  // Achat de points, tableau standard, dés ou saisie libre
+  abilityMethod?: CharacterCreateInputAbilityMethod;
   vision?: string;
   proficiencies: CharacterProficiencies;
   race: SRDRace;
@@ -205,7 +208,7 @@ export const toCharacterCreateInput = (character: Character): CharacterCreateInp
     race: index(character.race)!,
     subrace: index(character.subrace),
     background: index(character.background),
-    abilityMethod: saved?.abilityMethod ?? 'POINT_BUY',
+    abilityMethod: character.abilityMethod ?? saved?.abilityMethod ?? 'POINT_BUY',
     abilityScores: { ...character.abilities },
     classes: [{
       class: classIndex,
