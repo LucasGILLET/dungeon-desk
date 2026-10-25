@@ -39,6 +39,7 @@
             :choices="visibleChoices"
             :answers="answers"
             :known-languages="preview.sheet?.languages.map((l) => l.index) ?? []"
+            :known-proficiencies="preview.sheet?.proficiencies.map((p) => p.index) ?? []"
             :locked-kinds="halfElfAbilities().length ? ['ABILITY_SCORE_INCREASE'] : []"
             locked-message="Défini à l'étape « Caractéristiques »."
             @update:answers="setAnswers"

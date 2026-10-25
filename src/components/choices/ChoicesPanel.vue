@@ -33,15 +33,16 @@
           v-for="option in choice.options"
           :key="option.id"
           type="button"
-          :disabled="isLocked(choice) || (!isOptionSelected(choice, option.id) && isBlocked(choice))"
+          :disabled="isLocked(choice) || (!isOptionSelected(choice, option.id) && (isBlocked(choice) || isKnownProficiency(choice, option)))"
           :aria-pressed="isOptionSelected(choice, option.id)"
           class="text-left h-full p-4 rounded-lg border-2 transition-all duration-200 flex flex-col focus-visible:outline-2 focus-visible:outline-amber-500"
-          :class="optionClass(isOptionSelected(choice, option.id), isLocked(choice) || isBlocked(choice))"
+          :class="optionClass(isOptionSelected(choice, option.id), isLocked(choice) || isBlocked(choice) || isKnownProficiency(choice, option))"
           @click="toggleOption(choice, option.id)"
         >
           <div class="flex justify-between items-start gap-2">
             <span class="font-serif font-bold leading-tight" :class="isOptionSelected(choice, option.id) ? 'text-white' : 'text-zinc-300'">
               {{ optionTitle(option.label) }}
+              <span v-if="isKnownProficiency(choice, option)" class="block text-[10px] uppercase font-sans font-normal mt-0.5">(déjà maîtrisée)</span>
             </span>
             <span v-if="isOptionSelected(choice, option.id)" class="flex-shrink-0 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center">
               <svg class="w-3.5 h-3.5 text-zinc-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
@@ -83,6 +84,8 @@ const props = defineProps<{
   answers: ChoiceAnswer[]
   // Langues déjà parlées (désactivées dans les réserves de langues)
   knownLanguages?: string[]
+  // Maîtrises déjà acquises (historique, race, autre choix) : pas deux fois la même
+  knownProficiencies?: string[]
   // Choix réglés ailleurs (bonus du demi-elfe à l'étape Caractéristiques)
   lockedKinds?: string[]
   lockedMessage?: string
@@ -138,6 +141,12 @@ const isPoolSelected = (choice: PreviewChoice, index: string) =>
   answersOf(choice).some((a) => (choice.pool?.type === 'ANY_LANGUAGE' ? a.language : a.equipment) === index)
 const isKnownLanguage = (choice: PreviewChoice, index: string) =>
   choice.pool?.type === 'ANY_LANGUAGE' && !isPoolSelected(choice, index) && !!props.knownLanguages?.includes(index)
+
+// Maîtrise déjà acquise ailleurs (l'Expertise, elle, porte sur une compétence maîtrisée)
+const PROFICIENCY_KINDS = new Set(['PROFICIENCY', 'MULTICLASS_PROFICIENCY'])
+const isKnownProficiency = (choice: PreviewChoice, option: PreviewChoice['options'][number]) =>
+  PROFICIENCY_KINDS.has(choice.kind) && !isOptionSelected(choice, option.id)
+  && option.items.some((i) => i.type === 'proficiency' && !!i.index && !!props.knownProficiencies?.includes(i.index))
 
 const gridClass = (choice: PreviewChoice) =>
   choice.options.length > 6 ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
