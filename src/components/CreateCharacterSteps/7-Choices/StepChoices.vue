@@ -17,6 +17,22 @@
           </div>
         </div>
 
+        <!-- Déjà acquis par la race, l'historique et la classe : à ne pas reprendre dans les choix -->
+        <div v-if="acquired.length" class="rounded-xl border border-zinc-700/50 bg-zinc-900/50 overflow-hidden">
+          <div class="px-6 py-4 border-b border-zinc-700/50 bg-zinc-900/80 flex items-center justify-between">
+            <h3 class="text-lg font-bold font-serif text-white flex items-center gap-2"><span class="text-amber-500">✦</span> Déjà acquis</h3>
+            <span class="text-[10px] uppercase text-zinc-500 tracking-widest font-bold">Race, historique, classe</span>
+          </div>
+          <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div v-for="group in acquired" :key="group.label">
+              <h4 class="text-zinc-400 text-xs font-bold uppercase tracking-wider mb-3">{{ group.label }}</h4>
+              <div class="flex flex-wrap gap-2">
+                <ProficiencyBadge v-for="item in group.items" :key="item.index" :name="item.name" :variant="group.variant" />
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Chargement / erreur -->
         <div v-if="!preview && loading" class="flex justify-center py-20">
           <div class="w-10 h-10 border-4 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"></div>
@@ -67,6 +83,7 @@
 import { computed, onMounted } from 'vue'
 import StepNavigation from '../StepNavigation.vue'
 import ChoicesPanel from '@/components/choices/ChoicesPanel.vue'
+import ProficiencyBadge from '../8-Summary/ProficiencyBadge.vue'
 import type { Character, CharacterPreview, ChoiceAnswer } from '@/types/character'
 import { fetchPreview } from '@/utils/characterBuild'
 import { useChoicePreview } from '@/composables/useChoicePreview'
@@ -101,6 +118,27 @@ const { preview, answers, loading, loadError, refresh, setAnswers } = useChoiceP
 )
 
 const visibleChoices = computed(() => preview.value?.choices ?? [])
+
+// Compétences, outils et langues acquis sans choix : tout ce que donne l'aperçu,
+// moins ce qui vient des réponses de cette étape
+const TOOL_TYPES = new Set(['ARTISAN_TOOL', 'MUSICAL_INSTRUMENT', 'GAMING_SET', 'VEHICLE', 'OTHER'])
+const shortName = (name: string) => name.replace(/^[^:()]+ : /, '')
+const acquired = computed(() => {
+  const sheet = preview.value?.sheet
+  if (!sheet) return []
+  const chosen = new Set<string>()
+  for (const a of answers.value) {
+    if (a.language) chosen.add(a.language)
+    const option = visibleChoices.value.find((c) => c.id === a.choiceId)?.options.find((o) => o.id === a.optionId)
+    for (const item of option?.items ?? []) if (item.index) chosen.add(item.index)
+  }
+  const proficiencies = sheet.proficiencies.filter((p) => !chosen.has(p.index))
+  return [
+    { label: 'Compétences', variant: 'skill' as const, items: proficiencies.filter((p) => p.type === 'SKILL') },
+    { label: 'Outils', variant: 'tool' as const, items: proficiencies.filter((p) => TOOL_TYPES.has(p.type)) },
+    { label: 'Langues', variant: 'language' as const, items: sheet.languages.filter((l) => !chosen.has(l.index)) },
+  ].filter((g) => g.items.length).map((g) => ({ ...g, items: g.items.map((i) => ({ index: i.index, name: shortName(i.name) })) }))
+})
 // Tous les choix accessibles sont remplis (le back recalcule ce qui reste)
 const complete = computed(() => !!preview.value && !loading.value && (preview.value.sheet?.pending.choices.length ?? 0) === 0 && !preview.value.errors.length)
 
