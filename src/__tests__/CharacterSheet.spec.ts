@@ -32,6 +32,8 @@ vi.mock('@/utils/dataLoader', () => ({
   loadSkills: vi.fn(async () => [
     { index: 'athletics', name: 'Athlétisme', ability: { index: 'str', name: 'Force' } },
     { index: 'perception', name: 'Perception', ability: { index: 'wis', name: 'Sagesse' } },
+    // Ordre de l'API (par caractéristique) : la fiche trie par nom
+    { index: 'acrobatics', name: 'Acrobaties', ability: { index: 'dex', name: 'Dextérité' } },
   ]),
   loadConditions: vi.fn(async () => [{ index: 'poisoned', name: 'Empoisonné', description: '…' }]),
   loadEquipmentCatalog: vi.fn(async () => [{ index: 'longsword', name: 'Épée longue', kind: 'WEAPON', cost: null, weightLb: 3, damage: '1d8', armorClass: null }]),
@@ -145,6 +147,9 @@ describe('CharacterSheetView', () => {
     expect(text).toContain('Guerrier 2')
     expect(text).toContain('19 / 19') // PV au maximum
     expect(text).toContain('Athlétisme')
+    // Compétences par ordre alphabétique
+    expect(text.indexOf('Acrobaties')).toBeLessThan(text.indexOf('Athlétisme'))
+    expect(text.indexOf('Athlétisme')).toBeLessThan(text.indexOf('Perception'))
     expect(text).toContain('Second souffle')
     expect(text).toContain('Fougue')
     expect(text).not.toContain('Critique amélioré') // niveau 3, sous-classe non choisie

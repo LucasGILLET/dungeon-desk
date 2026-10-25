@@ -614,6 +614,7 @@ const savingThrow = (ability: string) => {
   return { proficient, value: mod(ability) + (proficient ? sheet.value.proficiencyBonus : 0) }
 }
 
+// Compétences par ordre alphabétique du nom affiché (« Acrobaties », « Arcanes », « Athlétisme »…)
 const skillRows = computed(() => skills.value.map((s) => {
   const proficient = hasProficiency(`skill-${s.index}`)
   const expertise = sheet.value.expertise.some((e) => e.index === `skill-${s.index}`)
@@ -622,7 +623,7 @@ const skillRows = computed(() => skills.value.map((s) => {
     index: s.index, name: s.name, ability: abilityShort(s.ability.index), proficient, expertise,
     value: mod(s.ability.index) + (proficient ? pb : 0) + (expertise ? pb : 0),
   }
-}))
+}).sort((a, b) => a.name.localeCompare(b.name, 'fr')))
 const passivePerception = computed(() => 10 + (skillRows.value.find((s) => s.index === 'perception')?.value ?? mod('wis')))
 
 // Vitesse de la race, en mètres
