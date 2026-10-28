@@ -7,12 +7,14 @@ import { createAuth0 } from '@auth0/auth0-vue';
 
 import App from './App.vue'
 import router from './router'
+import { reloadOnStaleBuild } from './utils/staleBuild'
 
 const app = createApp(App)
 
 app.use(createPinia())
 app.use(VueQueryPlugin)
 app.use(router)
+reloadOnStaleBuild(router)
 app.use(
   createAuth0({
     domain: import.meta.env.VITE_AUTH0_DOMAIN,

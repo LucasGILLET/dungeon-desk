@@ -1,10 +1,17 @@
 {
   "navigationFallback": {
-    "rewrite": "/index.html"
+    "rewrite": "/index.html",
+    "exclude": ["/assets/*"]
   },
   "routes": [
     {
-      "route": "/index.html",
+      "route": "/assets/*",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    },
+    {
+      "route": "/*",
       "headers": {
         "Cache-Control": "no-cache"
       }
