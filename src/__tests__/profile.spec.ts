@@ -32,6 +32,10 @@ vi.mock('@/api/campaigns', async (importOriginal) => {
   }
 })
 
+vi.mock('@/api/profile', () => ({
+  profileApi: { get: vi.fn().mockResolvedValue({ id: 1, username: 'Lucas', email: 'lucas@example.com', createdAt: '' }), updateUsername: vi.fn() },
+}))
+
 const { removeMonster } = vi.hoisted(() => ({ removeMonster: vi.fn() }))
 vi.mock('@/api/monsters', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/api/monsters')>()

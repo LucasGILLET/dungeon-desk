@@ -10,11 +10,8 @@
           </h1>
           <p class="text-zinc-400">Vos personnages, vos PNJ, vos monstres et vos campagnes</p>
         </div>
-        <div v-if="authStore.isAuthenticated" class="flex items-center gap-4 mt-4 md:mt-0">
-          <div class="text-right mr-4 hidden md:block">
-            <div class="text-white font-bold">{{ authStore.user?.nickname || authStore.user?.name }}</div>
-            <div class="text-xs text-zinc-500">{{ authStore.user?.email }}</div>
-          </div>
+        <div v-if="authStore.isAuthenticated" class="flex flex-wrap items-center gap-4 mt-4 md:mt-0">
+          <ProfileIdentity class="md:mr-4" :fallback-name="authStore.user?.nickname || authStore.user?.name" :fallback-email="authStore.user?.email" />
           <button @click="authStore.logout()" class="bg-red-900/20 hover:bg-red-900/40 text-red-400 px-4 py-2 rounded-lg border border-red-900/50 transition-colors text-sm">
             Se déconnecter
           </button>
@@ -244,6 +241,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter, type RouteLocationRaw } from 'vue-router'
 import NpcDetailModal from '@/components/profile/NpcDetailModal.vue'
 import EmptyState from '@/components/profile/ProfileEmptyState.vue'
+import ProfileIdentity from '@/components/profile/ProfileIdentity.vue'
 import { CAMPAIGN_STATUS_LABELS, campaignsApi, type CampaignSummary } from '@/api/campaigns'
 import { deleteRefusal, monstersApi } from '@/api/monsters'
 import type { ApiMonsterSummary } from '@/utils/dataLoader'
