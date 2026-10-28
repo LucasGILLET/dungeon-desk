@@ -4,7 +4,7 @@
       <span class="font-semibold italic text-amber-100">{{ title }}.</span>
       <!-- Attaque, sauvegarde, dégâts saisis en champs (monstre maison) : rédigés comme le SRD -->
       <template v-if="details.length">{{ ' ' }}<em class="text-zinc-300">{{ details.join(' ') }}</em></template>
-      {{ ' ' }}<span class="whitespace-pre-line">{{ description }}</span>
+      {{ ' ' }}<span class="whitespace-pre-line"><KeywordText :text="description" /></span>
     </p>
     <!-- Incantation : sorts cliquables, regroupés par niveau ou par usage -->
     <div v-if="action.spellcasting" class="mt-2 space-y-1 pl-4 text-sm">
@@ -20,6 +20,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import KeywordText from '@/components/KeywordText.vue'
 import type { ApiMonsterAction } from '@/utils/dataLoader'
 import { actionDetailLines, actionTitle, formatUsage } from '@/utils/monsterFormat'
 

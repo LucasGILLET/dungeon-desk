@@ -21,18 +21,20 @@
 
 <script setup lang="ts">
 import { computed, defineComponent, h } from 'vue'
+import KeywordText from '@/components/KeywordText.vue'
 import { parseInline, parseRichText } from '@/utils/richText'
 
 const props = defineProps<{ text: string | null | undefined }>()
 const blocks = computed(() => parseRichText(props.text))
 
-// Gras et italique en ligne, rendus en éléments (pas de v-html)
+// Gras et italique en ligne, rendus en éléments (pas de v-html), mots-clés des règles en infobulle
 const RichInline = defineComponent({
   props: { text: { type: String, required: true } },
   setup: (p) => () =>
     parseInline(p.text).map((s) => {
-      if (!s.strong && !s.em) return s.text
-      const inner = s.em ? h('em', s.text) : s.text
+      const text = h(KeywordText, { text: s.text })
+      if (!s.strong && !s.em) return text
+      const inner = s.em ? h('em', [text]) : text
       return s.strong ? h('strong', { class: 'font-semibold text-zinc-100' }, [inner]) : inner
     }),
 })
