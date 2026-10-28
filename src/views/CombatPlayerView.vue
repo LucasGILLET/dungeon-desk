@@ -48,6 +48,7 @@
 <script setup lang="ts">
 import SkeletonCards from '@/components/skeleton/SkeletonCards.vue'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { usePageMeta } from '@/utils/pageMeta'
 import { useRoute } from 'vue-router'
 import { fetchCombatView, HEALTH_LABELS, type CombatView, type HealthLabel } from '@/api/campaigns'
 import { loadConditions } from '@/utils/dataLoader'
@@ -62,6 +63,7 @@ const HEALTH_CLASSES: Record<HealthLabel, string> = {
 
 const route = useRoute()
 const view = ref<CombatView | null>(null)
+usePageMeta(() => view.value && { title: view.value.name })
 const notFound = ref(false)
 const error = ref<string | null>(null)
 const conditions = ref<{ index: string; name: string }[]>([])

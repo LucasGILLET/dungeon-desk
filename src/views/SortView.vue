@@ -52,6 +52,7 @@ import SkeletonText from '@/components/skeleton/SkeletonText.vue'
 import RichText from '@/components/RichText.vue'
 import { loadSpells } from '@/utils/spellFormat'
 import { ref, onMounted } from 'vue'
+import { summarize, usePageMeta } from '@/utils/pageMeta'
 import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
@@ -61,6 +62,11 @@ const index = String(route.params.index || '')
 const loading = ref(true)
 const error = ref<string | null>(null)
 const spell = ref<any | null>(null)
+// Onglet et moteurs de recherche : nom du sort, niveau et école, début de la description
+usePageMeta(() => spell.value && {
+  title: spell.value.name,
+  description: summarize(`${spell.value.level ? `Sort de niveau ${spell.value.level}` : 'Sort mineur'}${spell.value.school?.name ? `, ${spell.value.school.name.toLowerCase()}` : ''}. ${(spell.value.desc ?? []).join(' ')}`),
+})
 
 onMounted(async () => {
   try {

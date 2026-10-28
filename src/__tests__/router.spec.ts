@@ -9,7 +9,7 @@ describe('router', () => {
   it('matches a campaign URL with a numeric id, on reload too', () => {
     expect(router.resolve('/campaigns/5').name).toBe('campaign')
     expect(router.resolve('/campaigns/join/abc-123').name).toBe('join-campaign')
-    expect(router.resolve('/campaigns/abc').name).toBeUndefined()
+    expect(router.resolve('/campaigns/abc').name).toBe('not-found')
   })
 
   it('serves the English URLs of the new pages', () => {

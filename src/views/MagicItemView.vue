@@ -50,6 +50,7 @@
 <script setup lang="ts">
 import SkeletonText from '@/components/skeleton/SkeletonText.vue'
 import { ref, watch } from 'vue'
+import { summarize, usePageMeta } from '@/utils/pageMeta'
 import { useRoute, useRouter } from 'vue-router'
 import LoadingImage from '@/components/LoadingImage.vue'
 import RichText from '@/components/RichText.vue'
@@ -59,6 +60,11 @@ import { RARITY_CLASSES, RARITY_LABELS } from '@/utils/monsterFormat'
 const route = useRoute()
 const router = useRouter()
 const item = ref<ApiMagicItem | null>(null)
+usePageMeta(() => item.value && {
+  title: item.value.name,
+  description: summarize(`${item.value.category.name}, ${RARITY_LABELS[item.value.rarity].toLowerCase()}. ${item.value.description}`),
+  image: item.value.imageUrl,
+})
 const loading = ref(true)
 const error = ref<string | null>(null)
 

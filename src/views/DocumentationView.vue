@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import SkeletonText from '@/components/skeleton/SkeletonText.vue'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { summarize, usePageMeta } from '@/utils/pageMeta'
 import { useRoute, useRouter } from 'vue-router'
 import GuidePageContent from '@/components/guide/GuidePageContent.vue'
 import TableOfContents from '@/components/documentation/TableOfContents.vue'
@@ -14,6 +15,7 @@ const route = useRoute()
 const router = useRouter()
 const sections = ref<ApiGuideSummary[]>([])
 const page = ref<ApiGuidePage | null>(null)
+usePageMeta(() => page.value && { title: `${page.value.title} · Guide`, description: summarize(page.value.intro) })
 const error = ref<string | null>(null)
 
 // Une page non publiée s'ouvre quand même par son lien : c'est l'aperçu de Directus

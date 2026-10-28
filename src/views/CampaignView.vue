@@ -45,6 +45,7 @@
 import SkeletonCards from '@/components/skeleton/SkeletonCards.vue'
 import SkeletonText from '@/components/skeleton/SkeletonText.vue'
 import { computed, onMounted, ref, watch } from 'vue'
+import { usePageMeta } from '@/utils/pageMeta'
 import { useRoute, useRouter } from 'vue-router'
 import CampaignEncounters from '@/components/campaign/CampaignEncounters.vue'
 import CampaignNpcs from '@/components/campaign/CampaignNpcs.vue'
@@ -60,6 +61,7 @@ const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const campaign = ref<Campaign | null>(null)
+usePageMeta(() => campaign.value && { title: campaign.value.name })
 const error = ref<string | null>(null)
 
 // PNJ et rencontres : MJ seulement

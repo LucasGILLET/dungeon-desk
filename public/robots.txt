@@ -1,0 +1,15 @@
+# Pages publiques indexées (sorts, bestiaire, objets magiques, règles, guide,
+# créateur) ; les pages propres à un utilisateur portent aussi « noindex ».
+User-agent: *
+Allow: /
+Disallow: /profile
+Disallow: /character/
+Disallow: /campaigns/
+Disallow: /combat/
+Disallow: /shared/
+Disallow: /my-monsters/
+Disallow: /gm-dashboard
+Disallow: /login
+Disallow: /register
+
+Sitemap: https://www.dungeon-desk.com/sitemap.xml

@@ -393,6 +393,7 @@
 import ActionsMenu from '@/components/ActionsMenu.vue'
 import SkeletonSheet from '@/components/skeleton/SkeletonSheet.vue'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { usePageMeta } from '@/utils/pageMeta'
 import { useRoute, useRouter } from 'vue-router'
 import { characterShareUrl, copySharedCharacter, fetchSharedCharacter, shareCharacter } from '@/api/characterShare'
 import { useAuthStore } from '@/stores/auth'
@@ -440,6 +441,7 @@ const authStore = useAuthStore()
 
 const saved = ref<SavedCharacter | null>(null)
 const input = ref<Input | null>(null)
+usePageMeta(() => input.value && { title: input.value.name })
 const loadError = ref<string | null>(null)
 const classes = ref<ApiClass[]>([])
 const skills = ref<ApiSkill[]>([])

@@ -84,6 +84,7 @@
 <script setup lang="ts">
 import SkeletonText from '@/components/skeleton/SkeletonText.vue'
 import { computed, ref, watch } from 'vue'
+import { summarize, usePageMeta } from '@/utils/pageMeta'
 import { useRoute, useRouter } from 'vue-router'
 import MonsterActionBlock from '@/components/bestiary/MonsterActionBlock.vue'
 import LoadingImage from '@/components/LoadingImage.vue'
@@ -92,7 +93,7 @@ import { deleteRefusal, monstersApi } from '@/api/monsters'
 import { useAuthStore } from '@/stores/auth'
 import { loadMonster, type ApiMonster } from '@/utils/dataLoader'
 import {
-  abilityModifier, formatArmorClass, formatChallengeLine, formatDamageModifiers, formatHitPoints, formatSenses, formatSpeeds, formatTypeLine, meters, signed,
+  abilityModifier, formatArmorClass, formatChallenge, formatChallengeLine, formatDamageModifiers, formatHitPoints, formatSenses, formatSpeeds, formatTypeLine, meters, signed,
 } from '@/utils/monsterFormat'
 
 const route = useRoute()
@@ -101,6 +102,12 @@ const authStore = useAuthStore()
 // /my-monsters/:index : monstre maison de l'utilisateur, sinon bestiaire du SRD
 const homebrew = computed(() => route.name === 'homebrew-monster')
 const monster = ref<ApiMonster | null>(null)
+usePageMeta(() => monster.value && {
+  title: monster.value.name,
+  description: summarize(`${formatTypeLine(monster.value)}, FP ${formatChallenge(monster.value.challengeRating)}. ${monster.value.description ?? ''}`),
+  image: monster.value.imageUrl,
+  noindex: homebrew.value,
+})
 const deleting = ref(false)
 const deleteError = ref<string | null>(null)
 const loading = ref(true)

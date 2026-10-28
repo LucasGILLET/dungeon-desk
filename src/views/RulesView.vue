@@ -49,6 +49,7 @@
 <script setup lang="ts">
 import SkeletonText from '@/components/skeleton/SkeletonText.vue'
 import { computed, onMounted, ref, watch } from 'vue'
+import { summarize, usePageMeta } from '@/utils/pageMeta'
 import { useRoute, useRouter } from 'vue-router'
 import MarkdownText from '@/components/MarkdownText.vue'
 import { loadRuleChapters, loadRuleSection, type ApiRuleChapter, type ApiRuleSection } from '@/utils/dataLoader'
@@ -58,6 +59,7 @@ const route = useRoute()
 const router = useRouter()
 const chapters = ref<ApiRuleChapter[]>([])
 const section = ref<ApiRuleSection | null>(null)
+usePageMeta(() => section.value && { title: `${section.value.name} · Règles`, description: summarize(section.value.description) })
 const error = ref<string | null>(null)
 
 // Sections dans l'ordre de lecture, pour précédent / suivant

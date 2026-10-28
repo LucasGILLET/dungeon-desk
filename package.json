@@ -14,7 +14,7 @@
     "test:e2e": "playwright test",
     "generate:api": "orval",
     "generate:api:watch": "orval --watch",
-    "build-only": "vite build",
+    "build-only": "vite build && node scripts/generate-sitemap.mjs",
     "type-check": "vue-tsc --build"
   },
   "dependencies": {
