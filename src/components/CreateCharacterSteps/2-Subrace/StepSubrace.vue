@@ -35,13 +35,22 @@
           <div class="h-0.5 w-24 bg-gradient-to-r from-transparent via-amber-800 to-transparent mx-auto mb-4"></div>
           <p class="text-xl text-zinc-400 font-light italic">Choisissez votre lignée ancestrale</p>
           
-          <div v-if="loading" class="text-amber-500/80 animate-pulse mt-4 font-serif">Consultation des archives...</div>
+          <span v-if="loading" role="status" class="sr-only">Chargement des sous-races…</span>
         </div>
       
         <!-- Grille des sous-races -->
         <div class="flex-1 overflow-y-auto pb-8 min-h-0 custom-scrollbar p-6">
+          <!-- Chargement : cartes à la forme des sous-races -->
+          <div v-if="loading" class="grid gap-6 grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto" aria-hidden="true">
+            <div v-for="i in 2" :key="i" class="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-4 min-h-72">
+              <div class="ui-skeleton h-7 w-1/2"></div>
+              <div class="ui-skeleton h-3 w-full"></div>
+              <div class="ui-skeleton h-3 w-5/6"></div>
+              <div class="flex gap-2 pt-2"><div class="ui-skeleton h-6 w-20 rounded-full"></div><div class="ui-skeleton h-6 w-24 rounded-full"></div></div>
+            </div>
+          </div>
           <!-- Message quand aucune sous-race -->
-          <div v-if="!loading && availableSubraces.length === 0" class="text-center h-full flex flex-col items-center justify-center">
+          <div v-else-if="availableSubraces.length === 0" class="text-center h-full flex flex-col items-center justify-center">
             <div class="bg-zinc-900/50 backdrop-blur-md rounded-2xl p-10 border border-zinc-800 max-w-2xl mx-auto shadow-[0_0_50px_rgba(0,0,0,0.5)]">
               <div class="text-6xl mb-6 opacity-50 grayscale">📜</div>
               <h3 class="text-2xl font-bold text-amber-500 mb-4 font-serif">Lignée Unique</h3>

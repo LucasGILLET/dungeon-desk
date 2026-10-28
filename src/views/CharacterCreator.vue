@@ -16,7 +16,11 @@
     <div class="relative w-full h-full mx-auto z-10">
       <!-- Wizard principal -->
       <div class="h-full">
-        <transition name="fade" mode="out-in">
+        <!-- Modification : personnage relu depuis l'API avant d'afficher le récapitulatif -->
+        <div v-if="isLoading" class="p-6 sm:p-8">
+          <SkeletonSheet />
+        </div>
+        <transition v-else name="fade" mode="out-in">
           <component :is="currentStepComponent" 
             :character="character" 
             :selectedRace="character.race"
@@ -50,6 +54,7 @@ import StepSubclass from '@/components/CreateCharacterSteps/6-Subclass/StepSubcl
 import StepChoices from '@/components/CreateCharacterSteps/7-Choices/StepChoices.vue'
 import StepSummary from '@/components/CreateCharacterSteps/8-Summary/StepSummary.vue'
 import CharacterSummaryModal from '@/components/CharacterSummaryModal.vue'
+import SkeletonSheet from '@/components/skeleton/SkeletonSheet.vue'
 import { computed, reactive, ref, onMounted } from 'vue'
 import { getSubracesByParentRace } from '@/utils/subrace'
 import { getAllFeaturesByClass } from '@/utils/features'
@@ -77,7 +82,8 @@ const router = useRouter()
 const route = useRoute()
 const step = ref(0)
 const showSummary = ref(false)
-const isLoading = ref(false)
+// Modification d'un personnage : squelette dès le premier affichage, pas l'étape Race vide
+const isLoading = ref(!!route.params.id)
 const currentId = ref<string | undefined>(undefined)
 
 const character = reactive<Character>({

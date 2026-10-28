@@ -37,7 +37,7 @@
           
           <p class="text-zinc-400 text-sm italic mb-2">Guerrier indomptable ou Mage érudit ?</p>
           
-          <div v-if="loading" class="text-amber-500/80 animate-pulse mt-2 font-serif text-sm">Consultation des tomes anciens...</div>
+          <span v-if="loading" role="status" class="sr-only">Chargement des classes…</span>
           <div v-if="error" class="text-red-400 mt-2">{{ error }}</div>
         </div>
 
@@ -46,7 +46,19 @@
           class="flex-1 overflow-y-auto min-h-0 custom-scrollbar py-2 pr-2 transition-all duration-300 rounded-lg scroll-smooth snap-y snap-mandatory"
           :class="{'relative z-40': isTutorialStep(0)}"
         >
-          <section class="snap-start snap-always min-h-[58vh] sm:min-h-0">
+          <!-- Chargement : cartes à la forme des classes -->
+          <div v-if="loading" aria-hidden="true" class="space-y-4">
+            <div v-for="row in 2" :key="row">
+              <div class="ui-skeleton mb-3 ml-2 h-3 w-40"></div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 sm:gap-3 p-1">
+                <div v-for="i in 6" :key="i" class="relative h-[230px] sm:h-[270px] lg:h-[319px] rounded-xl border border-zinc-800 bg-zinc-900/60 overflow-hidden">
+                  <div class="ui-skeleton absolute inset-0 rounded-none opacity-40"></div>
+                  <div class="absolute inset-x-3 bottom-4 space-y-2"><div class="ui-skeleton h-5 w-2/3"></div><div class="ui-skeleton h-3 w-1/2"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <section v-show="!loading" class="snap-start snap-always min-h-[58vh] sm:min-h-0">
            
            <div 
              class="mb-2 flex items-center gap-3 transition-opacity duration-300 p-2 rounded-lg"
@@ -178,7 +190,7 @@
 
             </section>
 
-            <section class="snap-start snap-always min-h-[58vh] sm:min-h-0">
+            <section v-show="!loading" class="snap-start snap-always min-h-[58vh] sm:min-h-0">
 
            <div 
              class="mb-2 mt-4 flex items-center gap-3 transition-opacity duration-300 p-2 rounded-lg"

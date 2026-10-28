@@ -34,8 +34,17 @@
         </div>
 
         <!-- Chargement / erreur -->
-        <div v-if="!preview && loading" class="flex justify-center py-20">
-          <div class="w-10 h-10 border-4 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"></div>
+        <div v-if="!preview && loading" role="status" class="space-y-10">
+          <span class="sr-only">Chargement des choix…</span>
+          <div v-for="i in 3" :key="i" aria-hidden="true">
+            <div class="flex items-end justify-between border-b border-zinc-800 pb-3 mb-4">
+              <div class="space-y-2"><div class="ui-skeleton h-3 w-28"></div><div class="ui-skeleton h-7 w-48"></div></div>
+              <div class="ui-skeleton h-6 w-12 rounded-full"></div>
+            </div>
+            <div class="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+              <div v-for="j in 4" :key="j" class="ui-skeleton h-16 rounded-lg"></div>
+            </div>
+          </div>
         </div>
         <div v-else-if="loadError" class="p-6 rounded-xl border border-red-900/50 bg-red-950/30 text-red-300 text-center">
           Impossible de charger les choix : {{ loadError }}

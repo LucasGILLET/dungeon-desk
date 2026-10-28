@@ -39,9 +39,14 @@
       <div class="w-full">
         
         <!-- Loading / Error States -->
-        <div v-if="loading" class="flex flex-col items-center justify-center py-20">
-          <div class="w-12 h-12 border-4 border-amber-900 border-t-amber-500 rounded-full animate-spin mb-4"></div>
-          <p class="text-amber-500 font-serif text-sm animate-pulse">Consultation des archives...</p>
+        <div v-if="loading" role="status" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-6">
+          <span class="sr-only">Chargement des historiques…</span>
+          <div v-for="i in 8" :key="i" aria-hidden="true" class="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 space-y-3 min-h-44">
+            <div class="ui-skeleton h-5 w-2/3"></div>
+            <div class="ui-skeleton h-3 w-full"></div>
+            <div class="ui-skeleton h-3 w-4/5"></div>
+            <div class="flex gap-2 pt-2"><div class="ui-skeleton h-5 w-16 rounded-full"></div><div class="ui-skeleton h-5 w-20 rounded-full"></div></div>
+          </div>
         </div>
 
         <div v-else-if="error" class="text-center py-20">

@@ -64,7 +64,8 @@
                      <div class="text-xs text-amber-500 font-bold">Points</div>
                   </div>
                   <div class="flex items-center justify-center w-10 h-10 rounded-full bg-zinc-950 text-amber-500 font-serif font-bold text-xl border border-amber-500/30 shadow-inner">
-                     {{ remainingPoints }}
+                     <span v-if="!ready" class="ui-skeleton block h-5 w-5 rounded-full" aria-label="Chargement du capital"></span>
+                     <template v-else>{{ remainingPoints }}</template>
                   </div>
                </div>
                
@@ -240,7 +241,7 @@
       :current-step="5" 
       :total-steps="8"
       step-name="Caractéristiques"
-      :disable-next="!canContinue"
+      :disable-next="!ready || !canContinue"
       @previous="emit('prev')"
       @next="validateAbilities"
     />
@@ -288,7 +289,7 @@ const emit = defineEmits<{
 }>()
 
 // Achat de points : budget et coûts de l'édition (API)
-const { cost: getAbilityPointCost, summaryOf: getAbilityDescription, budget, minValue, maxValue, standardArray } = useCreationRules()
+const { cost: getAbilityPointCost, summaryOf: getAbilityDescription, budget, minValue, maxValue, standardArray, ready } = useCreationRules()
 
 // --- Méthode de détermination ------------------------------------------------------
 type Method = NonNullable<Character['abilityMethod']>

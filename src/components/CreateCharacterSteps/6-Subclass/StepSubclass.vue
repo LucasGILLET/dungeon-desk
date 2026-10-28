@@ -41,7 +41,17 @@
         </div>
 
         <!-- Message si pas de sous-classe nécessaire -->
-        <div v-if="!needsSubclass" class="flex flex-col items-center justify-center py-20 min-h-[400px]">
+        <div v-if="loading" role="status" class="grid gap-6 pb-20 grid-cols-1 lg:grid-cols-2">
+          <span class="sr-only">Chargement des sous-classes…</span>
+          <div v-for="i in 2" :key="i" aria-hidden="true" class="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-4 min-h-80">
+            <div class="ui-skeleton h-7 w-1/2"></div>
+            <div class="ui-skeleton h-3 w-full"></div>
+            <div class="ui-skeleton h-3 w-5/6"></div>
+            <div class="ui-skeleton h-3 w-2/3"></div>
+            <div class="flex gap-2 pt-2"><div class="ui-skeleton h-6 w-24 rounded-full"></div><div class="ui-skeleton h-6 w-20 rounded-full"></div></div>
+          </div>
+        </div>
+        <div v-else-if="!needsSubclass" class="flex flex-col items-center justify-center py-20 min-h-[400px]">
            <div class="w-24 h-24 rounded-full bg-zinc-900 border-2 border-zinc-700 flex items-center justify-center text-4xl mb-6 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
               ✨
            </div>
@@ -159,7 +169,7 @@
       :current-step="6" 
       :total-steps="8"
       step-name="Sous-classe"
-      :disable-next="needsSubclass && !selectedSubclass"
+      :disable-next="loading || (needsSubclass && !selectedSubclass)"
       @previous="$emit('prev')"
       @next="validateSubclass"
     />
@@ -212,13 +222,19 @@ const selectedSubclass = ref<SubclassData | null>(null)
 const level1SubclassClasses = ref<string[]>([])
 const availableSubclasses = ref<SubclassData[]>([])
 
+// Tant qu'on ne sait pas si la classe choisit sa sous-classe au niveau 1 : squelette
+const loading = ref(true)
 onMounted(async () => {
-  level1SubclassClasses.value = await getLevel1SubclassClassIds()
-  if (needsSubclass.value) {
-    availableSubclasses.value = await loadSubclassesForClass(props.character.class.index)
-    // Sous-classe déjà choisie (retour en arrière, modification)
-    const current = (props.character.subclass as { index?: string } | null)?.index
-    selectedSubclass.value = availableSubclasses.value.find((s) => s.index === current) ?? null
+  try {
+    level1SubclassClasses.value = await getLevel1SubclassClassIds()
+    if (needsSubclass.value) {
+      availableSubclasses.value = await loadSubclassesForClass(props.character.class.index)
+      // Sous-classe déjà choisie (retour en arrière, modification)
+      const current = (props.character.subclass as { index?: string } | null)?.index
+      selectedSubclass.value = availableSubclasses.value.find((s) => s.index === current) ?? null
+    }
+  } finally {
+    loading.value = false
   }
 })
 

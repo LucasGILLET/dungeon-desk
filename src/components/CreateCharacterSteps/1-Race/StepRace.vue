@@ -78,7 +78,7 @@
         <div class="h-0.5 w-24 bg-gradient-to-r from-transparent via-amber-800 to-transparent mx-auto mb-4"></div>
         <p class="text-base sm:text-xl text-zinc-400 font-light italic">Votre origine détermine vos capacités naturelles</p>
         
-        <div v-if="loading" class="text-amber-500/80 animate-pulse mt-4">Invocation des races...</div>
+        <span v-if="loading" role="status" class="sr-only">Chargement des races…</span>
         <div v-if="error" class="text-red-400 mt-4 bg-red-900/20 px-4 py-2 rounded border border-red-900/50">{{ error }}</div>
       </div>
       
@@ -112,6 +112,19 @@
           class="races-container w-full flex-1 flex justify-start xl:justify-center gap-3 xl:gap-2 overflow-x-auto xl:overflow-hidden py-3 xl:py-4 min-h-[330px] xl:min-h-[500px] px-1 xl:px-0 snap-x snap-mandatory"
           :class="{'relative z-40': isTutorialStep(1) || isTutorialStep(2) || isTutorialStep(3) || isTutorialStep(4)}"
         >
+          <!-- Chargement : colonnes à la forme des cartes de race -->
+          <template v-if="loading">
+            <div
+              v-for="i in 7" :key="`skeleton-${i}`" aria-hidden="true" style="flex: 1;"
+              class="relative w-[78vw] min-w-[260px] max-w-[340px] xl:min-w-[80px] xl:max-w-none xl:w-auto shrink-0 snap-center rounded-2xl border border-zinc-800 bg-zinc-900/60 overflow-hidden"
+            >
+              <div class="ui-skeleton absolute inset-0 rounded-none opacity-40"></div>
+              <div class="absolute inset-x-4 bottom-6 space-y-2">
+                <div class="ui-skeleton h-6 w-2/3"></div>
+                <div class="ui-skeleton h-3 w-1/2"></div>
+              </div>
+            </div>
+          </template>
           <div
             v-for="race in races"
             :key="race.index"
