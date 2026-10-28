@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
 import { onBeforeUnmount, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import AppNavigation from '@/components/AppNavigation.vue'
 import DiceRollerPanel from '@/components/DiceRollerPanel.vue'
 import { openDiceRoller } from '@/composables/useDiceRoller'
 import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
 import { closeGlobalMenuDrawer, toggleGlobalMenuDrawer, useGlobalMenuDrawer } from '@/composables/useGlobalMenuDrawer'
-import { mobileNavigationLinks } from '@/config/navigation'
+import { navigationGroups } from '@/config/navigation'
 
 const authStore = useAuthStore()
-const { isAuthenticated } = storeToRefs(authStore)
+const { isAuthenticated, user } = storeToRefs(authStore)
+const mobileLinkClass = 'block rounded-xl border border-white/5 bg-white/5 px-4 py-2.5 text-sm font-medium text-zinc-100 transition-colors hover:border-white/10 hover:bg-white/10 hover:text-white'
 const { isOpen: isMobileMenuOpen } = useGlobalMenuDrawer()
 
 function closeMobileMenu() {
@@ -51,6 +53,10 @@ function handleKeydown(event: KeyboardEvent) {
   }
 }
 
+// Changement de page (lien du menu, retour arrière…) : le menu se ferme
+const route = useRoute()
+watch(() => route.fullPath, closeMobileMenu)
+
 watch(isMobileMenuOpen, (isOpen) => {
   document.body.style.overflow = isOpen ? 'hidden' : ''
 })
@@ -85,14 +91,13 @@ onBeforeUnmount(() => {
 
         <aside class="absolute right-0 top-0 flex h-full w-[min(20rem,86vw)] flex-col border-l border-amber-900/30 bg-zinc-950/98 px-4 py-5 shadow-[0_0_40px_rgba(0,0,0,0.45)]">
           <div class="flex items-center justify-between gap-3 border-b border-white/5 pb-4">
-            <div class="min-w-0">
-              <p class="text-xs uppercase tracking-[0.35em] text-amber-300/70">Menu</p>
-              <p class="mt-1 truncate font-serif text-lg text-amber-100">DungeonDesk</p>
-            </div>
+            <router-link to="/" class="min-w-0" @click="closeMobileMenu">
+              <img src="/logo.svg" alt="Dungeon Desk" class="h-10 w-auto">
+            </router-link>
             <button
               type="button"
               class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-zinc-200 transition-colors hover:border-amber-500/40 hover:text-amber-200"
-              aria-label="Fermer le drawer"
+              aria-label="Fermer le menu"
               @click="closeMobileMenu"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
@@ -102,41 +107,40 @@ onBeforeUnmount(() => {
             </button>
           </div>
 
-          <div class="mt-5 grid gap-2">
-            <router-link to="/" class="flex items-center justify-between rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-sm font-medium text-zinc-100 transition-colors hover:border-amber-500/30 hover:bg-amber-500/10" @click="closeMobileMenu">
-              <span>Accueil</span>
-              <span class="text-amber-300/70">Home</span>
+          <!-- Compte : profil si connecté, sinon connexion et inscription -->
+          <div class="mt-4">
+            <router-link v-if="isAuthenticated" to="/profile" class="flex items-center gap-3 rounded-xl border border-amber-900/30 bg-zinc-900/60 px-3 py-2.5 transition-colors hover:border-amber-500/40" active-class="border-amber-500/50" @click="closeMobileMenu">
+              <span class="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-amber-500/30">
+                <img v-if="user?.picture" :src="user.picture" alt="" class="h-full w-full object-cover">
+                <span v-else class="flex h-full w-full items-center justify-center bg-amber-900/50 font-bold text-amber-500">{{ user?.name?.charAt(0) }}</span>
+              </span>
+              <span class="min-w-0">
+                <span class="block truncate font-serif text-amber-100">{{ user?.name }}</span>
+                <span class="block text-xs text-zinc-500">Mon profil</span>
+              </span>
             </router-link>
-
-            <router-link
-              v-for="item in mobileNavigationLinks"
-              :key="item.label"
-              :to="item.to"
-              class="flex items-center justify-between rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-sm font-medium text-zinc-100 transition-colors hover:border-white/10 hover:bg-white/10 hover:text-white"
-              @click="closeMobileMenu"
-            >
-              <span>{{ item.label }}</span>
-            </router-link>
-
-            <button @click="handleOpenDiceRoller" class="flex items-center justify-between rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-sm font-medium text-zinc-100 transition-colors hover:border-amber-500/30 hover:bg-amber-500/10">
-              <span>Lancer les dés</span>
-              <span class="text-amber-300/70">Dés</span>
-            </button>
-            <router-link v-if="isAuthenticated" to="/profile" class="flex items-center justify-between rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-sm font-medium text-zinc-100 transition-colors hover:border-amber-500/30 hover:bg-amber-500/10" @click="closeMobileMenu">
-              <span>Mon profil</span>
-              <span class="text-amber-300/70">Compte</span>
-            </router-link>
+            <div v-else class="grid grid-cols-2 gap-2">
+              <button type="button" class="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm font-medium text-zinc-100 hover:border-amber-500/30" @click="handleLogin">Connexion</button>
+              <button type="button" class="rounded-xl border border-amber-700/40 bg-linear-to-r from-amber-700/50 to-amber-600/50 px-3 py-2.5 text-sm font-semibold text-amber-50 hover:from-amber-700/70 hover:to-amber-600/70" @click="handleSignup">Inscription</button>
+            </div>
           </div>
 
-          <div class="mt-auto grid gap-2 border-t border-white/5 pt-4">
-            <button @click="handleLogin" class="flex items-center justify-between rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-sm font-medium text-zinc-100 transition-colors hover:border-amber-500/30 hover:bg-amber-500/10">
-              <span>Se connecter</span>
-              <span class="text-amber-300/70">Connexion</span>
-            </button>
-            <button @click="handleSignup" class="flex items-center justify-between rounded-xl border border-amber-700/40 bg-linear-to-r from-amber-700/40 to-amber-600/40 px-4 py-3 text-sm font-semibold text-amber-50 transition-colors hover:from-amber-700/60 hover:to-amber-600/60">
-              <span>S'inscrire</span>
-              <span class="text-amber-100/80">Signup</span>
-            </button>
+          <!-- Mêmes rubriques que la navigation du bureau -->
+          <nav class="mt-5 flex-1 overflow-y-auto space-y-5" aria-label="Navigation principale">
+            <router-link to="/" :class="mobileLinkClass" exact-active-class="border-amber-500/40! bg-amber-500/10! text-amber-100!" @click="closeMobileMenu">Accueil</router-link>
+            <div v-for="group in navigationGroups" :key="group.label">
+              <p class="mb-2 px-1 text-[10px] uppercase tracking-[0.28em] text-zinc-500">{{ group.label }}</p>
+              <div class="grid gap-1.5">
+                <router-link
+                  v-for="item in group.links" :key="item.label" :to="item.to" :class="mobileLinkClass"
+                  exact-active-class="border-amber-500/40! bg-amber-500/10! text-amber-100!" @click="closeMobileMenu"
+                >{{ item.label }}</router-link>
+              </div>
+            </div>
+          </nav>
+
+          <div class="mt-4 border-t border-white/5 pt-4">
+            <button type="button" :class="[mobileLinkClass, 'w-full text-left']" @click="handleOpenDiceRoller">🎲 Lancer les dés</button>
           </div>
         </aside>
       </div>

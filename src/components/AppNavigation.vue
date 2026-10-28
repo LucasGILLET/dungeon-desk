@@ -4,7 +4,7 @@ import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '@/stores/auth'
 import DiceRollerTrigger from '@/components/DiceRollerTrigger.vue'
-import { desktopNavigationGroups } from '@/config/navigation'
+import { navigationGroups } from '@/config/navigation'
 
 const authStore = useAuthStore()
 const { isAuthenticated, user } = storeToRefs(authStore)
@@ -38,7 +38,7 @@ watch(
 
           <div class="font-serif hidden xl:flex items-center gap-2 rounded-2xl px-2 py-2">
             <div
-              v-for="group in desktopNavigationGroups"
+              v-for="group in navigationGroups"
               :key="group.label"
               class="relative pb-3"
               @mouseenter="activeDesktopGroup = group.label"
