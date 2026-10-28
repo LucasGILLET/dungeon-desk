@@ -19,10 +19,17 @@ describe('glossary keywords', () => {
   })
 
   it('prefers the longest term and respects word boundaries', () => {
-    expect(keywords('Il réussit un jet de sauvegarde de Dextérité')).toEqual(['jet de sauvegarde→saving-throw'])
+    expect(keywords('Il réussit un jet de sauvegarde de Dextérité')).toEqual(['jet de sauvegarde→saving-throw', 'Dextérité→dex'])
     expect(keywords('Utilisez votre action bonus')).toEqual(['action bonus→bonus-action'])
     // « avantage » n'est pas repéré dans « désavantage », ni dans « avantageux »
     expect(keywords('un désavantage avantageux')).toEqual(['désavantage→disadvantage'])
+  })
+
+  it('only takes abilities and abbreviations written as such', () => {
+    expect(keywords('Jet de sauvegarde de Force DD 15, contre la CA de la cible'))
+      .toEqual(['Jet de sauvegarde→saving-throw', 'Force→str', 'DD→difficulty-class', 'CA→armor-class-abbr'])
+    expect(keywords('Des dégâts de force, ça va. Une classe d’armure de 18.')).toEqual(['classe d’armure→armor-class'])
+    expect(keywords('Un jet d’attaque puis un jet de dégâts après un repos court')).toEqual(['jet d’attaque→attack-roll', 'jet de dégâts→damage-roll', 'repos court→short-rest'])
   })
 
   it('keeps the whole text, keywords included', () => {
