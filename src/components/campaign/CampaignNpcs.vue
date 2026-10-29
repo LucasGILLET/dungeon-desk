@@ -31,7 +31,10 @@
       <article v-for="n in campaign.npcs" :key="n.id" class="ui-panel">
         <header class="flex items-start justify-between gap-3">
           <div class="min-w-0">
-            <h3 class="text-lg font-semibold text-zinc-100">{{ n.name }}</h3>
+            <h3 class="text-lg font-semibold text-zinc-100">
+              <button v-if="fullNpc(n)" type="button" class="text-left hover:text-emerald-200 hover:underline" :aria-label="`Voir la fiche de ${n.name}`" @click="opened = fullNpc(n)">{{ n.name }}</button>
+              <template v-else>{{ n.name }}</template>
+            </h3>
             <p class="text-xs text-zinc-500">{{ [n.race, n.class, n.profession].filter(Boolean).join(' · ') }}</p>
           </div>
           <button type="button" class="ui-btn shrink-0" @click="edit(n)">Modifier</button>
@@ -42,12 +45,15 @@
         <p v-if="n.notes" class="mt-2 whitespace-pre-line text-sm text-zinc-400">{{ n.notes }}</p>
       </article>
     </div>
+
+    <NpcDetailModal v-if="opened" :npc="opened" :deletable="false" @close="opened = null" />
   </section>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import FormActions from '@/components/campaign/FormActions.vue'
+import NpcDetailModal from '@/components/profile/NpcDetailModal.vue'
 import { useCampaignItemForm } from '@/composables/useCampaignItemForm'
 import type { Campaign, CampaignNpc } from '@/api/campaigns'
 import { useNpcStore } from '@/stores/npc'
@@ -60,6 +66,9 @@ const myNpcs = ref<{ id: number; name: string; profession: string | null }[]>([]
 // PNJ du MJ pas encore rattachés à la campagne
 const available = computed(() => myNpcs.value.filter((n) => !props.campaign.npcs.some((c) => c.npcId === n.id)))
 const form = reactive({ npcId: 0, role: '', location: '', notes: '' })
+// Fiche complète du PNJ (celle du générateur), depuis la liste du MJ : à jour après ses notes
+const opened = ref<any>(null)
+const fullNpc = (n: CampaignNpc) => npcStore.npcs.find((full) => full.id === n.npcId) ?? null
 const { editing, busy, error, open, submit, remove } = useCampaignItemForm(() => props.campaign.id, 'npcs', () => emit('changed'), 'Retirer ce PNJ de la campagne ?')
 
 function edit(n?: CampaignNpc) {

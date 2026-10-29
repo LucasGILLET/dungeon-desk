@@ -43,7 +43,7 @@
           <button type="button" class="ui-btn-primary" :disabled="saving || notes === (npc.notes ?? '')" @click="saveNotes">
             {{ saved ? 'Enregistré' : 'Enregistrer les notes' }}
           </button>
-          <button type="button" class="ui-btn-danger ml-auto" @click="$emit('delete', npc.id)">Supprimer le PNJ</button>
+          <button v-if="deletable" type="button" class="ui-btn-danger ml-auto" @click="$emit('delete', npc.id)">Supprimer le PNJ</button>
         </div>
       </div>
     </section>
@@ -54,7 +54,8 @@
 import { computed, ref } from 'vue'
 import { useNpcStore } from '@/stores/npc'
 
-const props = defineProps<{ npc: any }>()
+// Depuis une campagne : pas de suppression (le PNJ sert peut-être ailleurs)
+const props = withDefaults(defineProps<{ npc: any; deletable?: boolean }>(), { deletable: true })
 defineEmits<{ (e: 'close'): void; (e: 'delete', id: number): void }>()
 
 const ABILITIES = [

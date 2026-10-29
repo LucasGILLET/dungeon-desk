@@ -9,6 +9,9 @@ vi.mock('@/stores/auth', () => ({ useAuthStore: () => ({ isAuthenticated: true }
 // Personnages de l'utilisateur connecté (MJ ou joueur)
 const mine = vi.hoisted(() => ({ characters: [] as { id: number; name: string; level: number }[] }))
 vi.mock('@/stores/character', () => ({ useCharacterStore: () => ({ fetchCharacters: vi.fn(async () => mine.characters) }) }))
+// PNJ enregistrés par le MJ (générateur)
+const npcs = vi.hoisted(() => [{ id: 7, name: 'Thorek du clan Brisefer', profession: 'Forgeron', race: 'dwarf', names: { race: 'Nain', alignment: 'Loyal bon' }, gender: 'MALE', age: 120, personality: 'Bourru', abilityScores: { str: 15 }, notes: null }])
+vi.mock('@/stores/npc', () => ({ useNpcStore: () => ({ npcs, fetchNpcs: vi.fn(async () => npcs), updateNpc: vi.fn() }) }))
 vi.mock('@/api/campaigns', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/api/campaigns')>()
   return { ...actual, campaignsApi: { get: vi.fn() } }
@@ -26,9 +29,9 @@ const campaign = (role: 'GM' | 'PLAYER'): Campaign => ({
   encounters: [],
 })
 
-async function mountAs(role: 'GM' | 'PLAYER', tab?: string) {
+async function mountAs(role: 'GM' | 'PLAYER', tab?: string, changes: Partial<Campaign> = {}) {
   const { campaignsApi } = await import('@/api/campaigns')
-  vi.mocked(campaignsApi.get).mockResolvedValue(campaign(role))
+  vi.mocked(campaignsApi.get).mockResolvedValue({ ...campaign(role), ...changes })
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
@@ -78,5 +81,20 @@ describe('CampaignView', () => {
     const player = await mountAs('PLAYER')
     expect(player.text()).toContain('Compagnon')
     expect(player.find('a[href="/character/12"]').exists()).toBe(false)
+  })
+
+  it("opens the full sheet of a campaign's NPC, without deleting it from there", async () => {
+    const npc = { id: 3, npcId: 7, name: 'Thorek du clan Brisefer', profession: 'Forgeron', race: 'Nain', class: null, role: 'Informateur', location: 'Phandaline', notes: null }
+    const wrapper = await mountAs('GM', 'npcs', { npcs: [npc] })
+
+    await wrapper.find('button[aria-label="Voir la fiche de Thorek du clan Brisefer"]').trigger('click')
+    const dialog = wrapper.find('[role="dialog"]')
+    expect(dialog.text()).toContain('Nain')
+    expect(dialog.text()).toContain('Bourru')
+    expect(dialog.text()).toContain('120 ans')
+    expect(dialog.text()).not.toContain('Supprimer le PNJ')
+
+    await dialog.find('button[aria-label="Fermer"]').trigger('click')
+    expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
   })
 })
