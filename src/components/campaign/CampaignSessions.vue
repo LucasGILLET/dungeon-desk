@@ -15,6 +15,7 @@
       </div>
       <label class="ui-label">Résumé (Markdown, visible des joueurs)<textarea v-model="form.summary" rows="6" class="ui-input"></textarea></label>
       <label class="ui-label">Notes du MJ (privées)<textarea v-model="form.gmNotes" rows="4" class="ui-input"></textarea></label>
+      <CampaignNpcPicker v-model="form.campaignNpcIds" :npcs="campaign.npcs" label="PNJ rencontrés (privé)" />
       <FormActions :busy="busy" :error="error" :can-delete="editing !== 'new'" @cancel="editing = null" @delete="remove" />
     </form>
 
@@ -31,6 +32,7 @@
         </div>
       </header>
       <MarkdownText v-if="s.summary" :text="s.summary" class="mt-3 text-zinc-300" />
+      <p v-if="npcNames(s.campaignNpcIds)" class="mt-3 text-xs text-zinc-400">PNJ rencontrés : {{ npcNames(s.campaignNpcIds) }}</p>
       <div v-if="isGm && s.gmNotes" class="mt-4 rounded-2xl border border-red-900/40 bg-red-950/20 p-4">
         <p class="mb-2 text-[10px] uppercase tracking-[0.25em] text-red-300/70">Notes du MJ (privées)</p>
         <MarkdownText :text="s.gmNotes" class="text-sm text-zinc-300" />
@@ -42,9 +44,10 @@
 <script setup lang="ts">
 import { computed, reactive } from 'vue'
 import MarkdownText from '@/components/MarkdownText.vue'
+import CampaignNpcPicker from '@/components/campaign/CampaignNpcPicker.vue'
 import FormActions from '@/components/campaign/FormActions.vue'
 import { useCampaignItemForm } from '@/composables/useCampaignItemForm'
-import type { Campaign, CampaignSession } from '@/api/campaigns'
+import { campaignNpcNames, type Campaign, type CampaignSession } from '@/api/campaigns'
 
 const props = defineProps<{ campaign: Campaign }>()
 const emit = defineEmits<{ (e: 'changed'): void }>()
@@ -52,7 +55,8 @@ const emit = defineEmits<{ (e: 'changed'): void }>()
 const isGm = computed(() => props.campaign.role === 'GM')
 // Plus récente en premier
 const sessionsDesc = computed(() => [...props.campaign.sessions].sort((a, b) => b.number - a.number))
-const form = reactive({ number: 1, playedOn: '', title: '', summary: '', gmNotes: '' })
+const form = reactive({ number: 1, playedOn: '', title: '', summary: '', gmNotes: '', campaignNpcIds: [] as number[] })
+const npcNames = (ids: number[]) => campaignNpcNames(props.campaign, ids)
 const { editing, busy, error, open, submit, remove } = useCampaignItemForm(() => props.campaign.id, 'sessions', () => emit('changed'), 'Supprimer cette séance ?')
 
 const formatDate = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -60,12 +64,13 @@ const formatDate = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateStri
 function edit(s?: CampaignSession) {
   const next = Math.max(0, ...props.campaign.sessions.map((x) => x.number)) + 1
   Object.assign(form, s
-    ? { number: s.number, playedOn: s.playedOn ?? '', title: s.title ?? '', summary: s.summary ?? '', gmNotes: s.gmNotes ?? '' }
-    : { number: next, playedOn: new Date().toISOString().slice(0, 10), title: '', summary: '', gmNotes: '' })
+    ? { number: s.number, playedOn: s.playedOn ?? '', title: s.title ?? '', summary: s.summary ?? '', gmNotes: s.gmNotes ?? '', campaignNpcIds: [...s.campaignNpcIds] }
+    : { number: next, playedOn: new Date().toISOString().slice(0, 10), title: '', summary: '', gmNotes: '', campaignNpcIds: [] })
   open(s?.id)
 }
 
 const save = () => submit({
   number: form.number, playedOn: form.playedOn || null, title: form.title.trim() || null, summary: form.summary || null, gmNotes: form.gmNotes || null,
+  campaignNpcIds: form.campaignNpcIds,
 })
 </script>

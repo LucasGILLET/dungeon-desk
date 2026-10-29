@@ -33,6 +33,7 @@
       </div>
       <label class="ui-label">Récompense<input v-model="form.reward" maxlength="500" class="ui-input" placeholder="500 po et une épée +1" /></label>
       <label class="ui-label">Description (Markdown)<textarea v-model="form.description" rows="5" class="ui-input"></textarea></label>
+      <CampaignNpcPicker v-model="form.campaignNpcIds" :npcs="campaign.npcs" label="Autres PNJ mêlés à la quête (privé)" />
       <label class="flex items-center gap-2 text-sm text-zinc-300">
         <input v-model="form.revealed" type="checkbox" class="accent-amber-500" /> Révélée aux joueurs
       </label>
@@ -59,6 +60,7 @@
           <span v-if="q.giver">Confiée par {{ q.giver.name }}</span><span v-if="q.giver && q.reward"> · </span>
           <span v-if="q.reward">Récompense : {{ q.reward }}</span>
         </p>
+        <p v-if="npcNames(q.campaignNpcIds)" class="mt-1 text-xs text-zinc-400">PNJ : {{ npcNames(q.campaignNpcIds) }}</p>
       </article>
     </div>
   </section>
@@ -67,9 +69,10 @@
 <script setup lang="ts">
 import { computed, reactive } from 'vue'
 import MarkdownText from '@/components/MarkdownText.vue'
+import CampaignNpcPicker from '@/components/campaign/CampaignNpcPicker.vue'
 import FormActions from '@/components/campaign/FormActions.vue'
 import { useCampaignItemForm } from '@/composables/useCampaignItemForm'
-import { QUEST_DIFFICULTY_LABELS, QUEST_STATUS_LABELS, type Campaign, type Quest, type QuestDifficulty, type QuestStatus } from '@/api/campaigns'
+import { QUEST_DIFFICULTY_LABELS, QUEST_STATUS_LABELS, campaignNpcNames, type Campaign, type Quest, type QuestDifficulty, type QuestStatus } from '@/api/campaigns'
 
 const props = defineProps<{ campaign: Campaign }>()
 const emit = defineEmits<{ (e: 'changed'): void }>()
@@ -83,19 +86,20 @@ const STATUS_CLASSES: Record<QuestStatus, string> = {
 
 const isGm = computed(() => props.campaign.role === 'GM')
 const form = reactive({
-  title: '', description: '', status: 'ACTIVE' as QuestStatus, difficulty: '' as QuestDifficulty | '', reward: '', giverNpcId: null as number | null, revealed: false,
+  title: '', description: '', status: 'ACTIVE' as QuestStatus, difficulty: '' as QuestDifficulty | '', reward: '', giverNpcId: null as number | null, revealed: false, campaignNpcIds: [] as number[],
 })
+const npcNames = (ids: number[]) => campaignNpcNames(props.campaign, ids)
 const { editing, busy, error, open, submit, remove } = useCampaignItemForm(() => props.campaign.id, 'quests', () => emit('changed'), 'Supprimer cette quête ?')
 
 function edit(q?: Quest) {
   Object.assign(form, q
-    ? { title: q.title, description: q.description ?? '', status: q.status, difficulty: q.difficulty ?? '', reward: q.reward ?? '', giverNpcId: q.giver?.id ?? null, revealed: q.revealed }
-    : { title: '', description: '', status: 'ACTIVE', difficulty: '', reward: '', giverNpcId: null, revealed: false })
+    ? { title: q.title, description: q.description ?? '', status: q.status, difficulty: q.difficulty ?? '', reward: q.reward ?? '', giverNpcId: q.giver?.id ?? null, revealed: q.revealed, campaignNpcIds: [...q.campaignNpcIds] }
+    : { title: '', description: '', status: 'ACTIVE', difficulty: '', reward: '', giverNpcId: null, revealed: false, campaignNpcIds: [] })
   open(q?.id)
 }
 
 const save = () => submit({
   title: form.title.trim(), description: form.description || null, status: form.status, difficulty: form.difficulty || null,
-  reward: form.reward.trim() || null, giverNpcId: form.giverNpcId, revealed: form.revealed,
+  reward: form.reward.trim() || null, giverNpcId: form.giverNpcId, revealed: form.revealed, campaignNpcIds: form.campaignNpcIds,
 })
 </script>

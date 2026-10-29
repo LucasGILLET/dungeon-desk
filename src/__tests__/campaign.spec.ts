@@ -14,7 +14,7 @@ const npcs = vi.hoisted(() => [{ id: 7, name: 'Thorek du clan Brisefer', profess
 vi.mock('@/stores/npc', () => ({ useNpcStore: () => ({ npcs, fetchNpcs: vi.fn(async () => npcs), updateNpc: vi.fn() }) }))
 vi.mock('@/api/campaigns', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/api/campaigns')>()
-  return { ...actual, campaignsApi: { get: vi.fn() } }
+  return { ...actual, campaignsApi: { get: vi.fn(), save: vi.fn(async () => ({ id: 1 })) } }
 })
 
 const campaign = (role: 'GM' | 'PLAYER'): Campaign => ({
@@ -23,7 +23,7 @@ const campaign = (role: 'GM' | 'PLAYER'): Campaign => ({
   members: [{ userId: 1, name: 'Joueuse', isMe: role === 'PLAYER', joinedAt: '', character: { id: 9, name: 'Test moine', level: 3, race: 'Humain', classes: [{ name: 'Moine', level: 3 }] } }],
   gmCharacters: [{ id: 12, name: 'Compagnon', level: 2, race: 'Elfe', classes: [{ name: 'Rôdeur', level: 2 }] }],
   partyLevels: [3, 2],
-  sessions: [{ id: 1, number: 1, playedOn: '2026-10-10', title: 'Départ', summary: 'Résumé', gmNotes: role === 'GM' ? 'Secret' : null }],
+  sessions: [{ id: 1, number: 1, playedOn: '2026-10-10', title: 'Départ', summary: 'Résumé', gmNotes: role === 'GM' ? 'Secret' : null, campaignNpcIds: [] }],
   quests: [],
   npcs: [],
   encounters: [],
@@ -96,5 +96,31 @@ describe('CampaignView', () => {
 
     await dialog.find('button[aria-label="Fermer"]').trigger('click')
     expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
+  })
+
+  it('links NPCs of the campaign to a session, and shows where each NPC appears', async () => {
+    const { campaignsApi } = await import('@/api/campaigns')
+    const npc = (id: number, name: string) => ({ id, npcId: id + 10, name, profession: null, race: null, class: null, role: null, location: null, notes: null })
+    const wrapper = await mountAs('GM', 'sessions', { npcs: [npc(3, 'Thorek'), npc(4, 'Lia')] })
+
+    await wrapper.findAll('button').find((b) => b.text() === 'Modifier')!.trigger('click')
+    const lia = wrapper.findAll('fieldset label').find((l) => l.text() === 'Lia')!
+    await lia.find('input').setValue(true)
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+    expect(vi.mocked(campaignsApi.save).mock.calls[0]![2]).toMatchObject({ campaignNpcIds: [4] })
+
+    // Séance 1 avec Lia, quête confiée par Thorek
+    const quest = { id: 2, position: 0, title: 'La mine', description: null, status: 'ACTIVE' as const, difficulty: null, reward: null, revealed: false, giver: { id: 13, name: 'Thorek' }, campaignNpcIds: [4] }
+    const linked = await mountAs('GM', 'npcs', {
+      npcs: [npc(3, 'Thorek'), npc(4, 'Lia')],
+      sessions: [{ id: 1, number: 1, playedOn: null, title: null, summary: null, gmNotes: null, campaignNpcIds: [4] }],
+      quests: [quest],
+    })
+    const cards = linked.findAll('article').map((a) => a.text())
+    expect(cards[0]).toContain('Quête : La mine')
+    expect(cards[0]).not.toContain('Séance')
+    expect(cards[1]).toContain('Séance 1')
+    expect(cards[1]).toContain('Quête : La mine')
   })
 })

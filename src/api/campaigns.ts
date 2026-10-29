@@ -30,7 +30,16 @@ export interface CampaignMember {
   character: CampaignCharacter | null
 }
 export interface CampaignCharacter { id: number; name: string; level: number | null; race: string | null; classes: { name: string | null; level: number }[] }
-export interface CampaignSession { id: number; number: number; playedOn: string | null; title: string | null; summary: string | null; gmNotes: string | null }
+export interface CampaignSession {
+  id: number
+  number: number
+  playedOn: string | null
+  title: string | null
+  summary: string | null
+  gmNotes: string | null
+  // PNJ de la campagne rencontrés (id de CampaignNpc, MJ seulement)
+  campaignNpcIds: number[]
+}
 export interface Quest {
   id: number
   position: number
@@ -41,6 +50,8 @@ export interface Quest {
   reward: string | null
   revealed: boolean
   giver: { id: number; name: string } | null
+  // PNJ de la campagne mêlés à la quête (MJ seulement)
+  campaignNpcIds: number[]
 }
 export interface CampaignNpc {
   id: number
@@ -101,7 +112,7 @@ export interface CampaignInvite {
 }
 
 export interface CampaignInput { name: string; description?: string | null; theme?: string | null; status?: CampaignStatus }
-export interface SessionInput { number?: number; playedOn?: string | null; title?: string | null; summary?: string | null; gmNotes?: string | null }
+export interface SessionInput { number?: number; playedOn?: string | null; title?: string | null; summary?: string | null; gmNotes?: string | null; campaignNpcIds?: number[] }
 export interface QuestInput {
   title: string
   description?: string | null
@@ -110,6 +121,7 @@ export interface QuestInput {
   reward?: string | null
   giverNpcId?: number | null
   revealed?: boolean
+  campaignNpcIds?: number[]
 }
 export interface CampaignNpcInput { npcId: number; role?: string | null; location?: string | null; notes?: string | null }
 export interface EncounterInput {
@@ -243,6 +255,10 @@ export const inviteUrl = (code: string) => `${window.location.origin}/campaigns/
 export const CAMPAIGN_STATUS_LABELS: Record<CampaignStatus, string> = {
   PREPARATION: 'En préparation', ACTIVE: 'En cours', PAUSED: 'En pause', FINISHED: 'Terminée',
 }
+// « Thorek, Lia » : noms des PNJ de la campagne liés à une séance ou une quête
+export const campaignNpcNames = (campaign: Campaign, ids: number[]) =>
+  campaign.npcs.filter((n) => ids.includes(n.id)).map((n) => n.name).join(', ')
+
 export const QUEST_STATUS_LABELS: Record<QuestStatus, string> = { ACTIVE: 'En cours', COMPLETED: 'Réussie', FAILED: 'Échouée', PAUSED: 'En pause' }
 export const QUEST_DIFFICULTY_LABELS: Record<QuestDifficulty, string> = { EASY: 'Facile', MEDIUM: 'Moyenne', HARD: 'Difficile', DEADLY: 'Mortelle' }
 export const ENCOUNTER_DIFFICULTY_LABELS: Record<EncounterDifficulty, string> = {

@@ -296,6 +296,8 @@ export const loadAbilityScores = () => get<ApiAbilityScore[]>('ability-scores')
 export const loadCreationRules = () => get<ApiCreationRules>('rules')
 export const loadNpcTables = () => get<ApiNpcTables>('npc-tables')
 export const loadAlignments = () => get<(Ref & { abbreviation: string })[]>('alignments')
+// Classes sans leur détail (listes de choix)
+export const loadClassRefs = () => get<Ref[]>('classes')
 
 // --- Bestiaire et objets magiques ------------------------------------------------------
 

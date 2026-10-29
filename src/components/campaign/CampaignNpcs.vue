@@ -43,10 +43,12 @@
           <span v-if="n.role">{{ n.role }}</span><span v-if="n.role && n.location"> · </span><span v-if="n.location" class="text-zinc-400">{{ n.location }}</span>
         </p>
         <p v-if="n.notes" class="mt-2 whitespace-pre-line text-sm text-zinc-400">{{ n.notes }}</p>
+        <p v-for="line in appearances(n)" :key="line" class="mt-2 text-xs text-zinc-500">{{ line }}</p>
       </article>
     </div>
 
-    <NpcDetailModal v-if="opened" :npc="opened" :deletable="false" @close="opened = null" />
+    <!-- Fiche modifiée : nom, métier… de la carte rechargés -->
+    <NpcDetailModal v-if="opened" :npc="opened" :deletable="false" @close="opened = null" @updated="emit('changed')" />
   </section>
 </template>
 
@@ -68,6 +70,15 @@ const available = computed(() => myNpcs.value.filter((n) => !props.campaign.npcs
 const form = reactive({ npcId: 0, role: '', location: '', notes: '' })
 // Fiche complète du PNJ (celle du générateur), depuis la liste du MJ : à jour après ses notes
 const opened = ref<any>(null)
+// « Séances 1, 3 » · « Quêtes : La mine perdue » (donneur ou PNJ mêlé)
+function appearances(n: CampaignNpc): string[] {
+  const sessions = props.campaign.sessions.filter((s) => s.campaignNpcIds.includes(n.id)).map((s) => s.number).sort((a, b) => a - b)
+  const quests = props.campaign.quests.filter((q) => q.campaignNpcIds.includes(n.id) || q.giver?.id === n.npcId).map((q) => q.title)
+  return [
+    sessions.length ? `${sessions.length > 1 ? 'Séances' : 'Séance'} ${sessions.join(', ')}` : '',
+    quests.length ? `${quests.length > 1 ? 'Quêtes' : 'Quête'} : ${quests.join(', ')}` : '',
+  ].filter(Boolean)
+}
 const fullNpc = (n: CampaignNpc) => npcStore.npcs.find((full) => full.id === n.npcId) ?? null
 const { editing, busy, error, open, submit, remove } = useCampaignItemForm(() => props.campaign.id, 'npcs', () => emit('changed'), 'Retirer ce PNJ de la campagne ?')
 
