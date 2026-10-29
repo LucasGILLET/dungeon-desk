@@ -58,6 +58,7 @@
                   <span class="min-w-0 flex-1 truncate">
                     <span class="font-medium">{{ r.name }}</span>
                     <span v-if="r.matched" class="ml-2 text-xs text-zinc-500">{{ r.matched }}</span>
+                    <span v-if="r.mine" class="ml-2 rounded-full border border-violet-400/30 bg-violet-400/10 px-1.5 py-0.5 text-[10px] font-semibold text-violet-200">Maison</span>
                   </span>
                   <span v-if="resultDetail(r)" class="shrink-0 text-xs text-zinc-500">{{ resultDetail(r) }}</span>
                   <svg v-if="!resultLink(r)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" :class="['h-4 w-4 shrink-0 self-center text-zinc-500 transition-transform', expanded === key(r) && 'rotate-180']" aria-hidden="true">

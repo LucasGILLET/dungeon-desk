@@ -9,7 +9,7 @@ import { groupResults, resultDetail, resultLink } from '@/utils/searchFormat'
 vi.mock('@/api/search', () => ({ searchSrd: vi.fn() }))
 
 const result = (kind: SearchResult['kind'], index: string, name: string, extra: Partial<SearchResult> = {}): SearchResult =>
-  ({ kind, index, name, matched: null, detail: null, text: null, score: 1, ...extra })
+  ({ kind, index, name, matched: null, detail: null, text: null, score: 1, mine: false, ...extra })
 
 const RESULTS = [
   result('spell', 'fireball', 'Boule de feu', { matched: 'Fireball', detail: '3' }),
@@ -33,6 +33,8 @@ describe('search results', () => {
     expect(resultLink(RESULTS[0]!)).toBe('/sort/fireball')
     expect(resultLink(result('rule', 'cover', 'Abri'))).toEqual({ name: 'rules', query: { section: 'cover' } })
     expect(resultLink(RESULTS[3]!)).toBeNull()
+    // Monstre maison de l'utilisateur connecté : sa page à lui
+    expect(resultLink(result('monster', 'orza-6ed062', 'Orza', { mine: true }))).toBe('/my-monsters/orza-6ed062')
   })
 })
 

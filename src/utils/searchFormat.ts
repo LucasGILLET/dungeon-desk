@@ -24,7 +24,7 @@ export function resultDetail(r: SearchResult): string | null {
 export function resultLink(r: SearchResult): RouteLocationRaw | null {
   switch (r.kind) {
     case 'spell': return `/sort/${r.index}`
-    case 'monster': return `/bestiary/${r.index}`
+    case 'monster': return r.mine ? `/my-monsters/${r.index}` : `/bestiary/${r.index}`
     case 'magic-item': return `/magic-items/${r.index}`
     case 'rule': return { name: 'rules', query: { section: r.index } }
     case 'guide': return { name: 'documentation', query: { section: r.index } }
