@@ -70,8 +70,9 @@
           <!-- Header info: Name, Title, Basic ID -->
           <div class="flex flex-col md:flex-row justify-between items-start border-b border-zinc-800 pb-6 mb-6">
             <div>
-              <h2 class="text-4xl font-serif text-white font-bold mb-2 tracking-tight">
-                {{ npc.firstName }} <span class="text-emerald-200/80">{{ npc.lastName }}</span>
+              <!-- Forme du nom propre à la race (clan d'abord chez les drakéides…) -->
+              <h2 class="text-3xl sm:text-4xl font-serif text-white font-bold mb-2 tracking-tight wrap-break-word">
+                {{ npc.fullName }}
               </h2>
               <div class="flex flex-wrap gap-2 items-center text-sm mt-2">
                 <span class="px-3 py-1 rounded-full bg-zinc-800 text-zinc-300 font-semibold border border-zinc-700">

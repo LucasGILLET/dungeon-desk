@@ -1,8 +1,9 @@
 // Génération de PNJ à partir des tables de l'API (/srd/:edition/npc-tables) :
-// prénoms et noms par race, professions, manies… La race est tirée selon sa
-// fréquence, la taille et le poids selon son profil.
+// professions, manies… Le nom est généré selon les sonorités de la race
+// (npcNames), la race tirée selon sa fréquence, la taille et le poids selon son profil.
 import type { NpcInput } from '@/api/generated/model/npcInput'
 import type { ApiNpcTables } from './dataLoader'
+import { generateNpcName } from './npcNames'
 
 export interface NpcRace {
   index: string
@@ -23,6 +24,8 @@ const ABILITIES = [['FOR', 'str'], ['DEX', 'dex'], ['CON', 'con'], ['INT', 'int'
 export interface GeneratedNPC {
   firstName: string
   lastName: string
+  // Dans la forme de la race : « Thorek du clan Brisefer »
+  fullName: string
   race: NpcRef
   class: NpcRef | null
   gender: GenderCode
@@ -60,23 +63,9 @@ export function weightedPick<T>(items: T[], weight: (item: T) => number, random:
   return items.at(-1)
 }
 
-const entries = (tables: ApiNpcTables, kind: string, race: string | null = null) =>
-  (tables[kind] ?? []).filter((e) => e.race === race)
-const pickText = (tables: ApiNpcTables, kind: string, random: Random, race: string | null = null) =>
-  weightedPick(entries(tables, kind, race), (e) => e.weight, random)?.text ?? ''
-
-function firstName(tables: ApiNpcTables, race: string, random: Random) {
-  // Une fois sur deux un prénom de la race (s'il y en a), sinon des syllabes
-  if (random() > 0.5 && entries(tables, 'FIRST_NAME', race).length) return pickText(tables, 'FIRST_NAME', random, race)
-  const name = `${pickText(tables, 'NAME_PREFIX', random)}${pickText(tables, 'NAME_SUFFIX', random)}`
-  return name.replace(/^\w/, (c) => c.toUpperCase())
-}
-
-function lastName(tables: ApiNpcTables, race: string, random: Random) {
-  if (entries(tables, 'LAST_NAME', race).length) return pickText(tables, 'LAST_NAME', random, race)
-  // Pas de nom de famille pour la race (demi-orcs…) : un nom commun, ou aucun
-  return random() > 0.5 ? pickText(tables, 'LAST_NAME', random) : ''
-}
+// Entrées communes à toutes les races
+const pickText = (tables: ApiNpcTables, kind: string, random: Random) =>
+  weightedPick((tables[kind] ?? []).filter((e) => e.race === null), (e) => e.weight, random)?.text ?? ''
 
 function age(random: Random) {
   const roll = random()
@@ -113,8 +102,7 @@ export function generateNpc(options: {
   const event = pickText(options.tables, 'HISTORY_EVENT', random)
 
   return {
-    firstName: firstName(options.tables, race.index, random),
-    lastName: lastName(options.tables, race.index, random),
+    ...generateNpcName(race.index, gender.code, random),
     race: { index: race.index, name: race.name },
     class: cls ? { index: cls.index, name: cls.name } : null,
     gender: gender.code,
@@ -141,7 +129,7 @@ export function generateNpc(options: {
 // PNJ généré → format d'échange de l'API
 export function toNpcInput(npc: GeneratedNPC): NpcInput {
   return {
-    name: [npc.firstName, npc.lastName].filter(Boolean).join(' '),
+    name: npc.fullName,
     firstName: npc.firstName || null,
     lastName: npc.lastName || null,
     race: npc.race.index,
