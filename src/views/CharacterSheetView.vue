@@ -100,7 +100,8 @@
           <button type="button" :aria-pressed="tabbed" :class="['rounded-md px-2 py-1', tabbed ? 'bg-zinc-800 text-zinc-100' : 'hover:text-zinc-200']" @click="setLayout('tabs')">Onglets</button>
         </div>
       </div>
-      <fieldset :id="tabbed ? 'sheet-tabpanel' : undefined" :role="tabbed ? 'tabpanel' : undefined" :aria-labelledby="tabbed ? `sheet-tab-${tab}` : undefined" :disabled="readOnly" class="m-0 min-w-0 space-y-6 border-0 p-0">
+      <fieldset :id="tabbed ? 'sheet-tabpanel' : undefined" :role="tabbed ? 'tabpanel' : undefined" :aria-labelledby="tabbed ? `sheet-tab-${tab}` : undefined" :disabled="readOnly" class="m-0 min-w-0 space-y-6 border-0 p-0"
+        @touchstart.passive="swipe.onTouchStart" @touchend="swipe.onTouchEnd" @touchcancel="swipe.onTouchCancel">
       <div :class="['grid grid-cols-1 gap-6', tabbed ? 'lg:grid-cols-2 items-start' : 'lg:grid-cols-3']">
         <!-- Colonne 1 : caractéristiques, sauvegardes, compétences -->
         <div :class="tabbed ? 'contents' : 'space-y-6'">
@@ -405,6 +406,7 @@ import {
   type ApiClass, type ApiCondition, type ApiSkill,
 } from '@/utils/dataLoader'
 import { usePdfExport } from '@/composables/usePdfExport'
+import { useSwipe } from '@/composables/useSwipe'
 import { toSheetPdfData } from '@/utils/sheetPdf'
 import {
   applyDamage, currentHp, heal, longRest, pruneRejected, removeLastLevel, setDeathSave, setFeatureUsed, setSlotsUsed, setTemporaryHp, shortRest, slotsUsed, spendHitDie, toggleCondition,
@@ -531,6 +533,13 @@ function moveTab(step: 1 | -1) {
   selectTab(next.key)
   nextTick(() => document.getElementById(`sheet-tab-${next.key}`)?.focus())
 }
+// Au doigt : glisser vers la gauche montre l'onglet suivant, sans boucler aux extrémités
+const swipe = useSwipe((direction) => {
+  if (!tabbed.value) return
+  const list = visibleTabs.value
+  const next = list[list.findIndex((t) => t.key === tab.value) - direction]
+  if (next) selectTab(next.key)
+})
 const shows = (key: SheetTab) => !tabbed.value || tab.value === key
 
 // --- Relecture : PV changés par le MJ dans un combat -----------------------------------

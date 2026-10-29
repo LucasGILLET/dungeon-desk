@@ -369,4 +369,28 @@ describe('CharacterSheetView', () => {
     expect(visible('Combat')).toBe(false)
     localStorage.removeItem('dungeon-desk:sheet-layout')
   })
+
+  it('changes tab with a horizontal swipe, not while scrolling or at the ends', async () => {
+    localStorage.setItem('dungeon-desk:sheet-layout', 'tabs')
+    const wrapper = await mountSheet()
+    const panel = wrapper.find('[role="tabpanel"]')
+    const swipe = async (dx: number, dy = 0) => {
+      await panel.trigger('touchstart', { touches: [{ clientX: 200, clientY: 300 }] })
+      await panel.trigger('touchend', { changedTouches: [{ clientX: 200 + dx, clientY: 300 + dy }] })
+      await flushPromises()
+    }
+    const onglet = () => wrapper.router.currentRoute.value.query.onglet
+
+    await swipe(100) // vers la droite depuis le premier onglet : rien avant
+    expect(onglet()).toBeUndefined()
+    await swipe(-100)
+    expect(onglet()).toBe('carac')
+    await swipe(-90, 120) // défilement vertical
+    expect(onglet()).toBe('carac')
+    await swipe(-30) // trop court
+    expect(onglet()).toBe('carac')
+    await swipe(100)
+    expect(onglet()).toBeUndefined()
+    localStorage.removeItem('dungeon-desk:sheet-layout')
+  })
 })
