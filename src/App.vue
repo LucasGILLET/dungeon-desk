@@ -4,6 +4,8 @@ import { onBeforeUnmount, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import AppNavigation from '@/components/AppNavigation.vue'
 import DiceRollerPanel from '@/components/DiceRollerPanel.vue'
+import GlobalSearch from '@/components/search/GlobalSearch.vue'
+import { openGlobalSearch } from '@/composables/useGlobalSearch'
 import { openDiceRoller } from '@/composables/useDiceRoller'
 import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
@@ -37,6 +39,14 @@ function handleOpenDiceRoller() {
 function handleKeydown(event: KeyboardEvent) {
   const target = event.target as HTMLElement | null
   const isTypingField = Boolean(target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) || target?.isContentEditable
+
+  // Ctrl+K (Cmd+K sur Mac) : recherche globale, même depuis un champ
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+    event.preventDefault()
+    closeMobileMenu()
+    openGlobalSearch()
+    return
+  }
 
   if (event.key === 'Escape' && isMobileMenuOpen.value) {
     closeMobileMenu()
@@ -78,6 +88,7 @@ onBeforeUnmount(() => {
     <RouterView />
   </main>
   <DiceRollerPanel />
+  <GlobalSearch />
 
   <Teleport to="body">
     <Transition name="global-menu">
@@ -146,6 +157,18 @@ onBeforeUnmount(() => {
       </div>
     </Transition>
   </Teleport>
+
+  <button
+    type="button"
+    class="fixed right-17 top-4 z-110 flex items-center justify-center rounded-full border border-amber-500/30 bg-zinc-900/90 p-3 text-amber-500 shadow-lg shadow-black/50 backdrop-blur-sm transition-all hover:scale-110 hover:bg-zinc-800 hover:text-amber-400 xl:hidden print:hidden"
+    title="Rechercher"
+    aria-label="Rechercher"
+    @click="openGlobalSearch"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  </button>
 
   <button
     type="button"

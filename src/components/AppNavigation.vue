@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '@/stores/auth'
 import DiceRollerTrigger from '@/components/DiceRollerTrigger.vue'
+import { openGlobalSearch } from '@/composables/useGlobalSearch'
 import { navigationGroups } from '@/config/navigation'
 
 const authStore = useAuthStore()
@@ -87,6 +88,18 @@ watch(
         </div>
 
         <div class="hidden xl:flex items-center gap-2 sm:gap-4 shrink-0">
+          <button
+            type="button"
+            class="inline-flex items-center gap-3 rounded-full border border-white/10 bg-zinc-900/90 py-2 pl-3 pr-2 text-sm text-zinc-400 transition-colors hover:border-amber-500/40 hover:text-zinc-200"
+            title="Rechercher (Ctrl+K)"
+            @click="openGlobalSearch"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 text-amber-500" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <span>Rechercher</span>
+            <kbd class="rounded-md border border-white/10 px-1.5 py-0.5 font-sans text-[10px] text-zinc-500">Ctrl K</kbd>
+          </button>
           <DiceRollerTrigger variant="inline" />
           <template v-if="!isAuthenticated">
             <button @click="authStore.login()" class="text-amber-100/70 hover:text-amber-400 font-serif tracking-wider transition-colors text-xs sm:text-sm uppercase">Connexion</button>
